@@ -1,0 +1,71 @@
+{
+    "cNodeID": "ABCD1234",
+    "t_s": 1000,
+    "Types": {
+        "wBool": true,
+        "wUInt8": 8,
+        "wInt8": -8,
+        "wUInt16": 16,
+        "wInt16": -16,
+        "wUInt32": 32,
+        "wInt32": -32,
+        "wUInt64": 64,
+        "wInt64": -64,
+        "wFloat": -3.2,
+        "wDecFrac": -0.32,
+        "wString": "string",
+        "wBytes": "bytes"
+    },
+    "Arrays": {
+        "wBool": [true],
+        "wUInt8": [1, 2, 3],
+        "wInt8": [-1, -2, -3],
+        "wUInt16": [1, 2, 3],
+        "wInt16": [-1, -2, -3],
+        "wUInt32": [1, 2, 3],
+        "wInt32": [-1, -2, -3],
+        "wUInt64": [1, 2, 3],
+        "wInt64": [-1, -2, -3],
+        "wFloat": [-1.1, -2.2, -3.3],
+        "wDecFrac": [-0.32]
+    },
+    "Exec": {
+        "xVoid": [],
+        "xVoidParams": ["lBool"],
+        "xI32Params": ["uString", "nNumber"]
+    },
+    "Access": {
+        "rItem": 3.14,
+        "wItem": 3.14
+    },
+    "Records": [
+        {
+            "wBool": true,
+            "wUInt8": 8,
+            "wInt8": -8,
+            "wUInt16": 16,
+            "wInt16": -16,
+            "wUInt32": 32,
+            "wInt32": -32,
+            "wUInt64": 64,
+            "wInt64": -64,
+            "wFloat": -3.2,
+            "wDecFrac": -0.32,
+            "wString": "string"
+        }
+    ],
+    "Nested": {
+        "rBeginning": 1,
+        "Obj1": {
+            "rItem1_V": 1.1,
+            "rItem2_V": 1.2
+        },
+        "rBetween": 2,
+        "Obj2": {
+            "rItem1_V": 2.1,
+            "rItem2_V": 2.2
+        },
+        "rEnd": 3
+    },
+    "mLive": ["t_s","Types/wBool", "Nested/rBeginning", "Nested/Obj2/rItem2_V"]
+}

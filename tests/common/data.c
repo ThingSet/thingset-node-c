@@ -1,0 +1,345 @@
+/*
+ * Copyright (c) The ThingSet Project Contributors
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <zephyr/kernel.h>
+
+#include "thingset/thingset.h"
+
+#define SUBSET_LIVE (1U << 0)
+
+/* Pre-defined data items */
+static char node_id[] = "ABCD1234";
+static uint32_t timestamp = 1000;
+
+/* Types */
+static bool b = true;
+static uint8_t u8 = 8;
+static int8_t i8 = -8;
+static uint16_t u16 = 16;
+static int16_t i16 = -16;
+static uint32_t u32 = 32;
+static int32_t i32 = -32;
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+static uint64_t u64 = 64;
+static int64_t i64 = -64;
+#endif
+static float f32 = -3.2F;
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+static int32_t decfrac = -32;
+#endif
+static char strbuf[300] = "string";
+static uint8_t bytes_buf[18] = "bytes";
+static THINGSET_DEFINE_BYTES(bytes_item, bytes_buf, 0);
+
+/*
+ * Arrays
+ */
+static bool bool_arr[100] = { true, false, true };
+static THINGSET_DEFINE_BOOL_ARRAY(bool_arr_item, bool_arr, 3);
+
+static uint8_t u8_arr[100] = { 1, 2, 3 };
+static THINGSET_DEFINE_UINT8_ARRAY(u8_arr_item, u8_arr, 3);
+
+static int8_t i8_arr[100] = { -1, -2, -3 };
+static THINGSET_DEFINE_INT8_ARRAY(i8_arr_item, i8_arr, 3);
+
+static uint16_t u16_arr[100] = { 1, 2, 3 };
+static THINGSET_DEFINE_UINT16_ARRAY(u16_arr_item, u16_arr, 3);
+
+static int16_t i16_arr[100] = { -1, -2, -3 };
+static THINGSET_DEFINE_INT16_ARRAY(i16_arr_item, i16_arr, 3);
+
+static uint32_t u32_arr[100] = { 1, 2, 3 };
+static THINGSET_DEFINE_UINT32_ARRAY(u32_arr_item, u32_arr, 3);
+
+static int32_t i32_arr[100] = { -1, -2, -3 };
+static THINGSET_DEFINE_INT32_ARRAY(i32_arr_item, i32_arr, 3);
+
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+static uint64_t u64_arr[100] = { 1, 2, 3 };
+static THINGSET_DEFINE_UINT64_ARRAY(u64_arr_item, u64_arr, 3);
+
+static int64_t i64_arr[100] = { -1, -2, -3 };
+static THINGSET_DEFINE_INT64_ARRAY(i64_arr_item, i64_arr, 3);
+#endif
+
+static float f32_arr[100] = { -1.1, -2.2, -3.3 };
+static THINGSET_DEFINE_FLOAT_ARRAY(f32_arr_item, f32_arr, 1, 3);
+
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+static int32_t decfrac_arr[100] = { -32 };
+static THINGSET_DEFINE_DECFRAC_ARRAY(decfrac_arr_item, decfrac_arr, 2, 1);
+#endif
+
+/* Exec */
+static void fn_void()
+{
+    ; /* do nothing */
+}
+
+static bool fn_void_param_b;
+static void fn_void_params()
+{
+    ; /* do nothing */
+}
+
+static char fn_i32_param_str[100];
+static int32_t fn_i32_param_num;
+static int32_t fn_i32_params()
+{
+    return 1;
+}
+
+/* Access */
+static float access_item;
+
+/*
+ * Records
+ */
+struct test_struct
+{
+    uint32_t timestamp;
+    uint8_t unused_element;
+    bool b;
+    uint8_t u8;
+    int8_t i8;
+    uint16_t u16;
+    int16_t i16;
+    uint32_t u32;
+    int32_t i32;
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+    uint64_t u64;
+    int64_t i64;
+#endif
+    float f32;
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+    int32_t decfrac;
+#endif
+    char strbuf[300];
+};
+
+static struct test_struct records[5] = {
+    {
+        .timestamp = 1,
+        .unused_element = 0xFF,
+    },
+    {
+        .timestamp = 2,
+    },
+};
+
+THINGSET_DEFINE_RECORDS(records_obj, records, 2);
+
+/* Nested */
+static int32_t nested_beginning = 1;
+static float nested_obj1_item1 = 1.1F;
+static float nested_obj1_item2 = 1.2F;
+static int32_t nested_between = 2;
+static float nested_obj2_item1 = 2.1F;
+static float nested_obj2_item2 = 2.2F;
+static int32_t nested_end = 3;
+
+/*
+ * Global data object definitions using iterable sections.
+ */
+
+/* Pre-defined data items */
+THINGSET_ADD_ITEM_UINT32(THINGSET_ID_ROOT, 0x10, "t_s", &timestamp, THINGSET_ANY_RW, SUBSET_LIVE);
+THINGSET_ADD_ITEM_STRING(THINGSET_ID_ROOT, 0x1D, "cNodeID", node_id, sizeof(node_id),
+                         THINGSET_ANY_R | THINGSET_MFR_W, 0);
+
+/* Types */
+THINGSET_ADD_GROUP(THINGSET_ID_ROOT, 0x200, "Types", THINGSET_NO_CALLBACK);
+THINGSET_ADD_ITEM_BOOL(0x200, 0x201, "wBool", &b, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_UINT8(0x200, 0x202, "wU8", &u8, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_INT8(0x200, 0x203, "wI8", &i8, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_UINT16(0x200, 0x204, "wU16", &u16, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_INT16(0x200, 0x205, "wI16", &i16, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_UINT32(0x200, 0x206, "wU32", &u32, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_INT32(0x200, 0x207, "wI32", &i32, THINGSET_ANY_RW, 0);
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+THINGSET_ADD_ITEM_UINT64(0x200, 0x208, "wU64", &u64, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_INT64(0x200, 0x209, "wI64", &i64, THINGSET_ANY_RW, 0);
+#endif
+THINGSET_ADD_ITEM_FLOAT(0x200, 0x20A, "wF32", &f32, 1, THINGSET_ANY_RW, 0);
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+THINGSET_ADD_ITEM_DECFRAC(0x200, 0x20B, "wDecFrac", &decfrac, 2, THINGSET_ANY_RW, 0);
+#endif
+THINGSET_ADD_ITEM_STRING(0x200, 0x20C, "wString", strbuf, sizeof(strbuf), THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_BYTES(0x200, 0x20D, "wBytes", &bytes_item, THINGSET_ANY_RW, 0);
+
+/* Types */
+THINGSET_ADD_GROUP(THINGSET_ID_ROOT, 0x300, "Types", THINGSET_NO_CALLBACK);
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x301, "wBool", &bool_arr_item, THINGSET_ANY_RW, SUBSET_LIVE);
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x302, "wU8", &u8_arr_item, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x303, "wI8", &i8_arr_item, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x304, "wU16", &u16_arr_item, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x305, "wI16", &i16_arr_item, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x306, "wU32", &u32_arr_item, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x307, "wI32", &i32_arr_item, THINGSET_ANY_RW, 0);
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x308, "wU64", &u64_arr_item, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x309, "wI64", &i64_arr_item, THINGSET_ANY_RW, 0);
+#endif
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x30A, "wF32", &f32_arr_item, THINGSET_ANY_RW, 0);
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x30B, "wDecFrac", &decfrac_arr_item, THINGSET_ANY_RW, 0);
+#endif
+
+/* Exec */
+THINGSET_ADD_GROUP(THINGSET_ID_ROOT, 0x400, "Exec", THINGSET_NO_CALLBACK);
+THINGSET_ADD_FN_VOID(0x400, 0x401, "xVoid", &fn_void, THINGSET_ANY_RW);
+THINGSET_ADD_FN_VOID(0x400, 0x402, "xVoidParams", &fn_void_params, THINGSET_ANY_RW);
+THINGSET_ADD_ITEM_BOOL(0x402, 0x403, "lBool", &fn_void_param_b, THINGSET_ANY_RW, 0);
+THINGSET_ADD_FN_INT32(0x400, 0x404, "xI32Params", &fn_i32_params, THINGSET_ANY_RW);
+THINGSET_ADD_ITEM_STRING(0x404, 0x405, "uString", fn_i32_param_str, sizeof(fn_i32_param_str),
+                         THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_INT32(0x404, 0x406, "nNumber", &fn_i32_param_num, THINGSET_ANY_RW, 0);
+
+/* Access */
+THINGSET_ADD_GROUP(THINGSET_ID_ROOT, 0x500, "Access", THINGSET_NO_CALLBACK);
+THINGSET_ADD_ITEM_FLOAT(0x500, 0x501, "rItem", &access_item, 2, THINGSET_ANY_R, 0);
+THINGSET_ADD_ITEM_FLOAT(0x500, 0x502, "wItem", &access_item, 2, THINGSET_ANY_RW, 0);
+
+/* Records */
+THINGSET_ADD_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_R, 0);
+THINGSET_ADD_RECORD_ITEM_BOOL(0x600, 0x601, "wBool", struct test_struct, b);
+THINGSET_ADD_RECORD_ITEM_UINT8(0x600, 0x602, "wU8", struct test_struct, u8);
+THINGSET_ADD_RECORD_ITEM_INT8(0x600, 0x603, "wI8", struct test_struct, i8);
+THINGSET_ADD_RECORD_ITEM_UINT16(0x600, 0x604, "wU16", struct test_struct, u16);
+THINGSET_ADD_RECORD_ITEM_INT16(0x600, 0x605, "wI16", struct test_struct, i16);
+THINGSET_ADD_RECORD_ITEM_UINT32(0x600, 0x606, "wU32", struct test_struct, u32);
+THINGSET_ADD_RECORD_ITEM_INT32(0x600, 0x607, "wI32", struct test_struct, i32);
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+THINGSET_ADD_RECORD_ITEM_UINT64(0x600, 0x608, "wU64", struct test_struct, u64);
+THINGSET_ADD_RECORD_ITEM_INT64(0x600, 0x609, "wI64", struct test_struct, i64);
+#endif
+THINGSET_ADD_RECORD_ITEM_FLOAT(0x600, 0x60A, "wF32", struct test_struct, f32, 1);
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+THINGSET_ADD_RECORD_ITEM_DECFRAC(0x600, 0x60B, "wDecFrac", struct test_struct, decfrac, 2);
+#endif
+THINGSET_ADD_RECORD_ITEM_STRING(0x600, 0x60C, "wString", struct test_struct, strbuf,
+                                sizeof(records[0].strbuf));
+
+/* Nested */
+THINGSET_ADD_GROUP(THINGSET_ID_ROOT, 0x700, "Nested", THINGSET_NO_CALLBACK);
+THINGSET_ADD_ITEM_INT32(0x700, 0x701, "rBeginning", &nested_beginning, THINGSET_ANY_RW,
+                        SUBSET_LIVE);
+THINGSET_ADD_GROUP(0x700, 0x702, "Obj1", THINGSET_NO_CALLBACK);
+THINGSET_ADD_ITEM_FLOAT(0x702, 0x703, "rItem1_V", &nested_obj1_item1, 1, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_FLOAT(0x702, 0x704, "rItem2_V", &nested_obj1_item2, 1, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_INT32(0x700, 0x705, "rBetween", &nested_between, THINGSET_ANY_RW, 0);
+THINGSET_ADD_GROUP(0x700, 0x706, "Obj2", THINGSET_NO_CALLBACK);
+THINGSET_ADD_ITEM_FLOAT(0x706, 0x707, "rItem1_V", &nested_obj2_item1, 1, THINGSET_ANY_RW, 0);
+THINGSET_ADD_ITEM_FLOAT(0x706, 0x708, "rItem2_V", &nested_obj2_item2, 1, THINGSET_ANY_RW,
+                        SUBSET_LIVE);
+THINGSET_ADD_ITEM_INT32(0x700, 0x709, "rBetween", &nested_end, THINGSET_ANY_RW, 0);
+
+/* Subset */
+THINGSET_ADD_SUBSET(THINGSET_ID_ROOT, 0x800, "mLive", SUBSET_LIVE, 0);
+
+/*
+ * Same data objects defined using data object array macros.
+ */
+
+struct thingset_data_object data_objects[] = {
+    /* Pre-defined data items */
+    THINGSET_ITEM_UINT32(THINGSET_ID_ROOT, 0x10, "t_s", &timestamp, THINGSET_ANY_RW, SUBSET_LIVE),
+    THINGSET_ITEM_STRING(THINGSET_ID_ROOT, 0x1D, "cNodeID", node_id, sizeof(node_id),
+                         THINGSET_ANY_R | THINGSET_MFR_W, 0),
+
+    /* Types */
+    THINGSET_GROUP(THINGSET_ID_ROOT, 0x200, "Types", THINGSET_NO_CALLBACK),
+    THINGSET_ITEM_BOOL(0x200, 0x201, "wBool", &b, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_UINT8(0x200, 0x202, "wU8", &u8, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_INT8(0x200, 0x203, "wI8", &i8, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_UINT16(0x200, 0x204, "wU16", &u16, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_INT16(0x200, 0x205, "wI16", &i16, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_UINT32(0x200, 0x206, "wU32", &u32, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_INT32(0x200, 0x207, "wI32", &i32, THINGSET_ANY_RW, 0),
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+    THINGSET_ITEM_UINT64(0x200, 0x208, "wU64", &u64, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_INT64(0x200, 0x209, "wI64", &i64, THINGSET_ANY_RW, 0),
+#endif
+    THINGSET_ITEM_FLOAT(0x200, 0x20A, "wF32", &f32, 1, THINGSET_ANY_RW, 0),
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+    THINGSET_ITEM_DECFRAC(0x200, 0x20B, "wDecFrac", &decfrac, 2, THINGSET_ANY_RW, 0),
+#endif
+    THINGSET_ITEM_STRING(0x200, 0x20C, "wString", strbuf, sizeof(strbuf), THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_BYTES(0x200, 0x20D, "wBytes", &bytes_item, THINGSET_ANY_RW, 0),
+
+    /* Types */
+    THINGSET_GROUP(THINGSET_ID_ROOT, 0x300, "Types", THINGSET_NO_CALLBACK),
+    THINGSET_ITEM_ARRAY(0x300, 0x301, "wBool", &bool_arr_item, THINGSET_ANY_RW, SUBSET_LIVE),
+    THINGSET_ITEM_ARRAY(0x300, 0x302, "wU8", &u8_arr_item, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_ARRAY(0x300, 0x303, "wI8", &i8_arr_item, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_ARRAY(0x300, 0x304, "wU16", &u16_arr_item, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_ARRAY(0x300, 0x305, "wI16", &i16_arr_item, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_ARRAY(0x300, 0x306, "wU32", &u32_arr_item, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_ARRAY(0x300, 0x307, "wI32", &i32_arr_item, THINGSET_ANY_RW, 0),
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+    THINGSET_ITEM_ARRAY(0x300, 0x308, "wU64", &u64_arr_item, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_ARRAY(0x300, 0x309, "wI64", &i64_arr_item, THINGSET_ANY_RW, 0),
+#endif
+    THINGSET_ITEM_ARRAY(0x300, 0x30A, "wF32", &f32_arr_item, THINGSET_ANY_RW, 0),
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+    THINGSET_ITEM_ARRAY(0x300, 0x30B, "wDecFrac", &decfrac_arr_item, THINGSET_ANY_RW, 0),
+#endif
+
+    /* Exec */
+    THINGSET_GROUP(THINGSET_ID_ROOT, 0x400, "Exec", THINGSET_NO_CALLBACK),
+    THINGSET_FN_VOID(0x400, 0x401, "xVoid", &fn_void, THINGSET_ANY_RW),
+    THINGSET_FN_VOID(0x400, 0x402, "xVoidParams", &fn_void_params, THINGSET_ANY_RW),
+    THINGSET_ITEM_BOOL(0x402, 0x403, "lBool", &fn_void_param_b, THINGSET_ANY_RW, 0),
+    THINGSET_FN_INT32(0x400, 0x404, "xI32Params", &fn_i32_params, THINGSET_ANY_RW),
+    THINGSET_ITEM_STRING(0x404, 0x405, "uString", fn_i32_param_str, sizeof(fn_i32_param_str),
+                         THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_INT32(0x404, 0x406, "nNumber", &fn_i32_param_num, THINGSET_ANY_RW, 0),
+
+    /* Access */
+    THINGSET_GROUP(THINGSET_ID_ROOT, 0x500, "Access", THINGSET_NO_CALLBACK),
+    THINGSET_ITEM_FLOAT(0x500, 0x501, "rItem", &access_item, 2, THINGSET_ANY_R, 0),
+    THINGSET_ITEM_FLOAT(0x500, 0x502, "wItem", &access_item, 2, THINGSET_ANY_RW, 0),
+
+    /* Records */
+    THINGSET_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_R, 0),
+    THINGSET_RECORD_ITEM_BOOL(0x600, 0x601, "wBool", struct test_struct, b),
+    THINGSET_RECORD_ITEM_UINT8(0x600, 0x602, "wU8", struct test_struct, u8),
+    THINGSET_RECORD_ITEM_INT8(0x600, 0x603, "wI8", struct test_struct, i8),
+    THINGSET_RECORD_ITEM_UINT16(0x600, 0x604, "wU16", struct test_struct, u16),
+    THINGSET_RECORD_ITEM_INT16(0x600, 0x605, "wI16", struct test_struct, i16),
+    THINGSET_RECORD_ITEM_UINT32(0x600, 0x606, "wU32", struct test_struct, u32),
+    THINGSET_RECORD_ITEM_INT32(0x600, 0x607, "wI32", struct test_struct, i32),
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+    THINGSET_RECORD_ITEM_UINT64(0x600, 0x608, "wU64", struct test_struct, u64),
+    THINGSET_RECORD_ITEM_INT64(0x600, 0x609, "wI64", struct test_struct, i64),
+#endif
+    THINGSET_RECORD_ITEM_FLOAT(0x600, 0x60A, "wF32", struct test_struct, f32, 1),
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+    THINGSET_RECORD_ITEM_DECFRAC(0x600, 0x60B, "wDecFrac", struct test_struct, decfrac, 2),
+#endif
+    THINGSET_RECORD_ITEM_STRING(0x600, 0x60C, "wString", struct test_struct, strbuf,
+                                sizeof(records[0].strbuf)),
+
+    /* Nested */
+    THINGSET_GROUP(THINGSET_ID_ROOT, 0x700, "Nested", THINGSET_NO_CALLBACK),
+    THINGSET_ITEM_INT32(0x700, 0x701, "rBeginning", &nested_beginning, THINGSET_ANY_RW,
+                        SUBSET_LIVE),
+    THINGSET_GROUP(0x700, 0x702, "Obj1", THINGSET_NO_CALLBACK),
+    THINGSET_ITEM_FLOAT(0x702, 0x703, "rItem1_V", &nested_obj1_item1, 1, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_FLOAT(0x702, 0x704, "rItem2_V", &nested_obj1_item2, 1, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_INT32(0x700, 0x705, "rBetween", &nested_between, THINGSET_ANY_RW, 0),
+    THINGSET_GROUP(0x700, 0x706, "Obj2", THINGSET_NO_CALLBACK),
+    THINGSET_ITEM_FLOAT(0x706, 0x707, "rItem1_V", &nested_obj2_item1, 1, THINGSET_ANY_RW, 0),
+    THINGSET_ITEM_FLOAT(0x706, 0x708, "rItem2_V", &nested_obj2_item2, 1, THINGSET_ANY_RW,
+                        SUBSET_LIVE),
+    THINGSET_ITEM_INT32(0x700, 0x709, "rBetween", &nested_end, THINGSET_ANY_RW, 0),
+
+    /* Subset */
+    THINGSET_SUBSET(THINGSET_ID_ROOT, 0x800, "mLive", SUBSET_LIVE, 0),
+};
+
+size_t data_objects_size = ARRAY_SIZE(data_objects);

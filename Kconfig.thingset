@@ -1,0 +1,53 @@
+# Copyright (c) The ThingSet Project Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+config THINGSET
+	bool "ThingSet Node Library"
+	help
+	  Enable the ThingSet node library.
+
+if THINGSET
+
+config THINGSET_IMMUTABLE_OBJECTS
+	bool "Make data objects immutable and store them in ROM"
+	default n
+	help
+	  This option adds const specifiers to the data object structs and stores them in iterable
+	  sections in ROM instead of RAM.
+
+	  The data itself still resides in RAM, only the pointers, object names, etc. are stored in
+	  ROM, as they are not changed anyways.
+
+	  The only disadvantage of this option is that no elements can be added to or removed from
+	  subsets via the protocol anymore, as this information is now stored in read-only memory.
+
+	  Possible future improvement: Store only subset information in RAM and the rest in ROM.
+
+config THINGSET_64BIT_TYPES_SUPPORT
+	bool "Enable support for 64 bit variable types."
+	default n
+	help
+	  Switch on support for 64 bit variable types (uint64_t, int64_t, double).
+	  This should be disabled for most 8-bit microcontrollers to increase performance.
+
+config THINGSET_DECFRAC_TYPE_SUPPORT
+	bool "Enable support for decimal fraction variable type."
+	default n
+	help
+	  Switch on support for CBOR decimal fraction data type which stores a decimal mantissa
+	  and a constant decimal exponent. This allows to use e.g. millivolts internally instead
+	  of floating point numbers, while still communicating the SI base unit (volts).
+
+config THINGSET_BYTES_TYPE_SUPPORT
+	bool "Enable support for byte buffer variable type."
+	select BASE64
+	default n
+	help
+	  Switch on support for CBOR byte strings, which can store any sort of binary data and
+	  can be used e.g. for firmware upgrades. JSON uses base64-encoded data.
+
+module = THINGSET
+module-str = thingset
+source "subsys/logging/Kconfig.template.log_config"
+
+endif

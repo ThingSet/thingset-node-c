@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: Apache-2.0
+
+manifest:
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+    - name: libresolar
+      url-base: https://github.com/LibreSolar
+
+  projects:
+    - name: zephyr
+      # libresolar fork including 56327 and #56868
+      remote: libresolar
+      revision: v3.3-branch
+      import:
+        name-allowlist:
+          - edtt
