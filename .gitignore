@@ -1,0 +1,13 @@
+# Zephyr build folders
+build
+twister-out*
+
+# Editors
+.vscode/*
+!.vscode/c_cpp_properties.json
+*.swp
+*~
+
+# Backup files
+*.bak
+*_bak
