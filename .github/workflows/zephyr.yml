@@ -1,0 +1,31 @@
+name: Zephyr testing
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: zephyrprojectrtos/ci:latest
+    env:
+      CMAKE_PREFIX_PATH: /opt/toolchains
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: thingset-node-c
+
+      - name: Initialize
+        working-directory: thingset-node-c
+        run: |
+          west init -l .
+          west update
+
+      - name: Trailing whitespace check
+        working-directory: thingset-node-c
+        run: |
+          git diff --check `git rev-list HEAD | tail -n 1`..
+
+      - name: Run unit-tests
+        working-directory: thingset-node-c
+        run: |
+          ../zephyr/scripts/twister --integration --testsuite-root ./tests -v
