@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+
+tests:
+  thingset.cpp:
+    integration_platforms:
+      - native_posix
+    extra_args: EXTRA_CFLAGS=-Wno-error
