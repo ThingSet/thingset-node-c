@@ -14,6 +14,17 @@ extern "C" {
 #endif
 
 /**
+ * Fill the rsp buffer with a CBOR response status message.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param code Numeric status code.
+ * @param msg Optional diagnostic error message (pass NULL if not used)
+ *
+ * @returns Length of status message in buffer or 0 in case of error.
+ */
+int thingset_bin_response(struct thingset_context *ts, int code, const char *msg, ...);
+
+/**
  * Fill the rsp buffer with a JSON response status message.
  *
  * @param ts Pointer to ThingSet context.
