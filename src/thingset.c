@@ -5,6 +5,7 @@
  */
 
 #include "thingset/thingset.h"
+#include "thingset_internal.h"
 
 #include <zephyr/logging/log.h>
 #include <zephyr/toolchain/common.h>
@@ -58,27 +59,36 @@ int thingset_process_request(struct thingset_context *ts, const uint8_t *req, si
     ts->rsp = rsp;
     ts->rsp_size = rsp_size;
 
+    /* ordered with expected highest probability first */
     switch (ts->req[0]) {
         case THINGSET_TXT_GET_FETCH:
-        case THINGSET_TXT_EXEC:
-        case THINGSET_TXT_DELETE:
-        case THINGSET_TXT_CREATE:
+            return thingset_txt_get_fetch(ts);
         case THINGSET_TXT_UPDATE:
+            return thingset_txt_update(ts);
         case THINGSET_TXT_DESIRE:
-            LOG_INF("text request: %c", ts->req[0]);
-            return snprintf(rsp, rsp_size, ":%0X", THINGSET_ERR_NOT_IMPLEMENTED);
+            return thingset_txt_desire(ts);
+        case THINGSET_TXT_EXEC:
+            return thingset_txt_exec(ts);
+        case THINGSET_TXT_CREATE:
+            return thingset_txt_create(ts);
+        case THINGSET_TXT_DELETE:
+            return thingset_txt_delete(ts);
         case THINGSET_BIN_GET:
-        case THINGSET_BIN_EXEC:
-        case THINGSET_BIN_DELETE:
+            return thingset_bin_get(ts);
         case THINGSET_BIN_FETCH:
-        case THINGSET_BIN_CREATE:
+            return thingset_bin_fetch(ts);
         case THINGSET_BIN_UPDATE:
+            return thingset_bin_update(ts);
         case THINGSET_BIN_DESIRE:
-            LOG_INF("binary request: 0x%2X", ts->req[0]);
-            rsp[1] = THINGSET_ERR_NOT_IMPLEMENTED;
-            return 1;
+            return thingset_bin_desire(ts);
+        case THINGSET_BIN_EXEC:
+            return thingset_bin_exec(ts);
+        case THINGSET_BIN_CREATE:
+            return thingset_bin_create(ts);
+        case THINGSET_BIN_DELETE:
+            return thingset_bin_delete(ts);
         default:
-            /* not a thingset command: ignore and set response to empty string */
+            /* not a ThingSet request: ignore and set response to empty string */
             rsp[0] = '\0';
             return 0;
     }

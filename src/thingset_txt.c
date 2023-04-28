@@ -36,3 +36,33 @@ int thingset_txt_response(struct thingset_context *ts, int code, const char *msg
         return 0;
     }
 }
+
+int thingset_txt_get_fetch(struct thingset_context *ts)
+{
+    return thingset_txt_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
+
+int thingset_txt_update(struct thingset_context *ts)
+{
+    return thingset_txt_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
+
+int thingset_txt_desire(struct thingset_context *ts)
+{
+    return thingset_txt_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
+
+int thingset_txt_exec(struct thingset_context *ts)
+{
+    return thingset_txt_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
+
+int thingset_txt_create(struct thingset_context *ts)
+{
+    return thingset_txt_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
+
+int thingset_txt_delete(struct thingset_context *ts)
+{
+    return thingset_txt_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}

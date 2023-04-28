@@ -8,6 +8,8 @@
 
 #include "../../src/thingset_internal.h"
 
+#include "test_utils.h"
+
 static struct thingset_context ts;
 
 ZTEST(thingset_txt, test_response)
@@ -28,6 +30,62 @@ ZTEST(thingset_txt, test_response)
     len = thingset_txt_response(&ts, 0x84, NULL);
     zassert_equal(len, strlen(rsp_changed));
     zassert_mem_equal(ts.rsp, rsp_changed, strlen(ts.rsp), "act: %s\nexp: %s", ts.rsp, rsp_changed);
+}
+
+ZTEST(thingset_txt, test_get_root)
+{
+    const char req[] = "?";
+    const char rsp_exp[] = ":C1"; /* not yet implemented */
+
+    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+}
+
+ZTEST(thingset_txt, test_fetch_root_names)
+{
+    const char req[] = "? null";
+    const char rsp_exp[] = ":C1"; /* not yet implemented */
+
+    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+}
+
+ZTEST(thingset_txt, test_update_timestamp_zero)
+{
+    const char req[] = "=t_s 0";
+    const char rsp_exp[] = ":C1"; /* not yet implemented */
+
+    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+}
+
+ZTEST(thingset_txt, test_desire_timestamp_zero)
+{
+    const char req[] = "@t_s 0";
+    const char rsp_exp[] = ":C1"; /* not yet implemented */
+
+    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+}
+
+ZTEST(thingset_txt, test_exec)
+{
+    const char req[] = "!";       /* invalid request */
+    const char rsp_exp[] = ":C1"; /* not yet implemented */
+
+    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+}
+
+ZTEST(thingset_txt, test_create)
+{
+    const char req[] = "+";       /* invalid request */
+    const char rsp_exp[] = ":C1"; /* not yet implemented */
+
+    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+}
+
+ZTEST(thingset_txt, test_delete)
+{
+    const char req[] = "-";       /* invalid request */
+    const char rsp_exp[] = ":C1"; /* not yet implemented */
+
+    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
 }
 
 static void *thingset_setup(void)

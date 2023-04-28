@@ -24,3 +24,38 @@ int thingset_bin_response(struct thingset_context *ts, int code, const char *msg
         return 0;
     }
 }
+
+int thingset_bin_get(struct thingset_context *ts)
+{
+    return thingset_bin_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
+
+int thingset_bin_fetch(struct thingset_context *ts)
+{
+    return thingset_bin_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
+
+int thingset_bin_update(struct thingset_context *ts)
+{
+    return thingset_bin_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
+
+int thingset_bin_desire(struct thingset_context *ts)
+{
+    return thingset_bin_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
+
+int thingset_bin_exec(struct thingset_context *ts)
+{
+    return thingset_bin_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
+
+int thingset_bin_create(struct thingset_context *ts)
+{
+    return thingset_bin_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
+
+int thingset_bin_delete(struct thingset_context *ts)
+{
+    return thingset_bin_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+}
