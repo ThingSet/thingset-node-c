@@ -22,7 +22,7 @@ ZTEST(thingset_bin, test_response)
     ts.rsp = act;
     ts.rsp_size = sizeof(act);
 
-    len = thingset_bin_response(&ts, 0x84, NULL);
+    len = thingset_bin_serialize_response(&ts, 0x84, NULL);
     zassert_equal(len, sizeof(rsp_changed));
     zassert_mem_equal(ts.rsp, rsp_changed, sizeof(rsp_changed));
 }
@@ -51,14 +51,6 @@ ZTEST(thingset_bin, test_update_timestamp_zero)
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
 
-ZTEST(thingset_bin, test_desire_timestamp_zero)
-{
-    const char req_hex[] = "1D 10 00";
-    const char rsp_exp_hex[] = "C1 F6 F6"; /* not yet implemented */
-
-    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
-}
-
 ZTEST(thingset_bin, test_exec)
 {
     const char req_hex[] = "02 00 00";     /* invalid request */
@@ -81,6 +73,14 @@ ZTEST(thingset_bin, test_delete)
     const char rsp_exp_hex[] = "C1 F6 F6"; /* not yet implemented */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_desire_timestamp_zero)
+{
+    const char des_hex[] = "1D 10 00";
+    const int err_exp = -THINGSET_ERR_NOT_IMPLEMENTED;
+
+    THINGSET_ASSERT_DESIRE_HEX(des_hex, err_exp);
 }
 
 static void *thingset_setup(void)

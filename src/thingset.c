@@ -47,26 +47,40 @@ void thingset_init_global(struct thingset_context *ts)
     STRUCT_SECTION_COUNT(thingset_data_object, &ts->num_objects);
 }
 
-int thingset_process_request(struct thingset_context *ts, const uint8_t *req, size_t req_len,
+int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, size_t msg_len,
                              uint8_t *rsp, size_t rsp_size)
 {
-    if (req == NULL || req_len < 1) {
-        return 0;
+    if (msg == NULL || msg_len < 1) {
+        return -THINGSET_ERR_BAD_REQUEST;
     }
 
-    ts->req = req;
-    ts->req_len = req_len;
+    ts->msg = msg;
+    ts->msg_len = msg_len;
+    ts->msg_pos = 0;
+
+    /* desires (without response) */
+    if (ts->msg[0] == THINGSET_TXT_DESIRE) {
+        return thingset_txt_desire(ts);
+    }
+    else if (ts->msg[0] == THINGSET_BIN_DESIRE) {
+        return thingset_bin_desire(ts);
+    }
+
+    if (rsp == NULL || rsp_size < 4) {
+        /* response buffer with at least 4 bytes required to fit minimum response */
+        return -THINGSET_ERR_INTERNAL_SERVER_ERR;
+    }
+
     ts->rsp = rsp;
     ts->rsp_size = rsp_size;
+    ts->rsp_pos = 0;
 
-    /* ordered with expected highest probability first */
-    switch (ts->req[0]) {
+    /* requests ordered with expected highest probability first */
+    switch (ts->msg[0]) {
         case THINGSET_TXT_GET_FETCH:
             return thingset_txt_get_fetch(ts);
         case THINGSET_TXT_UPDATE:
             return thingset_txt_update(ts);
-        case THINGSET_TXT_DESIRE:
-            return thingset_txt_desire(ts);
         case THINGSET_TXT_EXEC:
             return thingset_txt_exec(ts);
         case THINGSET_TXT_CREATE:
@@ -79,8 +93,6 @@ int thingset_process_request(struct thingset_context *ts, const uint8_t *req, si
             return thingset_bin_fetch(ts);
         case THINGSET_BIN_UPDATE:
             return thingset_bin_update(ts);
-        case THINGSET_BIN_DESIRE:
-            return thingset_bin_desire(ts);
         case THINGSET_BIN_EXEC:
             return thingset_bin_exec(ts);
         case THINGSET_BIN_CREATE:
@@ -88,8 +100,6 @@ int thingset_process_request(struct thingset_context *ts, const uint8_t *req, si
         case THINGSET_BIN_DELETE:
             return thingset_bin_delete(ts);
         default:
-            /* not a ThingSet request: ignore and set response to empty string */
-            rsp[0] = '\0';
-            return 0;
+            return -THINGSET_ERR_BAD_REQUEST;
     }
 }

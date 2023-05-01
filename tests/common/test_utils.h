@@ -15,7 +15,7 @@
         char req_hex[THINGSET_TEST_BUF_SIZE]; \
         char rsp_act_hex[THINGSET_TEST_BUF_SIZE]; \
         char rsp_exp_hex[THINGSET_TEST_BUF_SIZE]; \
-        int rsp_act_len = thingset_process_request(&ts, req, req_len, rsp_act, sizeof(rsp_act)); \
+        int rsp_act_len = thingset_process_message(&ts, req, req_len, rsp_act, sizeof(rsp_act)); \
         bin2hex_spaced(req, req_len, req_hex, sizeof(req_hex)); \
         bin2hex_spaced(rsp_act, rsp_act_len, rsp_act_hex, sizeof(rsp_act_hex)); \
         bin2hex_spaced(rsp_exp, rsp_exp_len, rsp_exp_hex, sizeof(rsp_exp_hex)); \
@@ -33,7 +33,7 @@
         char rsp_act_hex[THINGSET_TEST_BUF_SIZE]; \
         int req_len = hex2bin_spaced(req_hex, req, sizeof(req)); \
         int rsp_exp_len = hex2bin_spaced(rsp_exp_hex, rsp_exp, sizeof(rsp_exp)); \
-        int rsp_act_len = thingset_process_request(&ts, req, req_len, rsp_act, sizeof(rsp_act)); \
+        int rsp_act_len = thingset_process_message(&ts, req, req_len, rsp_act, sizeof(rsp_act)); \
         bin2hex_spaced(rsp_act, rsp_act_len, rsp_act_hex, sizeof(rsp_act_hex)); \
         zassert_true(rsp_exp_len > 0 && rsp_act_len > 0); \
         zassert_mem_equal(rsp_exp, rsp_act, rsp_exp_len, "act: %s\nexp: %s", rsp_act_hex, \
@@ -41,15 +41,32 @@
         zassert_equal(rsp_act_len, rsp_exp_len, "act: %d, exp: %d", rsp_act_len, rsp_exp_len); \
     }
 
+#define THINGSET_ASSERT_DESIRE_HEX(des_hex, err_exp) \
+    { \
+        uint8_t des[THINGSET_TEST_BUF_SIZE]; \
+        uint8_t rsp_act[THINGSET_TEST_BUF_SIZE]; \
+        int des_len = hex2bin_spaced(des_hex, des, sizeof(des)); \
+        int err_act = thingset_process_message(&ts, des, des_len, rsp_act, sizeof(rsp_act)); \
+        zassert_equal(err_exp, err_act, "act: %d, exp: %d", err_act, err_exp); \
+    }
+
 #define THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp) \
     { \
         uint8_t rsp_act[THINGSET_TEST_BUF_SIZE]; \
         int req_len = strlen(req); \
         int rsp_exp_len = strlen(rsp_exp); \
-        int rsp_act_len = thingset_process_request(&ts, req, req_len, rsp_act, sizeof(rsp_act)); \
+        int rsp_act_len = thingset_process_message(&ts, req, req_len, rsp_act, sizeof(rsp_act)); \
         zassert_true(rsp_exp_len > 0 && rsp_act_len > 0); \
         zassert_mem_equal(rsp_exp, rsp_act, rsp_exp_len, "act: %s\nexp: %s", rsp_act, rsp_exp); \
         zassert_equal(rsp_act_len, rsp_exp_len, "act: %d, exp: %d", rsp_act_len, rsp_exp_len); \
+    }
+
+#define THINGSET_ASSERT_DESIRE_TXT(des, err_exp) \
+    { \
+        uint8_t rsp_act[THINGSET_TEST_BUF_SIZE]; \
+        int des_len = strlen(des); \
+        int err_act = thingset_process_message(&ts, des, des_len, rsp_act, sizeof(rsp_act)); \
+        zassert_equal(err_exp, err_act, "act: %d, exp: %d", err_act, err_exp); \
     }
 
 size_t hex2bin_spaced(const char *hex, uint8_t *bin, size_t bin_size);

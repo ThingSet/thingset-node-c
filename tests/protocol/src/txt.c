@@ -23,11 +23,11 @@ ZTEST(thingset_txt, test_response)
     ts.rsp = act;
     ts.rsp_size = sizeof(act);
 
-    len = thingset_txt_response(&ts, 0xA0, "test message %d", 1);
+    len = thingset_txt_serialize_response(&ts, 0xA0, "test message %d", 1);
     zassert_equal(len, strlen(rsp_err));
     zassert_mem_equal(ts.rsp, rsp_err, strlen(ts.rsp), "act: %s\nexp: %s", ts.rsp, rsp_err);
 
-    len = thingset_txt_response(&ts, 0x84, NULL);
+    len = thingset_txt_serialize_response(&ts, 0x84, NULL);
     zassert_equal(len, strlen(rsp_changed));
     zassert_mem_equal(ts.rsp, rsp_changed, strlen(ts.rsp), "act: %s\nexp: %s", ts.rsp, rsp_changed);
 }
@@ -56,14 +56,6 @@ ZTEST(thingset_txt, test_update_timestamp_zero)
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
 }
 
-ZTEST(thingset_txt, test_desire_timestamp_zero)
-{
-    const char req[] = "@t_s 0";
-    const char rsp_exp[] = ":C1"; /* not yet implemented */
-
-    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
-}
-
 ZTEST(thingset_txt, test_exec)
 {
     const char req[] = "!";       /* invalid request */
@@ -86,6 +78,14 @@ ZTEST(thingset_txt, test_delete)
     const char rsp_exp[] = ":C1"; /* not yet implemented */
 
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+}
+
+ZTEST(thingset_txt, test_desire_timestamp_zero)
+{
+    const char des[] = "@t_s 0";
+    const int err_exp = -THINGSET_ERR_NOT_IMPLEMENTED;
+
+    THINGSET_ASSERT_DESIRE_TXT(des, err_exp);
 }
 
 static void *thingset_setup(void)

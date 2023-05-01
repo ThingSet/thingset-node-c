@@ -65,6 +65,9 @@ extern "C" {
 /* Status codes (ThingSet specific errors) */
 #define THINGSET_ERR_RESPONSE_TOO_LARGE 0xE1
 
+#define THINGET_ERROR(code)   (code >= 0xA0)
+#define THINGET_SUCCESS(code) (code >= 0x80 && code < 0xA0)
+
 /* Reserved data object IDs */
 #define THINGSET_ID_ROOT        0x00
 #define THINGSET_ID_TIME        0x10
@@ -662,17 +665,22 @@ struct thingset_context
     size_t num_objects;
 
     /**
-     * Pointer to request buffer (provided by process function)
+     * Pointer to the incoming message buffer (request or desire, provided by process function)
      */
-    const uint8_t *req;
+    const uint8_t *msg;
 
     /**
-     * Length of the request
+     * Length of the incoming message
      */
-    size_t req_len;
+    size_t msg_len;
 
     /**
-     * Pointer to response buffer (provided by process function)
+     * Position in the message currently being parsed
+     */
+    size_t msg_pos;
+
+    /**
+     * Pointer to the response buffer (provided by process function)
      */
     uint8_t *rsp;
 
@@ -680,6 +688,12 @@ struct thingset_context
      * Size of response buffer (i.e. maximum length)
      */
     size_t rsp_size;
+
+    /**
+     * Current position inside the response (equivalent to length of the response at end of
+     * processing)
+     */
+    size_t rsp_pos;
 };
 
 /**
@@ -703,20 +717,21 @@ void thingset_init(struct thingset_context *ts, struct thingset_data_object *obj
 void thingset_init_global(struct thingset_context *ts);
 
 /**
- * Process ThingSet request.
+ * Process ThingSet request or desire.
  *
- * This function also detects if JSON or CBOR format is used
+ * This function also detects if text mode (JSON) or binary mode (CBOR) is used.
  *
  * @param ts Pointer to ThingSet context.
- * @param req Pointer to the received ThingSet request or desire
- * @param req_len Length of the received data
+ * @param msg Pointer to the ThingSet message (request or desire)
+ * @param msg_len Length of the message
  * @param rsp Pointer to the buffer where the response should be stored (if any)
  * @param rsp_size Size of the response buffer
  *
- * @returns Actual length of the response written to the buffer or 0 in case of error or if no
- *          response message has been generated (e.g. because a desire was processed)
+ * @retval Length of the response written to the buffer after processing a request
+ * @retval 0 if the message was empty or a desire was processed successfully (no response)
+ * @retval Negative ThingSet response code if a desire could not be processed successfully
  */
-int thingset_process_request(struct thingset_context *ts, const uint8_t *req, size_t req_len,
+int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, size_t msg_len,
                              uint8_t *rsp, size_t rsp_size);
 
 #ifdef __cplusplus
