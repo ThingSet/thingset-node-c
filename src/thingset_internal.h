@@ -56,10 +56,47 @@ int thingset_txt_serialize_response(struct thingset_context *ts, uint8_t code, c
  * @param path Relative path with multiple object names separated by forward slash.
  * @param len Length of the entire path.
  *
- * @returns 0 if successful or negative ThingSet error code to be reported
+ * @return 0 if successful or negative ThingSet error code to be reported
  */
 int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpoint *endpoint,
                               const char *path, size_t len);
+
+/**
+ * Get the child object from a provided parent ID and the child name.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param parent_id ID of the parent object.
+ * @param name Child name.
+ * @param len Length of the entire path.
+ *
+ * @return Pointer to the data object or NULL in case of error
+ */
+struct thingset_data_object *thingset_get_child_by_name(struct thingset_context *ts,
+                                                        uint16_t parent_id, const char *name,
+                                                        size_t len);
+
+/**
+ * Get the object by ID.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param id ID of the object.
+ *
+ * @return Pointer to the data object or NULL in case of error
+ */
+struct thingset_data_object *thingset_get_object_by_id(struct thingset_context *ts, uint16_t id);
+
+/**
+ * Serialize the relative path of an object into the provided buffer
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param buf Pointer to the buffer.
+ * @param size Size of the buffer.
+ * @param id Pointer to the object to get the path of.
+ *
+ * @return Length of the path or negative ThingSet response code in case of error
+ */
+int thingset_serialize_path(struct thingset_context *ts, char *buf, size_t size,
+                            const struct thingset_data_object *obj);
 
 /**
  * Process text mode GET/FETCH request.

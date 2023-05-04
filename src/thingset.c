@@ -37,6 +37,7 @@ void thingset_init(struct thingset_context *ts, struct thingset_data_object *obj
 
     ts->data_objects = objects;
     ts->num_objects = num_objects;
+    ts->auth_flags = THINGSET_USR_MASK;
 }
 
 void thingset_init_global(struct thingset_context *ts)
@@ -45,6 +46,7 @@ void thingset_init_global(struct thingset_context *ts)
 
     ts->data_objects = TYPE_SECTION_START(thingset_data_object);
     STRUCT_SECTION_COUNT(thingset_data_object, &ts->num_objects);
+    ts->auth_flags = THINGSET_USR_MASK;
 }
 
 int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, size_t msg_len,
@@ -104,9 +106,9 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
     }
 }
 
-static struct thingset_data_object *thingset_get_child_by_name(struct thingset_context *ts,
-                                                               uint16_t parent_id, const char *name,
-                                                               size_t len)
+struct thingset_data_object *thingset_get_child_by_name(struct thingset_context *ts,
+                                                        uint16_t parent_id, const char *name,
+                                                        size_t len)
 {
     for (unsigned int i = 0; i < ts->num_objects; i++) {
         if (ts->data_objects[i].parent_id == parent_id
@@ -114,6 +116,17 @@ static struct thingset_data_object *thingset_get_child_by_name(struct thingset_c
             // without length check foo and fooBar would be recognized as equal
             && strlen(ts->data_objects[i].name) == len)
         {
+            return &(ts->data_objects[i]);
+        }
+    }
+
+    return NULL;
+}
+
+struct thingset_data_object *thingset_get_object_by_id(struct thingset_context *ts, uint16_t id)
+{
+    for (unsigned int i = 0; i < ts->num_objects; i++) {
+        if (ts->data_objects[i].id == id) {
             return &(ts->data_objects[i]);
         }
     }
@@ -187,4 +200,36 @@ int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpo
     }
 
     return 0;
+}
+
+int thingset_serialize_path(struct thingset_context *ts, char *buf, size_t size,
+                            const struct thingset_data_object *obj)
+{
+    int pos = 0;
+    if (obj->parent_id != 0) {
+        struct thingset_data_object *parent_obj = thingset_get_object_by_id(ts, obj->parent_id);
+        if (parent_obj == NULL) {
+            return -THINGSET_ERR_NOT_FOUND;
+        }
+
+        /*
+         * Recursive implementation acceptable because the depth is automatically limited by actual
+         * data structure nesting depth.
+         */
+        pos = thingset_serialize_path(ts, buf, size, parent_obj);
+        if (pos < 0) {
+            /* propagate errors back */
+            return pos;
+        }
+        buf[pos++] = '/';
+    }
+
+    pos += snprintf(buf + pos, size - pos, "%s", obj->name);
+
+    if (pos < size) {
+        return pos;
+    }
+    else {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
 }
