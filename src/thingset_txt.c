@@ -10,7 +10,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-int thingset_txt_serialize_response(struct thingset_context *ts, int code, const char *msg, ...)
+int thingset_txt_serialize_response(struct thingset_context *ts, uint8_t code, const char *msg, ...)
 {
     va_list vargs;
 

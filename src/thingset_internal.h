@@ -33,7 +33,8 @@ struct thingset_endpoint
  *
  * @return Length of response
  */
-int thingset_bin_serialize_response(struct thingset_context *ts, int code, const char *msg, ...);
+int thingset_bin_serialize_response(struct thingset_context *ts, uint8_t code, const char *msg,
+                                    ...);
 
 /**
  * Fill the rsp buffer with a JSON response status message.
@@ -44,7 +45,8 @@ int thingset_bin_serialize_response(struct thingset_context *ts, int code, const
  *
  * @return Length of response
  */
-int thingset_txt_serialize_response(struct thingset_context *ts, int code, const char *msg, ...);
+int thingset_txt_serialize_response(struct thingset_context *ts, uint8_t code, const char *msg,
+                                    ...);
 
 /**
  * Get the endpoint from a provided path.

@@ -10,7 +10,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-int thingset_bin_serialize_response(struct thingset_context *ts, int code, const char *msg, ...)
+int thingset_bin_serialize_response(struct thingset_context *ts, uint8_t code, const char *msg, ...)
 {
     /** @todo Add support for custom messages */
 
