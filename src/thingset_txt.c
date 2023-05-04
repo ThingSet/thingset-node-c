@@ -4,11 +4,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/* this must be included before thingset.h */
+#include "jsmn.h"
+
 #include "thingset/thingset.h"
 #include "thingset_internal.h"
 
+#include <inttypes.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
+
+#if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
+#include <zephyr/sys/base64.h>
+#endif
 
 int thingset_txt_serialize_response(struct thingset_context *ts, uint8_t code, const char *msg, ...)
 {
@@ -36,9 +46,465 @@ int thingset_txt_serialize_response(struct thingset_context *ts, uint8_t code, c
     return ts->rsp_pos;
 }
 
+/**
+ * @returns Number of serialized bytes or negative ThingSet reponse code in case of error
+ */
+static int txt_serialize_simple_value(char *buf, size_t size, union thingset_data_pointer data,
+                                      int type, int detail)
+{
+    int pos;
+
+    switch (type) {
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+        case THINGSET_TYPE_U64:
+            pos = snprintf(buf, size, "%" PRIu64 ",", *data.u64);
+            break;
+        case THINGSET_TYPE_I64:
+            pos = snprintf(buf, size, "%" PRIi64 ",", *data.i64);
+            break;
+#endif
+        case THINGSET_TYPE_U32:
+            pos = snprintf(buf, size, "%" PRIu32 ",", *data.u32);
+            break;
+        case THINGSET_TYPE_I32:
+            pos = snprintf(buf, size, "%" PRIi32 ",", *data.i32);
+            break;
+        case THINGSET_TYPE_U16:
+            pos = snprintf(buf, size, "%" PRIu16 ",", *data.u16);
+            break;
+        case THINGSET_TYPE_I16:
+            pos = snprintf(buf, size, "%" PRIi16 ",", *data.i16);
+            break;
+        case THINGSET_TYPE_U8:
+            pos = snprintf(buf, size, "%" PRIu8 ",", *data.u8);
+            break;
+        case THINGSET_TYPE_I8:
+            pos = snprintf(buf, size, "%" PRIi8 ",", *data.i8);
+            break;
+        case THINGSET_TYPE_F32:
+            if (isnan(*data.f32) || isinf(*data.f32)) {
+                /* JSON spec does not support NaN and Inf, so we need to use null instead */
+                pos = snprintf(buf, size, "null,");
+                break;
+            }
+            else {
+                pos = snprintf(buf, size, "%.*f,", detail, *data.f32);
+                break;
+            }
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+        case THINGSET_TYPE_DECFRAC:
+            pos = snprintf(buf, size, "%" PRIi32 "e%" PRIi16 ",", *data.decfrac, -detail);
+            break;
+#endif
+        case THINGSET_TYPE_BOOL:
+            pos = snprintf(buf, size, "%s,", *data.b == true ? "true" : "false");
+            break;
+        case THINGSET_TYPE_STRING:
+            pos = snprintf(buf, size, "\"%s\",", data.str);
+            break;
+#if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
+        case THINGSET_TYPE_BYTES: {
+            size_t strlen;
+            int err = base64_encode((uint8_t *)buf + 1, size - 4, &strlen, data.bytes->bytes,
+                                    data.bytes->num_bytes);
+            if (err == 0) {
+                buf[0] = '\"';
+                buf[strlen + 1] = '\"';
+                buf[strlen + 2] = ',';
+                buf[strlen + 3] = '\0';
+                pos = strlen + 3;
+            }
+            else {
+                pos = snprintf(buf, size, "null,");
+            }
+            break;
+        }
+#endif
+        default:
+            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    }
+
+    if (pos >= 0 && pos < size) {
+        return pos;
+    }
+    else {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+}
+
+static int txt_serialize_value(struct thingset_context *ts, char *buf, size_t size,
+                               const struct thingset_data_object *object)
+{
+    int pos = txt_serialize_simple_value(buf, size, object->data, object->type, object->detail);
+
+    if (pos < 0) {
+        /* not a simple value */
+        if (object->type == THINGSET_TYPE_FN_VOID || object->type == THINGSET_TYPE_FN_I32) {
+            pos = snprintf(buf, size, "[");
+            for (unsigned int i = 0; i < ts->num_objects; i++) {
+                if (ts->data_objects[i].parent_id == object->id) {
+                    pos += snprintf(buf + pos, size - pos, "\"%s\",", ts->data_objects[i].name);
+                }
+            }
+            if (pos > 1) {
+                pos--; /* remove trailing comma */
+            }
+            pos += snprintf(buf + pos, size - pos, "],");
+        }
+        else if (object->type == THINGSET_TYPE_SUBSET) {
+            pos = snprintf(buf, size, "[");
+            for (unsigned int i = 0; i < ts->num_objects; i++) {
+                if (ts->data_objects[i].subsets & object->data.subset) {
+                    buf[pos++] = '"';
+                    pos += thingset_serialize_path(ts, buf + pos, size - pos, &ts->data_objects[i]);
+                    buf[pos++] = '"';
+                    buf[pos++] = ',';
+                }
+            }
+            if (pos > 1) {
+                pos--; /* remove trailing comma */
+            }
+            pos += snprintf(buf + pos, size - pos, "],");
+        }
+        else if (object->type == THINGSET_TYPE_ARRAY && object->data.array != NULL) {
+            struct thingset_array *array = object->data.array;
+            pos = snprintf(buf, size, "[");
+            size_t type_size = thingset_type_size(array->element_type);
+            for (int i = 0; i < array->num_elements; i++) {
+                /* using uint8_t pointer for byte-wise pointer arithmetics */
+                union thingset_data_pointer data = { .u8 = array->elements.u8 + i * type_size };
+                pos += txt_serialize_simple_value(buf + pos, size - pos, data, array->element_type,
+                                                  array->decimals);
+            }
+            if (array->num_elements > 0) {
+                pos--; /* remove trailing comma */
+            }
+            pos += snprintf(buf + pos, size - pos, "],");
+        }
+        else if (object->type == THINGSET_TYPE_GROUP) {
+            pos = snprintf(buf, size, "null,");
+        }
+        else if (object->type == THINGSET_TYPE_RECORDS) {
+            pos = snprintf(buf, size, "%d,", object->data.records->num_records);
+        }
+    }
+
+    if (pos >= 0 && pos < size) {
+        return pos;
+    }
+    else {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+}
+
+static int txt_serialize_name_value(struct thingset_context *ts, char *buf, size_t size,
+                                    const struct thingset_data_object *object)
+{
+    int len_name = snprintf(buf, size, "\"%s\":", object->name);
+    if (len_name < 0 || len_name >= size) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    int len_value = txt_serialize_value(ts, &buf[len_name], size - len_name, object);
+    if (len_value < 0) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    return len_name + len_value;
+}
+
+static int txt_serialize_record(struct thingset_context *ts, char *buf, size_t size,
+                                const struct thingset_data_object *endpoint, int record_index,
+                                int *objects_found)
+{
+    struct thingset_records *records = endpoint->data.records;
+    int len = 0;
+
+    /* record item definitions are expected to start behind endpoint data object */
+    const struct thingset_data_object *item = endpoint + 1;
+    while (item < &ts->data_objects[ts->num_objects] && item->parent_id == endpoint->id) {
+        int len_name = snprintf(buf + len, size - len, "\"%s\":", item->name);
+        if (len_name < 0 || len_name >= (size - len)) {
+            return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+        }
+
+        /* using uint8_t pointer for byte-wise pointer arithmetics */
+        union thingset_data_pointer data = {
+            .u8 = (uint8_t *)records->records + record_index * records->record_size
+                  + item->data.offset,
+        };
+        int len_value = txt_serialize_simple_value(buf + len + len_name, size - len - len_name,
+                                                   data, item->type, item->detail);
+        if (len_value < 0) {
+            return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+        }
+
+        len += len_name + len_value;
+        item++;
+        if (objects_found != NULL) {
+            *objects_found += 1;
+        }
+    }
+
+    return len;
+}
+
+/**
+ * @returns Number of parsed bytes or negative ThingSet reponse code in case of error
+ */
+static int txt_parse_endpoint(struct thingset_context *ts, struct thingset_endpoint *endpoint)
+{
+    char *path_begin = (char *)ts->msg + 1;
+    char *path_end = memchr(path_begin, ' ', ts->msg_len - 1);
+    int path_len;
+
+    if (path_end != NULL) {
+        path_len = path_end - path_begin;
+    }
+    else {
+        path_len = ts->msg_len - 1;
+    }
+
+    int ret = thingset_endpoint_by_path(ts, endpoint, path_begin, path_len);
+    if (ret < 0) {
+        return ret;
+    }
+
+    return path_len;
+}
+
+/**
+ * @returns Number of tokens or negative ThingSet reponse code in case of error
+ */
+static int txt_parse_payload(struct thingset_context *ts, struct jsmn_parser *parser, int pos)
+{
+    jsmn_init(parser);
+
+    ts->json_str = (char *)ts->msg + pos;
+    ts->tok_count =
+        jsmn_parse(parser, ts->json_str, ts->msg_len - pos, ts->tokens, sizeof(ts->tokens));
+
+    if (ts->tok_count == JSMN_ERROR_NOMEM) {
+        return -THINGSET_ERR_REQUEST_TOO_LARGE;
+    }
+    else if (ts->tok_count < 0) {
+        /* other parsing error */
+        return -THINGSET_ERR_BAD_REQUEST;
+    }
+
+    return ts->tok_count;
+}
+
+/**
+ * Parse endpoint and payload and fill response buffer with response in case of error.
+ * @return number of payload tokens or negative error code
+ */
+static int txt_parse_request(struct thingset_context *ts, struct thingset_endpoint *endpoint,
+                             struct jsmn_parser *parser)
+{
+    int path_len = txt_parse_endpoint(ts, endpoint);
+    if (path_len < 0) {
+        thingset_txt_serialize_response(ts, -path_len, "Invalid endpoint");
+        return path_len;
+    }
+
+    int num_tokens = txt_parse_payload(ts, parser, path_len + 1);
+    if (num_tokens < 0) {
+        thingset_txt_serialize_response(ts, -num_tokens, "JSON parsing error");
+    }
+
+    return num_tokens;
+}
+
+static int thingset_txt_fetch(struct thingset_context *ts, struct thingset_endpoint *endpoint)
+{
+    int tok = 0; /* current token */
+    int pos;
+
+    thingset_object_id_t endpoint_id = (endpoint->object == NULL) ? 0 : endpoint->object->id;
+
+    /* initialize response with success message */
+    pos = thingset_txt_serialize_response(ts, THINGSET_STATUS_CONTENT, NULL);
+    pos += snprintf((char *)ts->rsp + pos, ts->rsp_size - pos, " [");
+
+    if (ts->tok_count == 1 && ts->tokens[0].type == JSMN_PRIMITIVE
+        && strncmp(ts->json_str + ts->tokens[0].start, "null",
+                   ts->tokens[0].end - ts->tokens[0].start)
+               == 0)
+    {
+        /* fetch names */
+        for (unsigned int i = 0; i < ts->num_objects; i++) {
+            if ((ts->data_objects[i].access & THINGSET_READ_MASK)
+                && (ts->data_objects[i].parent_id == endpoint_id))
+            {
+                pos += snprintf((char *)ts->rsp + pos, ts->rsp_size - pos, "\"%s\",",
+                                ts->data_objects[i].name);
+
+                if (pos >= ts->rsp_size - 1) {
+                    return thingset_txt_serialize_response(ts, THINGSET_ERR_RESPONSE_TOO_LARGE,
+                                                           NULL);
+                }
+
+                tok++; /* increase token to indicate that the array is not empty */
+            }
+        }
+    }
+    else if (ts->tokens[0].type == JSMN_ARRAY) {
+        /* fetch values */
+        tok++;
+
+        while (tok < ts->tok_count) {
+            if (ts->tokens[tok].type != JSMN_STRING) {
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
+                                                       "Only string elements allowed");
+            }
+
+            char *item = ts->json_str + ts->tokens[tok].start;
+            size_t item_len = ts->tokens[tok].end - ts->tokens[tok].start;
+
+            const struct thingset_data_object *object =
+                thingset_get_child_by_name(ts, endpoint_id, item, item_len);
+
+            if (object == NULL) {
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_NOT_FOUND,
+                                                       "Item %.*s not found", item_len, item);
+            }
+            else if (object->type == THINGSET_TYPE_GROUP) {
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
+                                                       "%.*s is a group", item_len, item);
+            }
+
+            if ((object->access & THINGSET_READ_MASK & ts->auth_flags) == 0) {
+                if (object->access & THINGSET_READ_MASK) {
+                    return thingset_txt_serialize_response(ts, THINGSET_ERR_UNAUTHORIZED,
+                                                           "Authentication required for %.*s",
+                                                           item_len, item);
+                }
+                else {
+                    return thingset_txt_serialize_response(
+                        ts, THINGSET_ERR_FORBIDDEN, "Reading %.*s forbidden", item_len, item);
+                }
+            }
+
+            pos += txt_serialize_value(ts, (char *)&ts->rsp[pos], ts->rsp_size - pos, object);
+
+            if (pos >= ts->rsp_size - 2) {
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_RESPONSE_TOO_LARGE, NULL);
+            }
+
+            tok++;
+        }
+    }
+    else {
+        /* return error */
+    }
+
+    if (tok > 0) {
+        pos--; /* remove trailing comma */
+    }
+    ts->rsp[pos++] = ']';
+    ts->rsp[pos] = '\0';
+
+    ts->rsp_pos = pos;
+    return pos;
+}
+
+static int thingset_txt_get(struct thingset_context *ts, struct thingset_endpoint *endpoint)
+{
+    int pos;
+
+    thingset_object_id_t endpoint_id = (endpoint->object == NULL) ? 0 : endpoint->object->id;
+
+    /* initialize response with success message */
+    pos = thingset_txt_serialize_response(ts, THINGSET_STATUS_CONTENT, NULL);
+
+    if (endpoint->object != NULL) {
+        switch (endpoint->object->type) {
+            case THINGSET_TYPE_FN_VOID:
+            case THINGSET_TYPE_FN_I32:
+                // bad request, as we can't read exec object's values
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST, NULL);
+            case THINGSET_TYPE_GROUP:
+                break;
+            case THINGSET_TYPE_RECORDS:
+                if (endpoint->index == INDEX_NONE) {
+                    struct thingset_records *records = endpoint->object->data.records;
+                    pos += snprintf((char *)&ts->rsp[pos], ts->rsp_size - pos, " %d",
+                                    records->num_records);
+                    return pos;
+                }
+                break;
+            default:
+                // get value of data object
+                ts->rsp[pos++] = ' ';
+                pos += txt_serialize_value(ts, (char *)&ts->rsp[pos], ts->rsp_size - pos,
+                                           endpoint->object);
+                ts->rsp[--pos] = '\0'; // remove trailing comma again
+                return pos;
+        }
+    }
+
+    pos += snprintf((char *)ts->rsp + pos, ts->rsp_size - pos, " {");
+    int objects_found = 0;
+    if (endpoint->object && endpoint->object->type == THINGSET_TYPE_RECORDS) {
+        int record_len = txt_serialize_record(ts, (char *)ts->rsp + pos, ts->rsp_size - pos,
+                                              endpoint->object, endpoint->index, &objects_found);
+        if (record_len > 0) {
+            pos += record_len;
+        }
+        else {
+            return 0;
+        }
+    }
+    else {
+        for (unsigned int i = 0; i < ts->num_objects; i++) {
+            if ((ts->data_objects[i].access & THINGSET_READ_MASK)
+                && (ts->data_objects[i].parent_id == endpoint_id))
+            {
+                int ret = txt_serialize_name_value(ts, (char *)ts->rsp + pos, ts->rsp_size - pos,
+                                                   &ts->data_objects[i]);
+                if (ret > 0) {
+                    pos += ret;
+                }
+                else {
+                    return thingset_txt_serialize_response(ts, THINGSET_ERR_RESPONSE_TOO_LARGE,
+                                                           NULL);
+                }
+                objects_found++;
+
+                if (pos >= ts->rsp_size - 1) {
+                    return thingset_txt_serialize_response(ts, THINGSET_ERR_RESPONSE_TOO_LARGE,
+                                                           NULL);
+                }
+            }
+        }
+    }
+
+    if (objects_found > 0) {
+        pos--; /* remove trailing comma */
+    }
+    ts->rsp[pos++] = '}';
+    ts->rsp[pos] = '\0';
+
+    ts->rsp_pos = pos;
+    return pos;
+}
+
 int thingset_txt_get_fetch(struct thingset_context *ts)
 {
-    return thingset_txt_serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+    struct thingset_endpoint endpoint;
+    struct jsmn_parser parser;
+
+    int payload_tokens = txt_parse_request(ts, &endpoint, &parser);
+    if (payload_tokens == 0) {
+        return thingset_txt_get(ts, &endpoint);
+    }
+    else if (payload_tokens > 0) {
+        return thingset_txt_fetch(ts, &endpoint);
+    }
+    else {
+        return ts->rsp_pos;
+    }
 }
 
 int thingset_txt_update(struct thingset_context *ts)

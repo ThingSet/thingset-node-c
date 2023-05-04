@@ -11,66 +11,66 @@
 #define SUBSET_LIVE (1U << 0)
 
 /* Pre-defined data items */
-static char node_id[] = "ABCD1234";
-static uint32_t timestamp = 1000;
+char node_id[] = "ABCD1234";
+uint32_t timestamp = 1000;
 
 /* Types */
-static bool b = true;
-static uint8_t u8 = 8;
-static int8_t i8 = -8;
-static uint16_t u16 = 16;
-static int16_t i16 = -16;
-static uint32_t u32 = 32;
-static int32_t i32 = -32;
+bool b = true;
+uint8_t u8 = 8;
+int8_t i8 = -8;
+uint16_t u16 = 16;
+int16_t i16 = -16;
+uint32_t u32 = 32;
+int32_t i32 = -32;
 #if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
-static uint64_t u64 = 64;
-static int64_t i64 = -64;
+uint64_t u64 = 64;
+int64_t i64 = -64;
 #endif
-static float f32 = -3.2F;
+float f32 = -3.2F;
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
-static int32_t decfrac = -32;
+int32_t decfrac = -32;
 #endif
-static char strbuf[300] = "string";
-static uint8_t bytes_buf[18] = "bytes";
+char strbuf[300] = "string";
+uint8_t bytes_buf[18] = "bytes";
 static THINGSET_DEFINE_BYTES(bytes_item, bytes_buf, 0);
 
 /*
  * Arrays
  */
-static bool bool_arr[100] = { true, false, true };
+bool bool_arr[100] = { true, false, true };
 static THINGSET_DEFINE_BOOL_ARRAY(bool_arr_item, bool_arr, 3);
 
-static uint8_t u8_arr[100] = { 1, 2, 3 };
+uint8_t u8_arr[100] = { 1, 2, 3 };
 static THINGSET_DEFINE_UINT8_ARRAY(u8_arr_item, u8_arr, 3);
 
-static int8_t i8_arr[100] = { -1, -2, -3 };
+int8_t i8_arr[100] = { -1, -2, -3 };
 static THINGSET_DEFINE_INT8_ARRAY(i8_arr_item, i8_arr, 3);
 
-static uint16_t u16_arr[100] = { 1, 2, 3 };
+uint16_t u16_arr[100] = { 1, 2, 3 };
 static THINGSET_DEFINE_UINT16_ARRAY(u16_arr_item, u16_arr, 3);
 
-static int16_t i16_arr[100] = { -1, -2, -3 };
+int16_t i16_arr[100] = { -1, -2, -3 };
 static THINGSET_DEFINE_INT16_ARRAY(i16_arr_item, i16_arr, 3);
 
-static uint32_t u32_arr[100] = { 1, 2, 3 };
+uint32_t u32_arr[100] = { 1, 2, 3 };
 static THINGSET_DEFINE_UINT32_ARRAY(u32_arr_item, u32_arr, 3);
 
-static int32_t i32_arr[100] = { -1, -2, -3 };
+int32_t i32_arr[100] = { -1, -2, -3 };
 static THINGSET_DEFINE_INT32_ARRAY(i32_arr_item, i32_arr, 3);
 
 #if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
-static uint64_t u64_arr[100] = { 1, 2, 3 };
+uint64_t u64_arr[100] = { 1, 2, 3 };
 static THINGSET_DEFINE_UINT64_ARRAY(u64_arr_item, u64_arr, 3);
 
-static int64_t i64_arr[100] = { -1, -2, -3 };
+int64_t i64_arr[100] = { -1, -2, -3 };
 static THINGSET_DEFINE_INT64_ARRAY(i64_arr_item, i64_arr, 3);
 #endif
 
-static float f32_arr[100] = { -1.1, -2.2, -3.3 };
+float f32_arr[100] = { -1.1, -2.2, -3.3 };
 static THINGSET_DEFINE_FLOAT_ARRAY(f32_arr_item, f32_arr, 1, 3);
 
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
-static int32_t decfrac_arr[100] = { -32 };
+int32_t decfrac_arr[100] = { -32 };
 static THINGSET_DEFINE_DECFRAC_ARRAY(decfrac_arr_item, decfrac_arr, 2, 1);
 #endif
 
@@ -128,6 +128,18 @@ static struct test_struct records[5] = {
     },
     {
         .timestamp = 2,
+        .b = true,
+        .u8 = 8,
+        .i8 = -8,
+        .u16 = 16,
+        .i16 = -16,
+        .u32 = 32,
+        .i32 = -32,
+        .u64 = 64,
+        .i64 = -64,
+        .f32 = -3.2F,
+        .decfrac = -32,
+        .strbuf = "string",
     },
 };
 
@@ -206,22 +218,23 @@ THINGSET_ADD_ITEM_FLOAT(0x500, 0x502, "wItem", &access_item, 2, THINGSET_ANY_RW,
 
 /* Records */
 THINGSET_ADD_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_R, 0);
-THINGSET_ADD_RECORD_ITEM_BOOL(0x600, 0x601, "wBool", struct test_struct, b);
-THINGSET_ADD_RECORD_ITEM_UINT8(0x600, 0x602, "wU8", struct test_struct, u8);
-THINGSET_ADD_RECORD_ITEM_INT8(0x600, 0x603, "wI8", struct test_struct, i8);
-THINGSET_ADD_RECORD_ITEM_UINT16(0x600, 0x604, "wU16", struct test_struct, u16);
-THINGSET_ADD_RECORD_ITEM_INT16(0x600, 0x605, "wI16", struct test_struct, i16);
-THINGSET_ADD_RECORD_ITEM_UINT32(0x600, 0x606, "wU32", struct test_struct, u32);
-THINGSET_ADD_RECORD_ITEM_INT32(0x600, 0x607, "wI32", struct test_struct, i32);
+THINGSET_ADD_RECORD_ITEM_UINT32(0x600, 0x601, "t_s", struct test_struct, timestamp);
+THINGSET_ADD_RECORD_ITEM_BOOL(0x600, 0x602, "wBool", struct test_struct, b);
+THINGSET_ADD_RECORD_ITEM_UINT8(0x600, 0x603, "wU8", struct test_struct, u8);
+THINGSET_ADD_RECORD_ITEM_INT8(0x600, 0x604, "wI8", struct test_struct, i8);
+THINGSET_ADD_RECORD_ITEM_UINT16(0x600, 0x605, "wU16", struct test_struct, u16);
+THINGSET_ADD_RECORD_ITEM_INT16(0x600, 0x606, "wI16", struct test_struct, i16);
+THINGSET_ADD_RECORD_ITEM_UINT32(0x600, 0x607, "wU32", struct test_struct, u32);
+THINGSET_ADD_RECORD_ITEM_INT32(0x600, 0x608, "wI32", struct test_struct, i32);
 #if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
-THINGSET_ADD_RECORD_ITEM_UINT64(0x600, 0x608, "wU64", struct test_struct, u64);
-THINGSET_ADD_RECORD_ITEM_INT64(0x600, 0x609, "wI64", struct test_struct, i64);
+THINGSET_ADD_RECORD_ITEM_UINT64(0x600, 0x609, "wU64", struct test_struct, u64);
+THINGSET_ADD_RECORD_ITEM_INT64(0x600, 0x60A, "wI64", struct test_struct, i64);
 #endif
-THINGSET_ADD_RECORD_ITEM_FLOAT(0x600, 0x60A, "wF32", struct test_struct, f32, 1);
+THINGSET_ADD_RECORD_ITEM_FLOAT(0x600, 0x60B, "wF32", struct test_struct, f32, 1);
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
-THINGSET_ADD_RECORD_ITEM_DECFRAC(0x600, 0x60B, "wDecFrac", struct test_struct, decfrac, 2);
+THINGSET_ADD_RECORD_ITEM_DECFRAC(0x600, 0x60C, "wDecFrac", struct test_struct, decfrac, 2);
 #endif
-THINGSET_ADD_RECORD_ITEM_STRING(0x600, 0x60C, "wString", struct test_struct, strbuf,
+THINGSET_ADD_RECORD_ITEM_STRING(0x600, 0x60D, "wString", struct test_struct, strbuf,
                                 sizeof(records[0].strbuf));
 
 /* Nested */
@@ -306,22 +319,23 @@ struct thingset_data_object data_objects[] = {
 
     /* Records */
     THINGSET_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_R, 0),
-    THINGSET_RECORD_ITEM_BOOL(0x600, 0x601, "wBool", struct test_struct, b),
-    THINGSET_RECORD_ITEM_UINT8(0x600, 0x602, "wU8", struct test_struct, u8),
-    THINGSET_RECORD_ITEM_INT8(0x600, 0x603, "wI8", struct test_struct, i8),
-    THINGSET_RECORD_ITEM_UINT16(0x600, 0x604, "wU16", struct test_struct, u16),
-    THINGSET_RECORD_ITEM_INT16(0x600, 0x605, "wI16", struct test_struct, i16),
-    THINGSET_RECORD_ITEM_UINT32(0x600, 0x606, "wU32", struct test_struct, u32),
-    THINGSET_RECORD_ITEM_INT32(0x600, 0x607, "wI32", struct test_struct, i32),
+    THINGSET_RECORD_ITEM_UINT32(0x600, 0x601, "t_s", struct test_struct, timestamp),
+    THINGSET_RECORD_ITEM_BOOL(0x600, 0x602, "wBool", struct test_struct, b),
+    THINGSET_RECORD_ITEM_UINT8(0x600, 0x603, "wU8", struct test_struct, u8),
+    THINGSET_RECORD_ITEM_INT8(0x600, 0x604, "wI8", struct test_struct, i8),
+    THINGSET_RECORD_ITEM_UINT16(0x600, 0x605, "wU16", struct test_struct, u16),
+    THINGSET_RECORD_ITEM_INT16(0x600, 0x606, "wI16", struct test_struct, i16),
+    THINGSET_RECORD_ITEM_UINT32(0x600, 0x607, "wU32", struct test_struct, u32),
+    THINGSET_RECORD_ITEM_INT32(0x600, 0x608, "wI32", struct test_struct, i32),
 #if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
-    THINGSET_RECORD_ITEM_UINT64(0x600, 0x608, "wU64", struct test_struct, u64),
-    THINGSET_RECORD_ITEM_INT64(0x600, 0x609, "wI64", struct test_struct, i64),
+    THINGSET_RECORD_ITEM_UINT64(0x600, 0x609, "wU64", struct test_struct, u64),
+    THINGSET_RECORD_ITEM_INT64(0x600, 0x60A, "wI64", struct test_struct, i64),
 #endif
-    THINGSET_RECORD_ITEM_FLOAT(0x600, 0x60A, "wF32", struct test_struct, f32, 1),
+    THINGSET_RECORD_ITEM_FLOAT(0x600, 0x60B, "wF32", struct test_struct, f32, 1),
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
-    THINGSET_RECORD_ITEM_DECFRAC(0x600, 0x60B, "wDecFrac", struct test_struct, decfrac, 2),
+    THINGSET_RECORD_ITEM_DECFRAC(0x600, 0x60C, "wDecFrac", struct test_struct, decfrac, 2),
 #endif
-    THINGSET_RECORD_ITEM_STRING(0x600, 0x60C, "wString", struct test_struct, strbuf,
+    THINGSET_RECORD_ITEM_STRING(0x600, 0x60D, "wString", struct test_struct, strbuf,
                                 sizeof(records[0].strbuf)),
 
     /* Nested */

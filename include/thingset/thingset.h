@@ -11,6 +11,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define JSMN_HEADER
+#include "jsmn.h"
+
 #ifndef _ARRAY_SIZE
 /* custom ARRAY_SIZE to avoid redefinition warning if thingset.h is included before Zephr headers */
 #define _ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
@@ -522,7 +525,7 @@ enum thingset_type
 /**
  * Helper function to determine the size of above ThingSet types in bytes
  */
-inline size_t thingset_type_size(uint8_t type)
+static inline size_t thingset_type_size(uint8_t type)
 {
     uint8_t sizes[] = { sizeof(bool),    sizeof(uint8_t),  sizeof(int8_t),  sizeof(uint16_t),
                         sizeof(int16_t), sizeof(uint32_t), sizeof(int32_t), sizeof(uint64_t),
@@ -694,6 +697,37 @@ struct thingset_context
      * processing)
      */
     size_t rsp_pos;
+
+    /**
+     * Pointer to the start of JSON payload in the request
+     */
+    char *json_str;
+
+    /**
+     * JSON tokes in json_str parsed by JSMN
+     */
+    jsmntok_t tokens[CONFIG_THINGSET_NUM_JSON_TOKENS];
+
+    /**
+     * Number of JSON tokens parsed by JSMN
+     */
+    int tok_count;
+
+    /**
+     * Stores current authentication status (authentication as "normal" user as default)
+     */
+    uint8_t auth_flags;
+
+    /**
+     * Stores current authentication status (authentication as "normal" user as default)
+     */
+    uint8_t update_subsets;
+
+    /**
+     * Callback to be called from patch function if a value belonging to update_subsets
+     * was changed
+     */
+    void (*update_cb)(void);
 };
 
 /**
