@@ -103,3 +103,88 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
             return -THINGSET_ERR_BAD_REQUEST;
     }
 }
+
+static struct thingset_data_object *thingset_get_child_by_name(struct thingset_context *ts,
+                                                               uint16_t parent_id, const char *name,
+                                                               size_t len)
+{
+    for (unsigned int i = 0; i < ts->num_objects; i++) {
+        if (ts->data_objects[i].parent_id == parent_id
+            && strncmp(ts->data_objects[i].name, name, len) == 0
+            // without length check foo and fooBar would be recognized as equal
+            && strlen(ts->data_objects[i].name) == len)
+        {
+            return &(ts->data_objects[i]);
+        }
+    }
+
+    return NULL;
+}
+
+int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpoint *endpoint,
+                              const char *path, size_t path_len)
+{
+    struct thingset_data_object *object = NULL;
+    const char *start = path;
+    const char *end;
+    uint16_t parent = 0;
+
+    endpoint->index = INDEX_NONE;
+
+    if (path_len == 0) {
+        endpoint->object = NULL;
+        return 0;
+    }
+
+    if (start[0] == '/') {
+        return -THINGSET_ERR_NOT_A_GATEWAY;
+    }
+
+    /* maximum depth of 10 assumed */
+    for (int i = 0; i < 10; i++) {
+        end = strchr(start, '/');
+        if (end == NULL || end >= path + path_len) {
+            /* reached at the end of the path */
+            if (object != NULL && object->type == THINGSET_TYPE_RECORDS && start[0] >= '0'
+                && start[0] <= '9')
+            {
+                /* numeric ID to select index in an array of records */
+                endpoint->index = strtoul(start, NULL, 0);
+                endpoint->object = object;
+            }
+            else if (start[0] == '-') {
+                /* non-existent element behind the last array element */
+                endpoint->index = INDEX_NEW;
+                endpoint->object = object;
+            }
+            else {
+                object = thingset_get_child_by_name(ts, parent, start, path + path_len - start);
+            }
+            break;
+        }
+        else if (end == path + path_len - 1) {
+            /* path ends with slash */
+            object = thingset_get_child_by_name(ts, parent, start, end - start);
+            break;
+        }
+        else {
+            /* go further down the path */
+            object = thingset_get_child_by_name(ts, parent, start, end - start);
+            if (object) {
+                parent = object->id;
+                start = end + 1;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    endpoint->object = object;
+
+    if (object == NULL) {
+        return -THINGSET_ERR_NOT_FOUND;
+    }
+
+    return 0;
+}

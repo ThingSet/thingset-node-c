@@ -13,6 +13,17 @@
 extern "C" {
 #endif
 
+#define INDEX_NONE (-1)
+#define INDEX_NEW  (-2) /* non-existent element behind the last array element */
+
+struct thingset_endpoint
+{
+    /** pointer to the data object in memory (or NULL for root node) */
+    struct thingset_data_object *object;
+    /** index number or INDEX_NONE or INDEX_NEW */
+    int index;
+};
+
 /**
  * Fill the rsp buffer with a CBOR response status message.
  *
@@ -34,6 +45,19 @@ int thingset_bin_serialize_response(struct thingset_context *ts, int code, const
  * @return Length of response
  */
 int thingset_txt_serialize_response(struct thingset_context *ts, int code, const char *msg, ...);
+
+/**
+ * Get the endpoint from a provided path.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param endpoint Pointer to the struct thingset_endpoint to store the result.
+ * @param path Relative path with multiple object names separated by forward slash.
+ * @param len Length of the entire path.
+ *
+ * @returns 0 if successful or negative ThingSet error code to be reported
+ */
+int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpoint *endpoint,
+                              const char *path, size_t len);
 
 /**
  * Process text mode GET/FETCH request.
