@@ -28,7 +28,7 @@ jobs:
       - name: Run unit-tests
         working-directory: thingset-node-c
         run: |
-          ../zephyr/scripts/twister --integration --testsuite-root ./tests -v
+          ../zephyr/scripts/twister --integration --testsuite-root ./tests --inline-logs
 
       - name: Generate coverage report
         if: github.ref == 'refs/heads/main'
