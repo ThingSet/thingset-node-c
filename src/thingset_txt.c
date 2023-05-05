@@ -10,10 +10,12 @@
 #include "thingset/thingset.h"
 #include "thingset_internal.h"
 
+#include <errno.h>
 #include <inttypes.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
@@ -507,9 +509,231 @@ int thingset_txt_get_fetch(struct thingset_context *ts)
     }
 }
 
+/** @return Number of tokens deserialized or negative ThingSet response code in case of error */
+int thingset_txt_deserialize_value(struct thingset_context *ts, char *buf, size_t len,
+                                   jsmntype_t type, const struct thingset_data_object *object)
+{
+    if (type != JSMN_PRIMITIVE && type != JSMN_STRING) {
+        return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    }
+
+    errno = 0;
+    switch (object->type) {
+        case THINGSET_TYPE_F32:
+            *object->data.f32 = strtod(buf, NULL);
+            break;
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+        case THINGSET_TYPE_DECFRAC: {
+            float tmp = strtod(buf, NULL);
+            /* positive exponent */
+            for (int16_t i = 0; i < object->detail; i++) {
+                tmp /= 10.0F;
+            }
+            /* negative exponent */
+            for (int16_t i = 0; i > object->detail; i--) {
+                tmp *= 10.0F;
+            }
+            *object->data.decfrac = (int32_t)tmp;
+            break;
+        }
+#endif
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+        case THINGSET_TYPE_U64:
+            *object->data.u64 = strtoull(buf, NULL, 0);
+            break;
+        case THINGSET_TYPE_I64:
+            *object->data.i64 = strtoll(buf, NULL, 0);
+            break;
+#endif
+        case THINGSET_TYPE_U32:
+            *object->data.u32 = strtoul(buf, NULL, 0);
+            break;
+        case THINGSET_TYPE_I32:
+            *object->data.i32 = strtol(buf, NULL, 0);
+            break;
+        case THINGSET_TYPE_U16:
+            *object->data.u16 = strtoul(buf, NULL, 0);
+            break;
+        case THINGSET_TYPE_I16:
+            *object->data.i16 = strtol(buf, NULL, 0);
+            break;
+        case THINGSET_TYPE_U8:
+            *object->data.u8 = strtoul(buf, NULL, 0);
+            break;
+        case THINGSET_TYPE_I8:
+            *object->data.i8 = strtol(buf, NULL, 0);
+            break;
+        case THINGSET_TYPE_BOOL:
+            if (buf[0] == 't' || buf[0] == '1') {
+                *object->data.b = true;
+            }
+            else if (buf[0] == 'f' || buf[0] == '0') {
+                *object->data.b = false;
+            }
+            else {
+                return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+            }
+            break;
+        case THINGSET_TYPE_STRING:
+            if (type != JSMN_STRING || (unsigned int)object->detail <= len) {
+                return -THINGSET_ERR_REQUEST_TOO_LARGE;
+            }
+            strncpy(object->data.str, buf, len);
+            object->data.str[len] = '\0';
+            break;
+#if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
+        case THINGSET_TYPE_BYTES: {
+            if (type != JSMN_STRING || object->data.bytes->max_bytes < len / 4 * 3) {
+                return -THINGSET_ERR_REQUEST_TOO_LARGE;
+            }
+            struct thingset_bytes *bytes_buf = object->data.bytes;
+            size_t byteslen;
+            int err = base64_decode(bytes_buf->bytes, bytes_buf->max_bytes, &byteslen,
+                                    (uint8_t *)buf, len);
+            bytes_buf->num_bytes = byteslen;
+            if (err != 0) {
+                return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+            }
+            break;
+        }
+#endif
+        default:
+            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    }
+
+    if (errno == ERANGE) {
+        return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    }
+
+    return 1; /* value always contained in one token (arrays not yet supported) */
+}
+
 int thingset_txt_update(struct thingset_context *ts)
 {
-    return thingset_txt_serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+    struct thingset_endpoint endpoint;
+    struct jsmn_parser parser;
+
+    int payload_tokens = txt_parse_request(ts, &endpoint, &parser);
+    if (payload_tokens < 0) {
+        return ts->rsp_pos;
+    }
+    else if (payload_tokens < 3 || ts->tokens[0].type != JSMN_OBJECT) {
+        return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
+                                               "Map with data required");
+    }
+
+    int tok = 1; /* current token (skipping JSMN_OBJECT) */
+    bool updated = false;
+
+    thingset_object_id_t endpoint_id = (endpoint.object == NULL) ? 0 : endpoint.object->id;
+
+    /* loop through all elements to check if request is valid */
+    while (tok + 1 < ts->tok_count) {
+
+        if (ts->tokens[tok].type != JSMN_STRING
+            || (ts->tokens[tok + 1].type != JSMN_PRIMITIVE
+                && ts->tokens[tok + 1].type != JSMN_STRING))
+        {
+            return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST, NULL);
+        }
+
+        char *item = ts->json_str + ts->tokens[tok].start;
+        size_t item_len = ts->tokens[tok].end - ts->tokens[tok].start;
+
+        const struct thingset_data_object *object =
+            thingset_get_child_by_name(ts, endpoint_id, item, item_len);
+
+        if (object == NULL) {
+            return thingset_txt_serialize_response(ts, THINGSET_ERR_NOT_FOUND,
+                                                   "Item %.*s not found", item_len, item);
+        }
+
+        if ((object->access & THINGSET_WRITE_MASK & ts->auth_flags) == 0) {
+            if (object->access & THINGSET_WRITE_MASK) {
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_UNAUTHORIZED,
+                                                       "Authentication required for %.*s", item_len,
+                                                       item);
+            }
+            else {
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_FORBIDDEN,
+                                                       "Item %.*s is read-only", item_len, item);
+            }
+        }
+
+        tok++;
+
+        /* extract the value and check buffer lengths */
+        size_t value_len = ts->tokens[tok].end - ts->tokens[tok].start;
+        if (object->type == THINGSET_TYPE_STRING) {
+            if (value_len < (size_t)object->detail) {
+                /* provided string fits into data object buffer */
+                tok += 1;
+                continue;
+            }
+            else {
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_REQUEST_TOO_LARGE, NULL);
+            }
+        }
+        else if (object->type == THINGSET_TYPE_BYTES) {
+#if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
+            if (value_len / 4 * 3 <= object->data.bytes->max_bytes) {
+                /* decoded base64-encoded string fits into data object buffer */
+                tok += 1;
+                continue;
+            }
+            else {
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_REQUEST_TOO_LARGE, NULL);
+            }
+#else
+            return thingset_txt_serialize_response(ts, THINGSET_ERR_UNSUPPORTED_FORMAT, NULL);
+#endif
+        }
+        else {
+            /*
+             * Test format of simple data types (up to 64-bit) by deserializing the value into a
+             * dummy object of the same type.
+             *
+             * Caution: This does not work for strings and byte buffers.
+             */
+            uint8_t dummy_data[8];
+            struct thingset_data_object dummy_object = {
+                0, 0, "Dummy", { .u8 = dummy_data }, object->type, object->detail
+            };
+
+            int res =
+                thingset_txt_deserialize_value(ts, ts->json_str + ts->tokens[tok].start, value_len,
+                                               ts->tokens[tok].type, &dummy_object);
+            if (res == 0) {
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_UNSUPPORTED_FORMAT, NULL);
+            }
+            tok += res;
+        }
+    }
+
+    /* actually write data */
+    tok = 1;
+    while (tok + 1 < ts->tok_count) {
+
+        const struct thingset_data_object *object =
+            thingset_get_child_by_name(ts, endpoint_id, ts->json_str + ts->tokens[tok].start,
+                                       ts->tokens[tok].end - ts->tokens[tok].start);
+
+        tok++;
+
+        tok += thingset_txt_deserialize_value(ts, &ts->json_str[ts->tokens[tok].start],
+                                              ts->tokens[tok].end - ts->tokens[tok].start,
+                                              ts->tokens[tok].type, object);
+
+        if (ts->update_subsets & object->subsets) {
+            updated = true;
+        }
+    }
+
+    if (updated && ts->update_cb != NULL) {
+        ts->update_cb();
+    }
+
+    return thingset_txt_serialize_response(ts, THINGSET_STATUS_CHANGED, NULL);
 }
 
 int thingset_txt_exec(struct thingset_context *ts)

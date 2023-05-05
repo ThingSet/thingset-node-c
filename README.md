@@ -16,7 +16,7 @@ Below tables show the implementation status of the different ThingSet functions:
 | ---------------- | --------- | ----------- |
 | GET              | yes       | no          |
 | FETCH            | yes       | no          |
-| UPDATE           | no        | no          |
+| UPDATE           | yes       | no          |
 | EXEC             | no        | no          |
 | CREATE           | no        | no          |
 | DELETE           | no        | no          |

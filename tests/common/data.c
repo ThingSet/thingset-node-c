@@ -32,7 +32,7 @@ int32_t decfrac = -32;
 #endif
 char strbuf[300] = "string";
 uint8_t bytes_buf[18] = "bytes";
-static THINGSET_DEFINE_BYTES(bytes_item, bytes_buf, 0);
+THINGSET_DEFINE_BYTES(bytes_item, bytes_buf, 0);
 
 /*
  * Arrays

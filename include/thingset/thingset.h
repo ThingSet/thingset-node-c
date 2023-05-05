@@ -563,7 +563,7 @@ union thingset_data_pointer {
  */
 struct thingset_bytes
 {
-    const uint8_t *bytes;     /**< Pointer to the bytes buffer */
+    uint8_t *bytes;           /**< Pointer to the bytes buffer */
     const uint16_t max_bytes; /**< Maximum number of bytes in the buffer */
     uint16_t num_bytes;       /**< Actual number of bytes in the buffer */
 };

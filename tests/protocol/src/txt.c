@@ -229,10 +229,60 @@ ZTEST(thingset_txt, test_fetch_record)
 
 ZTEST(thingset_txt, test_update_timestamp_zero)
 {
-    const char req[] = "=t_s 0";
-    const char rsp_exp[] = ":C1"; /* not yet implemented */
+    THINGSET_ASSERT_REQUEST_TXT("= {\"t_s\":0}", ":84");
+    zassert_equal(timestamp, 0);
 
-    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+    timestamp = 1000;
+}
+
+ZTEST(thingset_txt, test_update_wrong_data_structure)
+{
+    THINGSET_ASSERT_REQUEST_TXT("=Types [\"wF32\":54.3", ":A0 \"JSON parsing error\"");
+    THINGSET_ASSERT_REQUEST_TXT("=Types{\"wF32\":54.3}", ":A4 \"Invalid endpoint\"");
+}
+
+ZTEST(thingset_txt, test_update_whitespaces)
+{
+    THINGSET_ASSERT_REQUEST_TXT("=Types {    \"wF32\" : 52.8,\"wI32\":50.6}", ":84");
+
+    zassert_equal((float)52.8, f32);
+    zassert_equal(50, i32);
+
+    f32 = 3.2F;
+    i32 = -32;
+}
+
+#if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
+
+ZTEST(thingset_txt, test_update_bytes_buffer)
+{
+    THINGSET_ASSERT_REQUEST_TXT("=Types {\"wBytes\":\"QUJDREVGRw==\"}", ":84");
+
+    zassert_equal(7, bytes_item.num_bytes);
+}
+
+#else
+
+ZTEST(thingset_txt, test_update_bytes_buffer)
+{
+    THINGSET_ASSERT_REQUEST_TXT("=Types {\"wBytes\":\"QUJDREVGRw==\"}", ":AF");
+}
+
+#endif
+
+ZTEST(thingset_txt, test_update_readonly)
+{
+    THINGSET_ASSERT_REQUEST_TXT("=Access {\"rItem\" : 52}", ":A3 \"Item rItem is read-only\"");
+}
+
+ZTEST(thingset_txt, test_update_wrong_path)
+{
+    THINGSET_ASSERT_REQUEST_TXT("=Type {\"wI32\" : 52}", ":A4 \"Invalid endpoint\"");
+}
+
+ZTEST(thingset_txt, test_update_unknown_object)
+{
+    THINGSET_ASSERT_REQUEST_TXT("=Types {\"wI3\" : 52}", ":A4 \"Item wI3 not found\"");
 }
 
 ZTEST(thingset_txt, test_exec)

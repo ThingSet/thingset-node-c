@@ -57,7 +57,7 @@
         int rsp_exp_len = strlen(rsp_exp); \
         int rsp_act_len = thingset_process_message(&ts, req, req_len, rsp_act, sizeof(rsp_act)); \
         zassert_true(rsp_exp_len > 0 && rsp_act_len > 0); \
-        zassert_mem_equal(rsp_exp, rsp_act, rsp_exp_len, "act: %s\nexp: %s", rsp_act, rsp_exp); \
+        zassert_mem_equal(rsp_exp, rsp_act, rsp_act_len, "act: %s\nexp: %s", rsp_act, rsp_exp); \
         zassert_equal(rsp_act_len, rsp_exp_len, "act: %d, exp: %d", rsp_act_len, rsp_exp_len); \
     }
 

@@ -7,6 +7,8 @@
 #ifndef TESTS_COMMON_DATA_H_
 #define TESTS_COMMON_DATA_H_
 
+extern uint32_t timestamp;
+
 extern bool b;
 extern uint8_t u8;
 extern int8_t i8;
@@ -24,6 +26,7 @@ extern int32_t decfrac;
 #endif
 extern char strbuf[300];
 extern uint8_t bytes_buf[18];
+extern struct thingset_bytes bytes_item;
 
 extern bool bool_arr[100];
 extern uint8_t u8_arr[100];
