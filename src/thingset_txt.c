@@ -738,7 +738,77 @@ int thingset_txt_update(struct thingset_context *ts)
 
 int thingset_txt_exec(struct thingset_context *ts)
 {
-    return thingset_txt_serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+    struct thingset_endpoint endpoint;
+    struct jsmn_parser parser;
+    int tok = 0;
+    int pos;
+
+    int payload_tokens = txt_parse_request(ts, &endpoint, &parser);
+    if (payload_tokens < 0) {
+        return ts->rsp_pos;
+    }
+    else if (payload_tokens > 0) {
+        if (ts->tokens[0].type != JSMN_ARRAY) {
+            return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
+                                                   "Invalid parameters");
+        }
+        tok++; /* skip JSMN_ARRAY token */
+    }
+
+    if (endpoint.object != NULL && (endpoint.object->access & THINGSET_WRITE_MASK)
+        && (endpoint.object->type == THINGSET_TYPE_FN_VOID
+            || endpoint.object->type == THINGSET_TYPE_FN_I32))
+    {
+        /* object is generally executable, but are we authorized? */
+        if ((endpoint.object->access & THINGSET_WRITE_MASK & ts->auth_flags) == 0) {
+            return thingset_txt_serialize_response(ts, THINGSET_ERR_UNAUTHORIZED,
+                                                   "Authentication required");
+        }
+    }
+    else {
+        return thingset_txt_serialize_response(ts, THINGSET_ERR_FORBIDDEN, "%s is not executable",
+                                               endpoint.object->name);
+    }
+
+    for (unsigned int i = 0; i < ts->num_objects; i++) {
+        if (ts->data_objects[i].parent_id == endpoint.object->id) {
+            if (tok >= ts->tok_count) {
+                /* more child objects found than parameters were passed */
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
+                                                       "Not enough parameters");
+            }
+            int res = thingset_txt_deserialize_value(ts, ts->json_str + ts->tokens[tok].start,
+                                                     ts->tokens[tok].end - ts->tokens[tok].start,
+                                                     ts->tokens[tok].type, &ts->data_objects[i]);
+            if (res < 0) {
+                /* deserializing the value was not successful */
+                return thingset_txt_serialize_response(ts, THINGSET_ERR_UNSUPPORTED_FORMAT, NULL);
+            }
+            tok += res;
+        }
+    }
+
+    if (ts->tok_count > tok) {
+        /* more parameters passed than child objects found */
+        return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "Too many parameters");
+    }
+
+    pos = thingset_txt_serialize_response(ts, THINGSET_STATUS_CHANGED, NULL);
+
+    /* if we got here, finally create function pointer and call function */
+    if (endpoint.object->type == THINGSET_TYPE_FN_I32) {
+        int32_t ret = endpoint.object->data.i32_fn();
+        union thingset_data_pointer data = { .i32 = &ret };
+        ts->rsp[pos++] = ' ';
+        pos += txt_serialize_simple_value(&ts->rsp[pos], ts->rsp_size - pos, data,
+                                          THINGSET_TYPE_I32, 0);
+        ts->rsp[--pos] = '\0'; /* remove trailing comma again */
+    }
+    else {
+        endpoint.object->data.void_fn();
+    }
+
+    return pos;
 }
 
 int thingset_txt_create(struct thingset_context *ts)

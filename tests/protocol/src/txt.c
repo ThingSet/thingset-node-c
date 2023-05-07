@@ -84,7 +84,8 @@ ZTEST(thingset_txt, test_get_exec)
         ":85 {"
         "\"xVoid\":[],"
         "\"xVoidParams\":[\"lBool\"],"
-        "\"xI32Params\":[\"uString\",\"nNumber\"]"
+        "\"xI32Params\":[\"uString\",\"nNumber\"],"
+        "\"xVoidMfrOnly\":[]"
         "}";
 
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
@@ -285,12 +286,70 @@ ZTEST(thingset_txt, test_update_unknown_object)
     THINGSET_ASSERT_REQUEST_TXT("=Types {\"wI3\" : 52}", ":A4 \"Item wI3 not found\"");
 }
 
-ZTEST(thingset_txt, test_exec)
+ZTEST(thingset_txt, test_exec_fn_void)
 {
-    const char req[] = "!";       /* invalid request */
-    const char rsp_exp[] = ":C1"; /* not yet implemented */
+    fn_void_called = false;
 
-    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+    THINGSET_ASSERT_REQUEST_TXT("!Exec/xVoid", ":84");
+
+    zassert_equal(true, fn_void_called);
+}
+
+ZTEST(thingset_txt, test_exec_fn_void_mfr_only)
+{
+    THINGSET_ASSERT_REQUEST_TXT("!Exec/xVoidMfrOnly", ":A1 \"Authentication required\"");
+}
+
+ZTEST(thingset_txt, test_exec_fn_void_params)
+{
+    fn_void_params_called = false;
+    fn_void_param_b = false;
+
+    THINGSET_ASSERT_REQUEST_TXT("!Exec/xVoidParams [true]", ":84");
+
+    zassert_equal(true, fn_void_params_called);
+    zassert_equal(true, fn_void_param_b);
+}
+
+ZTEST(thingset_txt, test_exec_fn_void_invalid_json)
+{
+    THINGSET_ASSERT_REQUEST_TXT("!Exec/xVoidParams [true", ":A0 \"JSON parsing error\"");
+}
+
+ZTEST(thingset_txt, test_exec_fn_void_invalid_params)
+{
+    THINGSET_ASSERT_REQUEST_TXT("!Exec/xVoidParams true", ":A0 \"Invalid parameters\"");
+}
+
+ZTEST(thingset_txt, test_exec_fn_void_too_many_params)
+{
+    THINGSET_ASSERT_REQUEST_TXT("!Exec/xVoidParams [true, 123]", ":A0 \"Too many parameters\"");
+}
+
+ZTEST(thingset_txt, test_exec_fn_void_not_enough_params)
+{
+    THINGSET_ASSERT_REQUEST_TXT("!Exec/xVoidParams", ":A0 \"Not enough parameters\"");
+}
+
+ZTEST(thingset_txt, test_exec_fn_void_wrong_params)
+{
+    THINGSET_ASSERT_REQUEST_TXT("!Exec/xVoidParams [\"wrong\"]", ":AF");
+}
+
+ZTEST(thingset_txt, test_exec_fn_not_executable)
+{
+    THINGSET_ASSERT_REQUEST_TXT("!Access/rItem", ":A3 \"rItem is not executable\"");
+}
+
+ZTEST(thingset_txt, test_exec_fn_int32)
+{
+    fn_i32_param_str[0] = '\0';
+    fn_i32_param_num = 0;
+
+    THINGSET_ASSERT_REQUEST_TXT("!Exec/xI32Params [\"test\",123]", ":84 -1");
+
+    zassert_mem_equal("test", fn_i32_param_str, 4);
+    zassert_equal(123, fn_i32_param_num);
 }
 
 ZTEST(thingset_txt, test_create)

@@ -75,22 +75,24 @@ static THINGSET_DEFINE_DECFRAC_ARRAY(decfrac_arr_item, decfrac_arr, 2, 1);
 #endif
 
 /* Exec */
+bool fn_void_called;
 static void fn_void()
 {
-    ; /* do nothing */
+    fn_void_called = true;
 }
 
-static bool fn_void_param_b;
+bool fn_void_params_called;
+bool fn_void_param_b;
 static void fn_void_params()
 {
-    ; /* do nothing */
+    fn_void_params_called = true;
 }
 
-static char fn_i32_param_str[100];
-static int32_t fn_i32_param_num;
+char fn_i32_param_str[100];
+int32_t fn_i32_param_num;
 static int32_t fn_i32_params()
 {
-    return 1;
+    return -1;
 }
 
 /* Access */
@@ -210,6 +212,7 @@ THINGSET_ADD_FN_INT32(0x400, 0x404, "xI32Params", &fn_i32_params, THINGSET_ANY_R
 THINGSET_ADD_ITEM_STRING(0x404, 0x405, "uString", fn_i32_param_str, sizeof(fn_i32_param_str),
                          THINGSET_ANY_RW, 0);
 THINGSET_ADD_ITEM_INT32(0x404, 0x406, "nNumber", &fn_i32_param_num, THINGSET_ANY_RW, 0);
+THINGSET_ADD_FN_VOID(0x400, 0x407, "xVoidMfrOnly", &fn_void, THINGSET_ANY_R | THINGSET_MFR_RW);
 
 /* Access */
 THINGSET_ADD_GROUP(THINGSET_ID_ROOT, 0x500, "Access", THINGSET_NO_CALLBACK);
@@ -311,6 +314,7 @@ struct thingset_data_object data_objects[] = {
     THINGSET_ITEM_STRING(0x404, 0x405, "uString", fn_i32_param_str, sizeof(fn_i32_param_str),
                          THINGSET_ANY_RW, 0),
     THINGSET_ITEM_INT32(0x404, 0x406, "nNumber", &fn_i32_param_num, THINGSET_ANY_RW, 0),
+    THINGSET_FN_VOID(0x400, 0x407, "xVoidMfrOnly", &fn_void, THINGSET_ANY_R | THINGSET_MFR_RW),
 
     /* Access */
     THINGSET_GROUP(THINGSET_ID_ROOT, 0x500, "Access", THINGSET_NO_CALLBACK),

@@ -44,4 +44,10 @@ extern float f32_arr[100];
 extern int32_t decfrac_arr[100];
 #endif
 
+extern bool fn_void_called;
+extern bool fn_void_params_called;
+extern bool fn_void_param_b;
+extern char fn_i32_param_str[100];
+extern int32_t fn_i32_param_num;
+
 #endif /* TESTS_COMMON_DATA_H_ */
