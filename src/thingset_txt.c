@@ -278,13 +278,15 @@ static int txt_parse_endpoint(struct thingset_context *ts, struct thingset_endpo
 /**
  * @returns Number of tokens or negative ThingSet reponse code in case of error
  */
-static int txt_parse_payload(struct thingset_context *ts, struct jsmn_parser *parser, int pos)
+static int txt_parse_payload(struct thingset_context *ts, int pos)
 {
-    jsmn_init(parser);
+    struct jsmn_parser parser;
+
+    jsmn_init(&parser);
 
     ts->json_str = (char *)ts->msg + pos;
     ts->tok_count =
-        jsmn_parse(parser, ts->json_str, ts->msg_len - pos, ts->tokens, sizeof(ts->tokens));
+        jsmn_parse(&parser, ts->json_str, ts->msg_len - pos, ts->tokens, sizeof(ts->tokens));
 
     if (ts->tok_count == JSMN_ERROR_NOMEM) {
         return -THINGSET_ERR_REQUEST_TOO_LARGE;
@@ -301,8 +303,7 @@ static int txt_parse_payload(struct thingset_context *ts, struct jsmn_parser *pa
  * Parse endpoint and payload and fill response buffer with response in case of error.
  * @return number of payload tokens or negative error code
  */
-static int txt_parse_request(struct thingset_context *ts, struct thingset_endpoint *endpoint,
-                             struct jsmn_parser *parser)
+static int txt_parse_request(struct thingset_context *ts, struct thingset_endpoint *endpoint)
 {
     int path_len = txt_parse_endpoint(ts, endpoint);
     if (path_len < 0) {
@@ -310,7 +311,7 @@ static int txt_parse_request(struct thingset_context *ts, struct thingset_endpoi
         return path_len;
     }
 
-    int num_tokens = txt_parse_payload(ts, parser, path_len + 1);
+    int num_tokens = txt_parse_payload(ts, path_len + 1);
     if (num_tokens < 0) {
         thingset_txt_serialize_response(ts, -num_tokens, "JSON parsing error");
     }
@@ -495,9 +496,8 @@ static int thingset_txt_get(struct thingset_context *ts, struct thingset_endpoin
 int thingset_txt_get_fetch(struct thingset_context *ts)
 {
     struct thingset_endpoint endpoint;
-    struct jsmn_parser parser;
 
-    int payload_tokens = txt_parse_request(ts, &endpoint, &parser);
+    int payload_tokens = txt_parse_request(ts, &endpoint);
     if (payload_tokens == 0) {
         return thingset_txt_get(ts, &endpoint);
     }
@@ -611,9 +611,8 @@ int thingset_txt_deserialize_value(struct thingset_context *ts, char *buf, size_
 int thingset_txt_update(struct thingset_context *ts)
 {
     struct thingset_endpoint endpoint;
-    struct jsmn_parser parser;
 
-    int payload_tokens = txt_parse_request(ts, &endpoint, &parser);
+    int payload_tokens = txt_parse_request(ts, &endpoint);
     if (payload_tokens < 0) {
         return ts->rsp_pos;
     }
@@ -739,11 +738,10 @@ int thingset_txt_update(struct thingset_context *ts)
 int thingset_txt_exec(struct thingset_context *ts)
 {
     struct thingset_endpoint endpoint;
-    struct jsmn_parser parser;
     int tok = 0;
     int pos;
 
-    int payload_tokens = txt_parse_request(ts, &endpoint, &parser);
+    int payload_tokens = txt_parse_request(ts, &endpoint);
     if (payload_tokens < 0) {
         return ts->rsp_pos;
     }
