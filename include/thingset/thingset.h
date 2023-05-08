@@ -203,9 +203,9 @@ extern "C" {
     }
 
 /** Create a group for hierarchical structuring of the data. */
-#define THINGSET_GROUP(parent_id, id, name, void_fn_cb_ptr) \
+#define THINGSET_GROUP(parent_id, id, name, update_callback) \
     { \
-        parent_id, id, name, { .void_fn = void_fn_cb_ptr }, THINGSET_TYPE_GROUP, 0, \
+        parent_id, id, name, { .group_callback = update_callback }, THINGSET_TYPE_GROUP, 0, \
             THINGSET_READ_MASK \
     }
 
@@ -534,6 +534,21 @@ static inline size_t thingset_type_size(uint8_t type)
 }
 
 /**
+ * Indication for which reason a callback assigned to a group was called.
+ *
+ * The reason is passed to the callback as a parameter, such that the application can perform
+ * desired actions, e.g. update data from ADC before it is read/serialized or write data to an
+ * EEPROM after it was written/deserialized.
+ */
+enum thingset_callback_reason
+{
+    THINGSET_CALLBACK_PRE_READ,   /**< Function was called before serializing data of the group */
+    THINGSET_CALLBACK_POST_READ,  /**< Function was called after serializing data of the group */
+    THINGSET_CALLBACK_PRE_WRITE,  /**< Function was called before deserializing data of the group */
+    THINGSET_CALLBACK_POST_WRITE, /**< Function was called after deserializing data of the group */
+};
+
+/**
  * Union for type-checking of provided data item variable pointers through the macros.
  */
 union thingset_data_pointer {
@@ -556,6 +571,7 @@ union thingset_data_pointer {
     uint32_t subset;
     void (*void_fn)();
     int32_t (*i32_fn)();
+    void (*group_callback)(enum thingset_callback_reason cb_reason);
 };
 
 /**

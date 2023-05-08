@@ -286,6 +286,35 @@ ZTEST(thingset_txt, test_update_unknown_object)
     THINGSET_ASSERT_REQUEST_TXT("=Types {\"wI3\" : 52}", ":A4 \"Item wI3 not found\"");
 }
 
+ZTEST(thingset_txt, test_update_group_callback)
+{
+    callback_pre_read_count = 0;
+    callback_post_read_count = 0;
+    callback_pre_write_count = 0;
+    callback_post_write_count = 0;
+
+    THINGSET_ASSERT_REQUEST_TXT("=Access {\"wItem\":1}", ":84");
+
+    zassert_equal(callback_pre_read_count, 0);
+    zassert_equal(callback_post_read_count, 0);
+    zassert_equal(callback_pre_write_count, 1);
+    zassert_equal(callback_post_write_count, 1);
+
+    THINGSET_ASSERT_REQUEST_TXT("?Access", ":85 {\"rItem\":1.00,\"wItem\":1.00}");
+
+    zassert_equal(callback_pre_read_count, 1);
+    zassert_equal(callback_post_read_count, 1);
+    zassert_equal(callback_pre_write_count, 1);
+    zassert_equal(callback_post_write_count, 1);
+
+    THINGSET_ASSERT_REQUEST_TXT("?Access [\"wItem\"]", ":85 [1.00]");
+
+    zassert_equal(callback_pre_read_count, 2);
+    zassert_equal(callback_post_read_count, 2);
+    zassert_equal(callback_pre_write_count, 1);
+    zassert_equal(callback_post_write_count, 1);
+}
+
 ZTEST(thingset_txt, test_exec_fn_void)
 {
     fn_void_called = false;

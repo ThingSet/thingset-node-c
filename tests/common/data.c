@@ -97,6 +97,27 @@ static int32_t fn_i32_params()
 
 /* Access */
 static float access_item;
+int callback_pre_read_count;
+int callback_post_read_count;
+int callback_pre_write_count;
+int callback_post_write_count;
+static void group_callback(enum thingset_callback_reason reason)
+{
+    switch (reason) {
+        case THINGSET_CALLBACK_PRE_READ:
+            callback_pre_read_count++;
+            break;
+        case THINGSET_CALLBACK_POST_READ:
+            callback_post_read_count++;
+            break;
+        case THINGSET_CALLBACK_PRE_WRITE:
+            callback_pre_write_count++;
+            break;
+        case THINGSET_CALLBACK_POST_WRITE:
+            callback_post_write_count++;
+            break;
+    }
+}
 
 /*
  * Records
@@ -215,7 +236,7 @@ THINGSET_ADD_ITEM_INT32(0x404, 0x406, "nNumber", &fn_i32_param_num, THINGSET_ANY
 THINGSET_ADD_FN_VOID(0x400, 0x407, "xVoidMfrOnly", &fn_void, THINGSET_ANY_R | THINGSET_MFR_RW);
 
 /* Access */
-THINGSET_ADD_GROUP(THINGSET_ID_ROOT, 0x500, "Access", THINGSET_NO_CALLBACK);
+THINGSET_ADD_GROUP(THINGSET_ID_ROOT, 0x500, "Access", group_callback);
 THINGSET_ADD_ITEM_FLOAT(0x500, 0x501, "rItem", &access_item, 2, THINGSET_ANY_R, 0);
 THINGSET_ADD_ITEM_FLOAT(0x500, 0x502, "wItem", &access_item, 2, THINGSET_ANY_RW, 0);
 
@@ -317,7 +338,7 @@ struct thingset_data_object data_objects[] = {
     THINGSET_FN_VOID(0x400, 0x407, "xVoidMfrOnly", &fn_void, THINGSET_ANY_R | THINGSET_MFR_RW),
 
     /* Access */
-    THINGSET_GROUP(THINGSET_ID_ROOT, 0x500, "Access", THINGSET_NO_CALLBACK),
+    THINGSET_GROUP(THINGSET_ID_ROOT, 0x500, "Access", group_callback),
     THINGSET_ITEM_FLOAT(0x500, 0x501, "rItem", &access_item, 2, THINGSET_ANY_R, 0),
     THINGSET_ITEM_FLOAT(0x500, 0x502, "wItem", &access_item, 2, THINGSET_ANY_RW, 0),
 

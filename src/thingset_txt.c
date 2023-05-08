@@ -356,6 +356,10 @@ static int thingset_txt_fetch(struct thingset_context *ts, struct thingset_endpo
         /* fetch values */
         tok++;
 
+        if (endpoint->object && endpoint->object->data.group_callback != NULL) {
+            endpoint->object->data.group_callback(THINGSET_CALLBACK_PRE_READ);
+        }
+
         while (tok < ts->tok_count) {
             if (ts->tokens[tok].type != JSMN_STRING) {
                 return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
@@ -397,9 +401,13 @@ static int thingset_txt_fetch(struct thingset_context *ts, struct thingset_endpo
 
             tok++;
         }
+
+        if (endpoint->object && endpoint->object->data.group_callback != NULL) {
+            endpoint->object->data.group_callback(THINGSET_CALLBACK_POST_READ);
+        }
     }
     else {
-        /* return error */
+        return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "Invalid payload");
     }
 
     if (tok > 0) {
@@ -460,6 +468,10 @@ static int thingset_txt_get(struct thingset_context *ts, struct thingset_endpoin
         }
     }
     else {
+        if (endpoint->object && endpoint->object->data.group_callback != NULL) {
+            endpoint->object->data.group_callback(THINGSET_CALLBACK_PRE_READ);
+        }
+
         for (unsigned int i = 0; i < ts->num_objects; i++) {
             if ((ts->data_objects[i].access & THINGSET_READ_MASK)
                 && (ts->data_objects[i].parent_id == endpoint_id))
@@ -480,6 +492,10 @@ static int thingset_txt_get(struct thingset_context *ts, struct thingset_endpoin
                                                            NULL);
                 }
             }
+        }
+
+        if (endpoint->object && endpoint->object->data.group_callback != NULL) {
+            endpoint->object->data.group_callback(THINGSET_CALLBACK_POST_READ);
         }
     }
 
@@ -709,6 +725,10 @@ int thingset_txt_update(struct thingset_context *ts)
         }
     }
 
+    if (endpoint.object && endpoint.object->data.group_callback != NULL) {
+        endpoint.object->data.group_callback(THINGSET_CALLBACK_PRE_WRITE);
+    }
+
     /* actually write data */
     tok = 1;
     while (tok + 1 < ts->tok_count) {
@@ -730,6 +750,10 @@ int thingset_txt_update(struct thingset_context *ts)
 
     if (updated && ts->update_cb != NULL) {
         ts->update_cb();
+    }
+
+    if (endpoint.object && endpoint.object->data.group_callback != NULL) {
+        endpoint.object->data.group_callback(THINGSET_CALLBACK_POST_WRITE);
     }
 
     return thingset_txt_serialize_response(ts, THINGSET_STATUS_CHANGED, NULL);

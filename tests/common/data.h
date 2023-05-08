@@ -50,4 +50,9 @@ extern bool fn_void_param_b;
 extern char fn_i32_param_str[100];
 extern int32_t fn_i32_param_num;
 
+extern int callback_pre_read_count;
+extern int callback_post_read_count;
+extern int callback_pre_write_count;
+extern int callback_post_write_count;
+
 #endif /* TESTS_COMMON_DATA_H_ */
