@@ -12,15 +12,15 @@ The main goal is to provide a full-featured ThingSet module for Zephyr RTOS. The
 
 Below tables show the implementation status of the different ThingSet functions:
 
-| Request/Response | Text mode | Binary mode |
-| ---------------- | --------- | ----------- |
-| GET              | yes       | no          |
-| FETCH            | yes       | no          |
-| UPDATE           | yes       | no          |
-| EXEC             | yes       | no          |
-| CREATE           | no        | no          |
-| DELETE           | no        | no          |
-| RESPONSE         | yes       | yes         |
+| Request/Response | Text mode     | Binary mode |
+| ---------------- | ------------- | ----------- |
+| GET              | yes           | no          |
+| FETCH            | yes           | no          |
+| UPDATE           | yes           | no          |
+| EXEC             | yes           | no          |
+| CREATE           | yes (subsets) | no          |
+| DELETE           | yes (subsets) | no          |
+| RESPONSE         | yes           | yes         |
 
 | Publish/Subscribe | Text mode | Binary mode |
 | ----------------- | --------- | ----------- |

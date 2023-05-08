@@ -809,14 +809,65 @@ int thingset_txt_exec(struct thingset_context *ts)
     return pos;
 }
 
+static int thingset_txt_create_delete(struct thingset_context *ts, bool create)
+{
+    struct thingset_endpoint endpoint;
+
+    int payload_tokens = txt_parse_request(ts, &endpoint);
+    if (payload_tokens < 0) {
+        return ts->rsp_pos;
+    }
+    else if (endpoint.object == NULL) {
+        return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
+                                               "Endpoint item required");
+    }
+    else if (payload_tokens != 1) {
+        return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
+                                               "Only single value supported");
+    }
+
+    if (endpoint.object->type == THINGSET_TYPE_ARRAY) {
+        return thingset_txt_serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED,
+                                               "Arrays not yet supported");
+    }
+    else if (endpoint.object->type == THINGSET_TYPE_SUBSET) {
+#if CONFIG_THINGSET_IMMUTABLE_OBJECTS
+        return thingset_txt_serialize_response(ts, THINGSET_ERR_METHOD_NOT_ALLOWED,
+                                               "Subset is immutable");
+#else
+        if (ts->tokens[0].type == JSMN_STRING) {
+            struct thingset_endpoint element;
+            int ret = thingset_endpoint_by_path(ts, &element, ts->json_str + ts->tokens[0].start,
+                                                ts->tokens[0].end - ts->tokens[0].start);
+            if (ret >= 0 && element.object != NULL && element.index == INDEX_NONE) {
+                if (create) {
+                    element.object->subsets |= endpoint.object->data.subset;
+                    return thingset_txt_serialize_response(ts, THINGSET_STATUS_CREATED, NULL);
+                }
+                else {
+                    element.object->subsets &= ~endpoint.object->data.subset;
+                    return thingset_txt_serialize_response(ts, THINGSET_STATUS_DELETED, NULL);
+                }
+            }
+            return thingset_txt_serialize_response(ts, THINGSET_ERR_NOT_FOUND, NULL);
+        }
+        else {
+            return thingset_txt_serialize_response(ts, THINGSET_ERR_UNSUPPORTED_FORMAT, NULL);
+        }
+#endif /* CONFIG_THINGSET_IMMUTABLE_OBJECTS */
+    }
+
+    return thingset_txt_serialize_response(ts, THINGSET_ERR_METHOD_NOT_ALLOWED, NULL);
+}
+
 int thingset_txt_create(struct thingset_context *ts)
 {
-    return thingset_txt_serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+    return thingset_txt_create_delete(ts, true);
 }
 
 int thingset_txt_delete(struct thingset_context *ts)
 {
-    return thingset_txt_serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
+    return thingset_txt_create_delete(ts, false);
 }
 
 int thingset_txt_desire(struct thingset_context *ts)

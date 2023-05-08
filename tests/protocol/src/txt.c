@@ -352,20 +352,61 @@ ZTEST(thingset_txt, test_exec_fn_int32)
     zassert_equal(123, fn_i32_param_num);
 }
 
-ZTEST(thingset_txt, test_create)
+ZTEST(thingset_txt, test_create_delete_subset_item)
 {
-    const char req[] = "+";       /* invalid request */
-    const char rsp_exp[] = ":C1"; /* not yet implemented */
+    /* before change */
+    THINGSET_ASSERT_REQUEST_TXT(
+        "?mLive", ":85 [\"t_s\",\"Types/wBool\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
 
-    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+    /* delete "Types/wBool" */
+    THINGSET_ASSERT_REQUEST_TXT("-mLive \"Types/wBool\"", ":82");
+
+    /* check if it was deleted */
+    THINGSET_ASSERT_REQUEST_TXT("?mLive",
+                                ":85 [\"t_s\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
+
+    /* append "Types/wBool" again */
+    THINGSET_ASSERT_REQUEST_TXT("+mLive \"Types/wBool\"", ":81");
+
+    /* check if it was appended */
+    THINGSET_ASSERT_REQUEST_TXT(
+        "?mLive", ":85 [\"t_s\",\"Types/wBool\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
 }
 
-ZTEST(thingset_txt, test_delete)
+ZTEST(thingset_txt, test_create_root_item)
 {
-    const char req[] = "-";       /* invalid request */
-    const char rsp_exp[] = ":C1"; /* not yet implemented */
+    THINGSET_ASSERT_REQUEST_TXT("+ \"Test\"", ":A0 \"Endpoint item required\"");
+}
 
-    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+ZTEST(thingset_txt, test_create_multiple_values)
+{
+    THINGSET_ASSERT_REQUEST_TXT("+mLive [\"Types/wBool\",\"Types/wI32\"]",
+                                ":A0 \"Only single value supported\"");
+}
+
+ZTEST(thingset_txt, test_create_non_existing_item)
+{
+    THINGSET_ASSERT_REQUEST_TXT("+mLive \"Types/wBoo\"", ":A4");
+}
+
+ZTEST(thingset_txt, test_create_wrong_type_item)
+{
+    THINGSET_ASSERT_REQUEST_TXT("+mLive 123", ":AF");
+}
+
+ZTEST(thingset_txt, test_create_array_item)
+{
+    THINGSET_ASSERT_REQUEST_TXT("+Arrays/wBool/- true", ":C1 \"Arrays not yet supported\"");
+}
+
+ZTEST(thingset_txt, test_create_single_value)
+{
+    THINGSET_ASSERT_REQUEST_TXT("+Types/wBool true", ":A5");
+}
+
+ZTEST(thingset_txt, test_create_non_existing_endpoint)
+{
+    THINGSET_ASSERT_REQUEST_TXT("+foo 1", ":A4 \"Invalid endpoint\"");
 }
 
 ZTEST(thingset_txt, test_desire_timestamp_zero)
