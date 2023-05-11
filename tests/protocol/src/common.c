@@ -21,7 +21,8 @@ ZTEST(thingset_common, test_endpoint_from_path)
     path = "";
     ret = thingset_endpoint_by_path(&ts, &endpoint, path, strlen(path));
     zassert_equal(ret, 0);
-    zassert_equal(endpoint.object, NULL);
+    zassert_not_equal(endpoint.object, NULL);
+    zassert_equal(endpoint.object->id, 0);
     zassert_equal(endpoint.index, INDEX_NONE);
 
     path = "Types";

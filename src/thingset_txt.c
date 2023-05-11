@@ -324,8 +324,6 @@ static int thingset_txt_fetch(struct thingset_context *ts, struct thingset_endpo
     int tok = 0; /* current token */
     int pos;
 
-    thingset_object_id_t endpoint_id = (endpoint->object == NULL) ? 0 : endpoint->object->id;
-
     /* initialize response with success message */
     pos = thingset_txt_serialize_response(ts, THINGSET_STATUS_CONTENT, NULL);
     pos += snprintf((char *)ts->rsp + pos, ts->rsp_size - pos, " [");
@@ -338,7 +336,7 @@ static int thingset_txt_fetch(struct thingset_context *ts, struct thingset_endpo
         /* fetch names */
         for (unsigned int i = 0; i < ts->num_objects; i++) {
             if ((ts->data_objects[i].access & THINGSET_READ_MASK)
-                && (ts->data_objects[i].parent_id == endpoint_id))
+                && (ts->data_objects[i].parent_id == endpoint->object->id))
             {
                 pos += snprintf((char *)ts->rsp + pos, ts->rsp_size - pos, "\"%s\",",
                                 ts->data_objects[i].name);
@@ -356,7 +354,7 @@ static int thingset_txt_fetch(struct thingset_context *ts, struct thingset_endpo
         /* fetch values */
         tok++;
 
-        if (endpoint->object && endpoint->object->data.group_callback != NULL) {
+        if (endpoint->object->data.group_callback != NULL) {
             endpoint->object->data.group_callback(THINGSET_CALLBACK_PRE_READ);
         }
 
@@ -370,7 +368,7 @@ static int thingset_txt_fetch(struct thingset_context *ts, struct thingset_endpo
             size_t item_len = ts->tokens[tok].end - ts->tokens[tok].start;
 
             const struct thingset_data_object *object =
-                thingset_get_child_by_name(ts, endpoint_id, item, item_len);
+                thingset_get_child_by_name(ts, endpoint->object->id, item, item_len);
 
             if (object == NULL) {
                 return thingset_txt_serialize_response(ts, THINGSET_ERR_NOT_FOUND,
@@ -402,7 +400,7 @@ static int thingset_txt_fetch(struct thingset_context *ts, struct thingset_endpo
             tok++;
         }
 
-        if (endpoint->object && endpoint->object->data.group_callback != NULL) {
+        if (endpoint->object->data.group_callback != NULL) {
             endpoint->object->data.group_callback(THINGSET_CALLBACK_POST_READ);
         }
     }
@@ -424,40 +422,36 @@ static int thingset_txt_get(struct thingset_context *ts, struct thingset_endpoin
 {
     int pos;
 
-    thingset_object_id_t endpoint_id = (endpoint->object == NULL) ? 0 : endpoint->object->id;
-
     /* initialize response with success message */
     pos = thingset_txt_serialize_response(ts, THINGSET_STATUS_CONTENT, NULL);
 
-    if (endpoint->object != NULL) {
-        switch (endpoint->object->type) {
-            case THINGSET_TYPE_FN_VOID:
-            case THINGSET_TYPE_FN_I32:
-                // bad request, as we can't read exec object's values
-                return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST, NULL);
-            case THINGSET_TYPE_GROUP:
-                break;
-            case THINGSET_TYPE_RECORDS:
-                if (endpoint->index == INDEX_NONE) {
-                    struct thingset_records *records = endpoint->object->data.records;
-                    pos += snprintf((char *)&ts->rsp[pos], ts->rsp_size - pos, " %d",
-                                    records->num_records);
-                    return pos;
-                }
-                break;
-            default:
-                // get value of data object
-                ts->rsp[pos++] = ' ';
-                pos += txt_serialize_value(ts, (char *)&ts->rsp[pos], ts->rsp_size - pos,
-                                           endpoint->object);
-                ts->rsp[--pos] = '\0'; // remove trailing comma again
+    switch (endpoint->object->type) {
+        case THINGSET_TYPE_FN_VOID:
+        case THINGSET_TYPE_FN_I32:
+            // bad request, as we can't read exec object's values
+            return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST, NULL);
+        case THINGSET_TYPE_GROUP:
+            break;
+        case THINGSET_TYPE_RECORDS:
+            if (endpoint->index == INDEX_NONE) {
+                struct thingset_records *records = endpoint->object->data.records;
+                pos += snprintf((char *)&ts->rsp[pos], ts->rsp_size - pos, " %d",
+                                records->num_records);
                 return pos;
-        }
+            }
+            break;
+        default:
+            // get value of data object
+            ts->rsp[pos++] = ' ';
+            pos += txt_serialize_value(ts, (char *)&ts->rsp[pos], ts->rsp_size - pos,
+                                       endpoint->object);
+            ts->rsp[--pos] = '\0'; // remove trailing comma again
+            return pos;
     }
 
     pos += snprintf((char *)ts->rsp + pos, ts->rsp_size - pos, " {");
     int objects_found = 0;
-    if (endpoint->object && endpoint->object->type == THINGSET_TYPE_RECORDS) {
+    if (endpoint->object->type == THINGSET_TYPE_RECORDS) {
         int record_len = txt_serialize_record(ts, (char *)ts->rsp + pos, ts->rsp_size - pos,
                                               endpoint->object, endpoint->index, &objects_found);
         if (record_len > 0) {
@@ -468,13 +462,13 @@ static int thingset_txt_get(struct thingset_context *ts, struct thingset_endpoin
         }
     }
     else {
-        if (endpoint->object && endpoint->object->data.group_callback != NULL) {
+        if (endpoint->object->data.group_callback != NULL) {
             endpoint->object->data.group_callback(THINGSET_CALLBACK_PRE_READ);
         }
 
         for (unsigned int i = 0; i < ts->num_objects; i++) {
             if ((ts->data_objects[i].access & THINGSET_READ_MASK)
-                && (ts->data_objects[i].parent_id == endpoint_id))
+                && (ts->data_objects[i].parent_id == endpoint->object->id))
             {
                 int ret = txt_serialize_name_value(ts, (char *)ts->rsp + pos, ts->rsp_size - pos,
                                                    &ts->data_objects[i]);
@@ -494,7 +488,7 @@ static int thingset_txt_get(struct thingset_context *ts, struct thingset_endpoin
             }
         }
 
-        if (endpoint->object && endpoint->object->data.group_callback != NULL) {
+        if (endpoint->object->data.group_callback != NULL) {
             endpoint->object->data.group_callback(THINGSET_CALLBACK_POST_READ);
         }
     }
@@ -640,8 +634,6 @@ int thingset_txt_update(struct thingset_context *ts)
     int tok = 1; /* current token (skipping JSMN_OBJECT) */
     bool updated = false;
 
-    thingset_object_id_t endpoint_id = (endpoint.object == NULL) ? 0 : endpoint.object->id;
-
     /* loop through all elements to check if request is valid */
     while (tok + 1 < ts->tok_count) {
 
@@ -656,7 +648,7 @@ int thingset_txt_update(struct thingset_context *ts)
         size_t item_len = ts->tokens[tok].end - ts->tokens[tok].start;
 
         const struct thingset_data_object *object =
-            thingset_get_child_by_name(ts, endpoint_id, item, item_len);
+            thingset_get_child_by_name(ts, endpoint.object->id, item, item_len);
 
         if (object == NULL) {
             return thingset_txt_serialize_response(ts, THINGSET_ERR_NOT_FOUND,
@@ -725,7 +717,7 @@ int thingset_txt_update(struct thingset_context *ts)
         }
     }
 
-    if (endpoint.object && endpoint.object->data.group_callback != NULL) {
+    if (endpoint.object->data.group_callback != NULL) {
         endpoint.object->data.group_callback(THINGSET_CALLBACK_PRE_WRITE);
     }
 
@@ -733,9 +725,9 @@ int thingset_txt_update(struct thingset_context *ts)
     tok = 1;
     while (tok + 1 < ts->tok_count) {
 
-        const struct thingset_data_object *object =
-            thingset_get_child_by_name(ts, endpoint_id, ts->json_str + ts->tokens[tok].start,
-                                       ts->tokens[tok].end - ts->tokens[tok].start);
+        const struct thingset_data_object *object = thingset_get_child_by_name(
+            ts, endpoint.object->id, ts->json_str + ts->tokens[tok].start,
+            ts->tokens[tok].end - ts->tokens[tok].start);
 
         tok++;
 
@@ -752,7 +744,7 @@ int thingset_txt_update(struct thingset_context *ts)
         ts->update_cb();
     }
 
-    if (endpoint.object && endpoint.object->data.group_callback != NULL) {
+    if (endpoint.object->data.group_callback != NULL) {
         endpoint.object->data.group_callback(THINGSET_CALLBACK_POST_WRITE);
     }
 
@@ -777,7 +769,7 @@ int thingset_txt_exec(struct thingset_context *ts)
         tok++; /* skip JSMN_ARRAY token */
     }
 
-    if (endpoint.object != NULL && (endpoint.object->access & THINGSET_WRITE_MASK)
+    if ((endpoint.object->access & THINGSET_WRITE_MASK)
         && (endpoint.object->type == THINGSET_TYPE_FN_VOID
             || endpoint.object->type == THINGSET_TYPE_FN_I32))
     {
@@ -841,7 +833,7 @@ static int thingset_txt_create_delete(struct thingset_context *ts, bool create)
     if (payload_tokens < 0) {
         return ts->rsp_pos;
     }
-    else if (endpoint.object == NULL) {
+    else if (endpoint.object->id == 0) {
         return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
                                                "Endpoint item required");
     }
@@ -863,7 +855,7 @@ static int thingset_txt_create_delete(struct thingset_context *ts, bool create)
             struct thingset_endpoint element;
             int ret = thingset_endpoint_by_path(ts, &element, ts->json_str + ts->tokens[0].start,
                                                 ts->tokens[0].end - ts->tokens[0].start);
-            if (ret >= 0 && element.object != NULL && element.index == INDEX_NONE) {
+            if (ret >= 0 && element.index == INDEX_NONE) {
                 if (create) {
                     element.object->subsets |= endpoint.object->data.subset;
                     return thingset_txt_serialize_response(ts, THINGSET_STATUS_CREATED, NULL);

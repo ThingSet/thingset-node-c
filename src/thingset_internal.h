@@ -18,9 +18,9 @@ extern "C" {
 
 struct thingset_endpoint
 {
-    /** pointer to the data object in memory (or NULL for root node) */
+    /** Pointer to the data object in memory (must never be NULL) */
     struct thingset_data_object *object;
-    /** index number or INDEX_NONE or INDEX_NEW */
+    /** Index number or INDEX_NONE or INDEX_NEW */
     int index;
 };
 

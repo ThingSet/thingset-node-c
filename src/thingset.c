@@ -19,6 +19,9 @@ LOG_MODULE_REGISTER(thingset, CONFIG_THINGSET_LOG_LEVEL);
 STRUCT_SECTION_START_EXTERN(thingset_data_object);
 STRUCT_SECTION_END_EXTERN(thingset_data_object);
 
+/* dummy object to avoid using NULL pointer for root object */
+static struct thingset_data_object root_object = THINGSET_GROUP(0, 0, "", NULL);
+
 static void check_id_duplicates(const struct thingset_data_object *objects, size_t num)
 {
     for (unsigned int i = 0; i < num; i++) {
@@ -145,7 +148,7 @@ int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpo
     endpoint->index = INDEX_NONE;
 
     if (path_len == 0) {
-        endpoint->object = NULL;
+        endpoint->object = &root_object;
         return 0;
     }
 
