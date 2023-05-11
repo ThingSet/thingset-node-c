@@ -215,18 +215,65 @@ static int txt_serialize_name_value(struct thingset_context *ts, char *buf, size
     return len_name + len_value;
 }
 
-static int txt_serialize_record(struct thingset_context *ts, char *buf, size_t size,
-                                const struct thingset_data_object *endpoint, int record_index,
-                                int *objects_found)
+static int txt_serialize_group(struct thingset_context *ts, char *buf, size_t size,
+                               const struct thingset_data_object *object)
 {
-    struct thingset_records *records = endpoint->data.records;
-    int len = 0;
+    int pos = 1;
 
-    /* record item definitions are expected to start behind endpoint data object */
-    const struct thingset_data_object *item = endpoint + 1;
-    while (item < &ts->data_objects[ts->num_objects] && item->parent_id == endpoint->id) {
-        int len_name = snprintf(buf + len, size - len, "\"%s\":", item->name);
-        if (len_name < 0 || len_name >= (size - len)) {
+    if (size < 3) { /* "{},"*/
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    buf[0] = '{';
+
+    if (object->data.group_callback != NULL) {
+        object->data.group_callback(THINGSET_CALLBACK_PRE_READ);
+    }
+
+    for (unsigned int i = 0; i < ts->num_objects; i++) {
+        if (ts->data_objects[i].parent_id == object->id
+            && (ts->data_objects[i].access & THINGSET_READ_MASK))
+        {
+            int ret = txt_serialize_name_value(ts, buf + pos, size - pos - 1, &ts->data_objects[i]);
+            if (ret >= 0) {
+                pos += ret;
+            }
+            else {
+                return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+            }
+        }
+    }
+
+    if (object->data.group_callback != NULL) {
+        object->data.group_callback(THINGSET_CALLBACK_POST_READ);
+    }
+
+    if (pos > 1) {
+        pos--; /* remove internal trailing comma */
+    }
+    buf[pos++] = '}';
+    buf[pos++] = ','; /* overrides \0 character (no length check required here) */
+
+    return pos;
+}
+
+static int txt_serialize_record(struct thingset_context *ts, char *buf, size_t size,
+                                const struct thingset_data_object *object, int record_index)
+{
+    struct thingset_records *records = object->data.records;
+    int pos = 1;
+
+    if (size < 3) { /* "{},"*/
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    buf[0] = '{';
+
+    /* record item definitions are expected to start behind record data object */
+    const struct thingset_data_object *item = object + 1;
+    while (item < &ts->data_objects[ts->num_objects] && item->parent_id == object->id) {
+        int len_name = snprintf(buf + pos, size - pos, "\"%s\":", item->name);
+        if (len_name < 0 || len_name >= (size - pos)) {
             return -THINGSET_ERR_RESPONSE_TOO_LARGE;
         }
 
@@ -235,20 +282,23 @@ static int txt_serialize_record(struct thingset_context *ts, char *buf, size_t s
             .u8 = (uint8_t *)records->records + record_index * records->record_size
                   + item->data.offset,
         };
-        int len_value = txt_serialize_simple_value(buf + len + len_name, size - len - len_name,
+        int len_value = txt_serialize_simple_value(buf + len_name + pos, size - len_name - pos,
                                                    data, item->type, item->detail);
         if (len_value < 0) {
             return -THINGSET_ERR_RESPONSE_TOO_LARGE;
         }
 
-        len += len_name + len_value;
+        pos += len_name + len_value;
         item++;
-        if (objects_found != NULL) {
-            *objects_found += 1;
-        }
     }
 
-    return len;
+    if (pos > 1) {
+        pos--; /* remove internal trailing comma */
+    }
+    buf[pos++] = '}';
+    buf[pos++] = ','; /* overrides \0 character (no length check required here) */
+
+    return pos;
 }
 
 /**
@@ -420,87 +470,42 @@ static int thingset_txt_fetch(struct thingset_context *ts, struct thingset_endpo
 
 static int thingset_txt_get(struct thingset_context *ts, struct thingset_endpoint *endpoint)
 {
-    int pos;
+    int pos, ret;
 
-    /* initialize response with success message */
     pos = thingset_txt_serialize_response(ts, THINGSET_STATUS_CONTENT, NULL);
+    ts->rsp[pos++] = ' '; /* rsp size at least 4 bytes: check not required */
 
     switch (endpoint->object->type) {
+        case THINGSET_TYPE_GROUP:
+            ret = txt_serialize_group(ts, (char *)ts->rsp + pos, ts->rsp_size - pos,
+                                      endpoint->object);
+            break;
         case THINGSET_TYPE_FN_VOID:
         case THINGSET_TYPE_FN_I32:
-            // bad request, as we can't read exec object's values
-            return thingset_txt_serialize_response(ts, THINGSET_ERR_BAD_REQUEST, NULL);
-        case THINGSET_TYPE_GROUP:
+            /* bad request, as we can't read exec object's values */
+            ret = -THINGSET_ERR_BAD_REQUEST;
             break;
         case THINGSET_TYPE_RECORDS:
-            if (endpoint->index == INDEX_NONE) {
-                struct thingset_records *records = endpoint->object->data.records;
-                pos += snprintf((char *)&ts->rsp[pos], ts->rsp_size - pos, " %d",
-                                records->num_records);
-                return pos;
+            if (endpoint->index != INDEX_NONE) {
+                ret = txt_serialize_record(ts, (char *)ts->rsp + pos, ts->rsp_size - pos,
+                                           endpoint->object, endpoint->index);
+                break;
             }
-            break;
+            /* fallthrough */
         default:
-            // get value of data object
-            ts->rsp[pos++] = ' ';
-            pos += txt_serialize_value(ts, (char *)&ts->rsp[pos], ts->rsp_size - pos,
-                                       endpoint->object);
-            ts->rsp[--pos] = '\0'; // remove trailing comma again
-            return pos;
+            ret = txt_serialize_value(ts, (char *)ts->rsp + pos, ts->rsp_size - pos,
+                                      endpoint->object);
+            break;
     }
 
-    pos += snprintf((char *)ts->rsp + pos, ts->rsp_size - pos, " {");
-    int objects_found = 0;
-    if (endpoint->object->type == THINGSET_TYPE_RECORDS) {
-        int record_len = txt_serialize_record(ts, (char *)ts->rsp + pos, ts->rsp_size - pos,
-                                              endpoint->object, endpoint->index, &objects_found);
-        if (record_len > 0) {
-            pos += record_len;
-        }
-        else {
-            return 0;
-        }
+    if (ret >= 0) {
+        pos += ret - 1; /* remove trailing comma */
+        ts->rsp[pos] = '\0';
+        return pos;
     }
     else {
-        if (endpoint->object->data.group_callback != NULL) {
-            endpoint->object->data.group_callback(THINGSET_CALLBACK_PRE_READ);
-        }
-
-        for (unsigned int i = 0; i < ts->num_objects; i++) {
-            if ((ts->data_objects[i].access & THINGSET_READ_MASK)
-                && (ts->data_objects[i].parent_id == endpoint->object->id))
-            {
-                int ret = txt_serialize_name_value(ts, (char *)ts->rsp + pos, ts->rsp_size - pos,
-                                                   &ts->data_objects[i]);
-                if (ret > 0) {
-                    pos += ret;
-                }
-                else {
-                    return thingset_txt_serialize_response(ts, THINGSET_ERR_RESPONSE_TOO_LARGE,
-                                                           NULL);
-                }
-                objects_found++;
-
-                if (pos >= ts->rsp_size - 1) {
-                    return thingset_txt_serialize_response(ts, THINGSET_ERR_RESPONSE_TOO_LARGE,
-                                                           NULL);
-                }
-            }
-        }
-
-        if (endpoint->object->data.group_callback != NULL) {
-            endpoint->object->data.group_callback(THINGSET_CALLBACK_POST_READ);
-        }
+        return thingset_txt_serialize_response(ts, ret, NULL);
     }
-
-    if (objects_found > 0) {
-        pos--; /* remove trailing comma */
-    }
-    ts->rsp[pos++] = '}';
-    ts->rsp[pos] = '\0';
-
-    ts->rsp_pos = pos;
-    return pos;
 }
 
 int thingset_txt_get_fetch(struct thingset_context *ts)
