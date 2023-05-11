@@ -25,7 +25,7 @@ Below tables show the implementation status of the different ThingSet functions:
 | Publish/Subscribe | Text mode | Binary mode |
 | ----------------- | --------- | ----------- |
 | DESIRE            | no        | no          |
-| REPORT            | no        | no          |
+| REPORT            | yes       | no          |
 
 ## Unit testing
 

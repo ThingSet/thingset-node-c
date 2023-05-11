@@ -7,6 +7,8 @@
 #ifndef TESTS_COMMON_DATA_H_
 #define TESTS_COMMON_DATA_H_
 
+#define SUBSET_LIVE (1U << 0)
+
 extern uint32_t timestamp;
 
 extern bool b;

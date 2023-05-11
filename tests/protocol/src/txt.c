@@ -91,6 +91,29 @@ ZTEST(thingset_txt, test_get_exec)
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
 }
 
+ZTEST(thingset_txt, test_get_num_records)
+{
+    THINGSET_ASSERT_REQUEST_TXT("?Records", ":85 2");
+}
+
+ZTEST(thingset_txt, test_get_record)
+{
+    const char req[] = "?Records/1";
+    const char rsp_exp[] =
+        ":85 {"
+        "\"t_s\":2,"
+        "\"wBool\":true,"
+        "\"wU8\":8,\"wI8\":-8,"
+        "\"wU16\":16,\"wI16\":-16,"
+        "\"wU32\":32,\"wI32\":-32,"
+        "\"wU64\":64,\"wI64\":-64,"
+        "\"wF32\":-3.2,\"wDecFrac\":-32e-2,"
+        "\"wString\":\"string\""
+        "}";
+
+    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+}
+
 ZTEST(thingset_txt, test_fetch_root_names)
 {
     const char req[] = "? null";
@@ -203,29 +226,6 @@ ZTEST(thingset_txt, test_fetch_int32_array)
 ZTEST(thingset_txt, test_fetch_float_array)
 {
     THINGSET_ASSERT_REQUEST_TXT("?Arrays [\"wF32\"]", ":85 [[-1.1,-2.2,-3.3]]");
-}
-
-ZTEST(thingset_txt, test_fetch_num_records)
-{
-    THINGSET_ASSERT_REQUEST_TXT("?Records", ":85 2");
-}
-
-ZTEST(thingset_txt, test_fetch_record)
-{
-    const char req[] = "?Records/1";
-    const char rsp_exp[] =
-        ":85 {"
-        "\"t_s\":2,"
-        "\"wBool\":true,"
-        "\"wU8\":8,\"wI8\":-8,"
-        "\"wU16\":16,\"wI16\":-16,"
-        "\"wU32\":32,\"wI32\":-32,"
-        "\"wU64\":64,\"wI64\":-64,"
-        "\"wF32\":-3.2,\"wDecFrac\":-32e-2,"
-        "\"wString\":\"string\""
-        "}";
-
-    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
 }
 
 ZTEST(thingset_txt, test_update_timestamp_zero)
@@ -444,6 +444,58 @@ ZTEST(thingset_txt, test_desire_timestamp_zero)
     const int err_exp = -THINGSET_ERR_NOT_IMPLEMENTED;
 
     THINGSET_ASSERT_DESIRE_TXT(des, err_exp);
+}
+
+ZTEST(thingset_txt, test_report_subset)
+{
+    const char rpt_exp[] =
+        "#mLive {"
+        "\"t_s\":1000,"
+        "\"Types\":{\"wBool\":true},"
+        "\"Nested\":{\"rBeginning\":1,\"Obj2\":{\"rItem2_V\":2.2}}"
+        "}";
+
+    THINGSET_ASSERT_REPORT_TXT("mLive", rpt_exp, strlen(rpt_exp));
+}
+
+ZTEST(thingset_txt, test_report_group)
+{
+    const char rpt_exp[] =
+        "#Nested/Obj1 {"
+        "\"rItem1_V\":1.1,"
+        "\"rItem2_V\":1.2"
+        "}";
+
+    THINGSET_ASSERT_REPORT_TXT("Nested/Obj1", rpt_exp, strlen(rpt_exp));
+}
+
+ZTEST(thingset_txt, test_report_record)
+{
+    const char rpt_exp[] =
+        "#Records/1 {"
+        "\"t_s\":2,"
+        "\"wBool\":true,"
+        "\"wU8\":8,\"wI8\":-8,"
+        "\"wU16\":16,\"wI16\":-16,"
+        "\"wU32\":32,\"wI32\":-32,"
+        "\"wU64\":64,\"wI64\":-64,"
+        "\"wF32\":-3.2,\"wDecFrac\":-32e-2,"
+        "\"wString\":\"string\""
+        "}";
+
+    THINGSET_ASSERT_REPORT_TXT("Records/1", rpt_exp, strlen(rpt_exp));
+}
+
+ZTEST(thingset_txt, test_export_subset)
+{
+    const char rsp_exp[] =
+        "{"
+        "\"t_s\":1000,"
+        "\"Types\":{\"wBool\":true},"
+        "\"Nested\":{\"rBeginning\":1,\"Obj2\":{\"rItem2_V\":2.2}}"
+        "}";
+
+    THINGSET_ASSERT_EXPORT_TXT(SUBSET_LIVE, rsp_exp, strlen(rsp_exp));
 }
 
 static void *thingset_setup(void)

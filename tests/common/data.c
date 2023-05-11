@@ -8,7 +8,7 @@
 
 #include "thingset/thingset.h"
 
-#define SUBSET_LIVE (1U << 0)
+#include "data.h"
 
 /* Pre-defined data items */
 char node_id[] = "ABCD1234";

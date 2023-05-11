@@ -895,3 +895,140 @@ int thingset_txt_desire(struct thingset_context *ts)
 {
     return -THINGSET_ERR_NOT_IMPLEMENTED;
 }
+
+/* currently only supporting nesting of depth 2 (parent and grandparent != 0) */
+static int txt_serialize_subsets(struct thingset_context *ts, char *buf, size_t buf_size,
+                                 uint16_t subsets)
+{
+    struct thingset_data_object *ancestors[2];
+    int depth = 0;
+    int pos = 1;
+
+    buf[0] = '{';
+
+    for (unsigned int i = 0; i < ts->num_objects; i++) {
+        if (ts->data_objects[i].subsets & subsets) {
+            const uint16_t parent_id = ts->data_objects[i].parent_id;
+
+            struct thingset_data_object *parent = NULL;
+            if (depth > 0 && parent_id == ancestors[depth - 1]->id) {
+                /* same parent as previous item */
+                parent = ancestors[depth - 1];
+            }
+            else if (parent_id != 0) {
+                /* parent needs to be searched in the object database */
+                parent = thingset_get_object_by_id(ts, parent_id);
+            }
+
+            /* close object if previous object had different parent or grandparent */
+            if (depth > 0 && parent_id != ancestors[depth - 1]->id && parent != NULL
+                && parent->parent_id != ancestors[depth - 1]->id)
+            {
+                buf[pos - 1] = '}'; /* overwrite comma */
+                buf[pos++] = ',';
+                depth--;
+            }
+
+            if (depth == 0 && parent != NULL) {
+                if (parent->parent_id != 0) {
+                    struct thingset_data_object *grandparent =
+                        thingset_get_object_by_id(ts, parent->parent_id);
+                    if (grandparent != NULL) {
+                        pos += snprintf(&buf[pos], buf_size - pos, "\"%s\":{", grandparent->name);
+                        ancestors[depth++] = grandparent;
+                    }
+                }
+                pos += snprintf(&buf[pos], buf_size - pos, "\"%s\":{", parent->name);
+                ancestors[depth++] = parent;
+            }
+            else if (depth > 0 && parent_id != ancestors[depth - 1]->id) {
+                if (parent != NULL) {
+                    pos += snprintf(&buf[pos], buf_size - pos, "\"%s\":{", parent->name);
+                    ancestors[depth++] = parent;
+                }
+            }
+            pos += txt_serialize_name_value(ts, buf + pos, buf_size - pos, &ts->data_objects[i]);
+        }
+        if (pos >= buf_size - 1 - depth) {
+            return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+        }
+    }
+
+    pos--; /* overwrite internal comma */
+
+    while (depth >= 0) {
+        buf[pos++] = '}';
+        depth--;
+    }
+
+    buf[pos++] = ',';
+
+    return pos;
+}
+
+int thingset_txt_export_subsets(struct thingset_context *ts, uint16_t subsets, char *buf,
+                                size_t buf_size)
+{
+    int ret = txt_serialize_subsets(ts, buf, buf_size - 1, subsets);
+
+    if (ret > 0) {
+        buf[--ret] = '\0'; /* remove trailing comma */
+        return ret;
+    }
+    else {
+        return ret;
+    }
+}
+
+int thingset_txt_report(struct thingset_context *ts, const char *path, char *buf, size_t buf_size)
+{
+    struct thingset_endpoint endpoint;
+    int pos;
+
+    int ret = thingset_endpoint_by_path(ts, &endpoint, path, strlen(path));
+    if (ret < 0) {
+        return ret;
+    }
+    else if (endpoint.object == NULL) {
+        return -THINGSET_ERR_BAD_REQUEST;
+    }
+
+    pos = snprintf(buf, buf_size, "#%s ", path);
+    if (pos < 0 || pos > buf_size) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    switch (endpoint.object->type) {
+        case THINGSET_TYPE_GROUP:
+            ret = txt_serialize_group(ts, buf + pos, buf_size - pos, endpoint.object);
+            break;
+        case THINGSET_TYPE_SUBSET:
+            ret =
+                txt_serialize_subsets(ts, buf + pos, buf_size - pos, endpoint.object->data.subset);
+            break;
+        case THINGSET_TYPE_FN_VOID:
+        case THINGSET_TYPE_FN_I32:
+            /* bad request, as we can't read exec object's values */
+            ret = -THINGSET_ERR_BAD_REQUEST;
+            break;
+        case THINGSET_TYPE_RECORDS:
+            if (endpoint.index != INDEX_NONE) {
+                ret = txt_serialize_record(ts, buf + pos, buf_size - pos, endpoint.object,
+                                           endpoint.index);
+                break;
+            }
+            /* fallthrough */
+        default:
+            ret = txt_serialize_value(ts, buf + pos, buf_size - pos, endpoint.object);
+            break;
+    }
+
+    if (ret >= 0) {
+        pos += ret - 1; /* remove trailing comma */
+        buf[pos] = '\0';
+        return pos;
+    }
+    else {
+        return ret;
+    }
+}

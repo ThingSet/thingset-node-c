@@ -771,6 +771,9 @@ void thingset_init_global(struct thingset_context *ts);
  *
  * This function also detects if text mode (JSON) or binary mode (CBOR) is used.
  *
+ * The string in the buffer will be null-terminated, but the termination character is not included
+ * in the returned length.
+ *
  * @param ts Pointer to ThingSet context.
  * @param msg Pointer to the ThingSet message (request or desire)
  * @param msg_len Length of the message
@@ -783,6 +786,45 @@ void thingset_init_global(struct thingset_context *ts);
  */
 int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, size_t msg_len,
                              uint8_t *rsp, size_t rsp_size);
+
+/**
+ * Retrieve data in JSON format for given subset(s).
+ *
+ * This function does not return a complete ThingSet message, but only the payload data as a
+ * name/value map. It can be used e.g. to store data in the EEPROM or other non-volatile memory.
+ *
+ * The string in the buffer will be null-terminated, but the termination character is not included
+ * in the returned length.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param subsets Flags to select which subset(s) of data items should be exported
+ * @param buf Pointer to the buffer where the data should be stored
+ * @param buf_size Size of the buffer, i.e. maximum allowed length of the data
+ *
+ * @return Actual length of the data or negative ThingSet response code in case of error.
+ */
+int thingset_txt_export_subsets(struct thingset_context *ts, uint16_t subsets, char *buf,
+                                size_t buf_size);
+
+/**
+ * Generate report in text format (JSON) for a given path.
+ *
+ * @note: Searching the object database to find the path and items to be published based on the
+ * path provides the most user-friendly API, but is not the most efficient way to generate the
+ * report. A more efficient method which caches the pointers to the data objects may be added
+ * in the future.
+ *
+ * The string in the buffer will be null-terminated, but the termination character is not included
+ * in the returned length.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param path Path of subset/group/record to be published
+ * @param buf Pointer to the buffer where the report should be stored
+ * @param buf_size Size of the buffer, i.e. maximum allowed length of the report
+ *
+ * @return Actual length of the report or negative ThingSet response code in case of error
+ */
+int thingset_txt_report(struct thingset_context *ts, const char *path, char *buf, size_t buf_size);
 
 #ifdef __cplusplus
 } /* extern "C" */
