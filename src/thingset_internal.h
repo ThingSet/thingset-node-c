@@ -62,6 +62,18 @@ int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpo
                               const char *path, size_t len);
 
 /**
+ * Get the endpoint from a provided ID.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param endpoint Pointer to the struct thingset_endpoint to store the result.
+ * @param id Numeric ID of the ThingSet object.
+ *
+ * @return 0 if successful or negative ThingSet error code to be reported
+ */
+int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoint *endpoint,
+                            uint16_t id);
+
+/**
  * Get the child object from a provided parent ID and the child name.
  *
  * @param ts Pointer to ThingSet context.

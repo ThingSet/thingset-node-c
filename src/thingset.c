@@ -205,6 +205,32 @@ int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpo
     return 0;
 }
 
+int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoint *endpoint,
+                            uint16_t id)
+{
+    struct thingset_data_object *object;
+    endpoint->index = INDEX_NONE;
+
+    printf("id: %d\n", id);
+
+    if (id == 0) {
+        endpoint->object = &root_object;
+        return 0;
+    }
+
+    object = thingset_get_object_by_id(ts, id);
+    if (object != NULL) {
+        /* check that the found endpoint is not part of a record (cannot be queried like this) */
+        struct thingset_data_object *parent = thingset_get_object_by_id(ts, object->parent_id);
+        if (parent == NULL || parent->type != THINGSET_TYPE_RECORDS) {
+            endpoint->object = object;
+            return 0;
+        }
+    }
+
+    return -THINGSET_ERR_NOT_FOUND;
+}
+
 int thingset_serialize_path(struct thingset_context *ts, char *buf, size_t size,
                             const struct thingset_data_object *obj)
 {
