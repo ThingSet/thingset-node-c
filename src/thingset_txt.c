@@ -272,23 +272,19 @@ static int txt_serialize_record(struct thingset_context *ts, char *buf, size_t s
     /* record item definitions are expected to start behind record data object */
     const struct thingset_data_object *item = object + 1;
     while (item < &ts->data_objects[ts->num_objects] && item->parent_id == object->id) {
-        int len_name = snprintf(buf + pos, size - pos, "\"%s\":", item->name);
-        if (len_name < 0 || len_name >= (size - pos)) {
-            return -THINGSET_ERR_RESPONSE_TOO_LARGE;
-        }
-
-        /* using uint8_t pointer for byte-wise pointer arithmetics */
-        union thingset_data_pointer data = {
-            .u8 = (uint8_t *)records->records + record_index * records->record_size
-                  + item->data.offset,
+        /* create new object with data pointer including offset */
+        uint8_t *data_ptr =
+            (uint8_t *)records->records + record_index * records->record_size + item->data.offset;
+        struct thingset_data_object obj = {
+            item->parent_id, item->id, item->name, { .u8 = data_ptr }, item->type, item->detail,
         };
-        int len_value = txt_serialize_simple_value(buf + len_name + pos, size - len_name - pos,
-                                                   data, item->type, item->detail);
-        if (len_value < 0) {
+
+        int len = txt_serialize_name_value(ts, buf + pos, size - pos, &obj);
+        if (len < 0) {
             return -THINGSET_ERR_RESPONSE_TOO_LARGE;
         }
 
-        pos += len_name + len_value;
+        pos += len;
         item++;
     }
 
@@ -504,7 +500,7 @@ static int thingset_txt_get(struct thingset_context *ts, struct thingset_endpoin
         return pos;
     }
     else {
-        return thingset_txt_serialize_response(ts, ret, NULL);
+        return thingset_txt_serialize_response(ts, -ret, NULL);
     }
 }
 
