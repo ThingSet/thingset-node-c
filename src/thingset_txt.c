@@ -141,7 +141,13 @@ static int txt_serialize_value(struct thingset_context *ts, char *buf, size_t si
 
     if (pos < 0) {
         /* not a simple value */
-        if (object->type == THINGSET_TYPE_FN_VOID || object->type == THINGSET_TYPE_FN_I32) {
+        if (object->type == THINGSET_TYPE_GROUP) {
+            pos = snprintf(buf, size, "null,");
+        }
+        else if (object->type == THINGSET_TYPE_RECORDS) {
+            pos = snprintf(buf, size, "%d,", object->data.records->num_records);
+        }
+        else if (object->type == THINGSET_TYPE_FN_VOID || object->type == THINGSET_TYPE_FN_I32) {
             pos = snprintf(buf, size, "[");
             for (unsigned int i = 0; i < ts->num_objects; i++) {
                 if (ts->data_objects[i].parent_id == object->id) {
@@ -183,11 +189,8 @@ static int txt_serialize_value(struct thingset_context *ts, char *buf, size_t si
             }
             pos += snprintf(buf + pos, size - pos, "],");
         }
-        else if (object->type == THINGSET_TYPE_GROUP) {
-            pos = snprintf(buf, size, "null,");
-        }
-        else if (object->type == THINGSET_TYPE_RECORDS) {
-            pos = snprintf(buf, size, "%d,", object->data.records->num_records);
+        else {
+            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
         }
     }
 
