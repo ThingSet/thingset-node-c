@@ -112,3 +112,79 @@ int thingset_common_get(struct thingset_context *ts)
         return ts->api->serialize_response(ts, -err, NULL);
     }
 }
+
+int thingset_common_export_subsets(struct thingset_context *ts, uint16_t subsets, char *buf,
+                                   size_t buf_size)
+{
+    int err;
+
+    ts->rsp = buf;
+    ts->rsp_size = buf_size;
+    ts->rsp_pos = 0;
+
+    err = ts->api->serialize_subsets(ts, subsets);
+
+    ts->api->serialize_finish(ts);
+
+    if (err == 0) {
+        return ts->rsp_pos;
+    }
+    else {
+        return err;
+    }
+}
+
+int thingset_common_report(struct thingset_context *ts, const char *path, char *buf,
+                           size_t buf_size)
+{
+    struct thingset_endpoint endpoint;
+    int err;
+
+    err = thingset_endpoint_by_path(ts, &endpoint, path, strlen(path));
+    if (err != 0) {
+        return err;
+    }
+    else if (endpoint.object == NULL) {
+        return -THINGSET_ERR_BAD_REQUEST;
+    }
+
+    ts->rsp = buf;
+    ts->rsp_size = buf_size;
+
+    err = ts->api->serialize_report_header(ts, path);
+    if (err != 0) {
+        return err;
+    }
+
+    switch (endpoint.object->type) {
+        case THINGSET_TYPE_GROUP:
+            err = thingset_common_serialize_group(ts, endpoint.object);
+            break;
+        case THINGSET_TYPE_SUBSET:
+            err = ts->api->serialize_subsets(ts, endpoint.object->data.subset);
+            break;
+        case THINGSET_TYPE_FN_VOID:
+        case THINGSET_TYPE_FN_I32:
+            /* bad request, as we can't read exec object's values */
+            err = -THINGSET_ERR_BAD_REQUEST;
+            break;
+        case THINGSET_TYPE_RECORDS:
+            if (endpoint.index != INDEX_NONE) {
+                err = thingset_common_serialize_record(ts, endpoint.object, endpoint.index);
+                break;
+            }
+            /* fallthrough */
+        default:
+            err = ts->api->serialize_value(ts, endpoint.object);
+            break;
+    }
+
+    ts->api->serialize_finish(ts);
+
+    if (err == 0) {
+        return ts->rsp_pos;
+    }
+    else {
+        return err;
+    }
+}

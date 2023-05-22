@@ -872,78 +872,14 @@ static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
     return 0;
 }
 
-int thingset_txt_export_subsets(struct thingset_context *ts, uint16_t subsets, char *buf,
-                                size_t buf_size)
+static int txt_serialize_report_header(struct thingset_context *ts, const char *path)
 {
-    int err;
-
-    ts->rsp = buf;
-    ts->rsp_size = buf_size;
-    ts->rsp_pos = 0;
-
-    err = txt_serialize_subsets(ts, subsets);
-
-    ts->api->serialize_finish(ts);
-
-    if (err == 0) {
-        return ts->rsp_pos;
-    }
-    else {
-        return err;
-    }
-}
-
-int thingset_txt_report(struct thingset_context *ts, const char *path, char *buf, size_t buf_size)
-{
-    struct thingset_endpoint endpoint;
-    int err;
-
-    err = thingset_endpoint_by_path(ts, &endpoint, path, strlen(path));
-    if (err != 0) {
-        return err;
-    }
-    else if (endpoint.object == NULL) {
-        return -THINGSET_ERR_BAD_REQUEST;
-    }
-
-    ts->rsp = buf;
-    ts->rsp_size = buf_size;
-
-    ts->rsp_pos = snprintf(buf, buf_size, "#%s ", path);
-    if (ts->rsp_pos < 0 || ts->rsp_pos > buf_size) {
+    ts->rsp_pos = snprintf(ts->rsp, ts->rsp_size, "#%s ", path);
+    if (ts->rsp_pos < 0 || ts->rsp_pos > ts->rsp_size) {
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
-
-    switch (endpoint.object->type) {
-        case THINGSET_TYPE_GROUP:
-            err = thingset_common_serialize_group(ts, endpoint.object);
-            break;
-        case THINGSET_TYPE_SUBSET:
-            err = txt_serialize_subsets(ts, endpoint.object->data.subset);
-            break;
-        case THINGSET_TYPE_FN_VOID:
-        case THINGSET_TYPE_FN_I32:
-            /* bad request, as we can't read exec object's values */
-            err = -THINGSET_ERR_BAD_REQUEST;
-            break;
-        case THINGSET_TYPE_RECORDS:
-            if (endpoint.index != INDEX_NONE) {
-                err = thingset_common_serialize_record(ts, endpoint.object, endpoint.index);
-                break;
-            }
-            /* fallthrough */
-        default:
-            err = ts->api->serialize_value(ts, endpoint.object);
-            break;
-    }
-
-    ts->api->serialize_finish(ts);
-
-    if (err == 0) {
-        return ts->rsp_pos;
-    }
     else {
-        return err;
+        return 0;
     }
 }
 
@@ -955,8 +891,25 @@ static struct thingset_api txt_api = {
     .serialize_map_end = txt_serialize_map_end,
     .serialize_list_start = txt_serialize_list_start,
     .serialize_list_end = txt_serialize_list_end,
+    .serialize_subsets = txt_serialize_subsets,
+    .serialize_report_header = txt_serialize_report_header,
     .serialize_finish = txt_serialize_finish,
 };
+
+int thingset_txt_export_subsets(struct thingset_context *ts, uint16_t subsets, char *buf,
+                                size_t buf_size)
+{
+    ts->api = &txt_api;
+
+    return thingset_common_export_subsets(ts, subsets, buf, buf_size);
+}
+
+int thingset_txt_report(struct thingset_context *ts, const char *path, char *buf, size_t buf_size)
+{
+    ts->api = &txt_api;
+
+    return thingset_common_report(ts, path, buf, buf_size);
+}
 
 int thingset_txt_process(struct thingset_context *ts)
 {

@@ -43,6 +43,14 @@ struct thingset_api
     int (*serialize_map_end)(struct thingset_context *ts);
     int (*serialize_list_start)(struct thingset_context *ts);
     int (*serialize_list_end)(struct thingset_context *ts);
+
+    int (*serialize_subsets)(struct thingset_context *ts, uint16_t subsets);
+
+    /**
+     * @param path Path string or NULL if using IDs is desired for binary mode
+     */
+    int (*serialize_report_header)(struct thingset_context *ts, const char *path);
+
     void (*serialize_finish)(struct thingset_context *ts);
 };
 
@@ -364,6 +372,12 @@ int thingset_common_serialize_record(struct thingset_context *ts,
                                      const struct thingset_data_object *object, int record_index);
 
 int thingset_common_get(struct thingset_context *ts);
+
+int thingset_common_export_subsets(struct thingset_context *ts, uint16_t subsets, char *buf,
+                                   size_t buf_size);
+
+int thingset_common_report(struct thingset_context *ts, const char *path, char *buf,
+                           size_t buf_size);
 
 #ifdef __cplusplus
 } /* extern "C" */
