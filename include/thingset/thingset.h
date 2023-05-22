@@ -11,9 +11,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define JSMN_HEADER
-#include "jsmn.h"
-
 #ifndef _ARRAY_SIZE
 /* custom ARRAY_SIZE to avoid redefinition warning if thingset.h is included before Zephr headers */
 #define _ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
@@ -667,84 +664,12 @@ struct thingset_data_object
 };
 
 /**
- * ThingSet context.
+ * Forward-declaration of ThingSet context struct
  *
- * Stores and handles all data objects exposed to different communication interfaces.
+ * The struct is defined in thingset_internal.h and should not be used directly by the user of the
+ * ThingSet API.
  */
-struct thingset_context
-{
-    /**
-     * Array of objects database provided during initialization
-     */
-    struct thingset_data_object *data_objects;
-
-    /**
-     * Number of objects in the data_objects array
-     */
-    size_t num_objects;
-
-    /**
-     * Pointer to the incoming message buffer (request or desire, provided by process function)
-     */
-    const uint8_t *msg;
-
-    /**
-     * Length of the incoming message
-     */
-    size_t msg_len;
-
-    /**
-     * Position in the message currently being parsed
-     */
-    size_t msg_pos;
-
-    /**
-     * Pointer to the response buffer (provided by process function)
-     */
-    uint8_t *rsp;
-
-    /**
-     * Size of response buffer (i.e. maximum length)
-     */
-    size_t rsp_size;
-
-    /**
-     * Current position inside the response (equivalent to length of the response at end of
-     * processing)
-     */
-    size_t rsp_pos;
-
-    /**
-     * Pointer to the start of JSON payload in the request
-     */
-    char *json_str;
-
-    /**
-     * JSON tokes in json_str parsed by JSMN
-     */
-    jsmntok_t tokens[CONFIG_THINGSET_NUM_JSON_TOKENS];
-
-    /**
-     * Number of JSON tokens parsed by JSMN
-     */
-    int tok_count;
-
-    /**
-     * Stores current authentication status (authentication as "normal" user as default)
-     */
-    uint8_t auth_flags;
-
-    /**
-     * Stores current authentication status (authentication as "normal" user as default)
-     */
-    uint8_t update_subsets;
-
-    /**
-     * Callback to be called from patch function if a value belonging to update_subsets
-     * was changed
-     */
-    void (*update_cb)(void);
-};
+struct thingset_context;
 
 /**
  * Initialize a ThingSet context.

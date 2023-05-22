@@ -9,6 +9,9 @@
 
 #include "thingset/thingset.h"
 
+#define JSMN_HEADER
+#include "jsmn.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,6 +25,115 @@ struct thingset_endpoint
     struct thingset_data_object *object;
     /** Index number or INDEX_NONE or INDEX_NEW */
     int index;
+};
+
+/*
+ * All serialize functions return 0 or negative error code. If a negative error code is
+ * returned, an error message may have been stored already. If ts->rsp_pos == 0, the error
+ * message has to be generated at the end.
+ */
+struct thingset_api
+{
+    int (*serialize_response)(struct thingset_context *ts, uint8_t code, const char *msg, ...);
+    int (*serialize_key)(struct thingset_context *ts, const struct thingset_data_object *object);
+    int (*serialize_value)(struct thingset_context *ts, const struct thingset_data_object *object);
+    int (*serialize_key_value)(struct thingset_context *ts,
+                               const struct thingset_data_object *object);
+    int (*serialize_map_start)(struct thingset_context *ts);
+    int (*serialize_map_end)(struct thingset_context *ts);
+    int (*serialize_list_start)(struct thingset_context *ts);
+    int (*serialize_list_end)(struct thingset_context *ts);
+    void (*serialize_finish)(struct thingset_context *ts);
+};
+
+/**
+ * ThingSet context.
+ *
+ * Stores and handles all data objects exposed to different communication interfaces.
+ */
+struct thingset_context
+{
+    /**
+     * Array of objects database provided during initialization
+     */
+    struct thingset_data_object *data_objects;
+
+    /**
+     * Number of objects in the data_objects array
+     */
+    size_t num_objects;
+
+    /**
+     * Pointer to the incoming message buffer (request or desire, provided by process function)
+     */
+    const uint8_t *msg;
+
+    /**
+     * Length of the incoming message
+     */
+    size_t msg_len;
+
+    /**
+     * Position in the message currently being parsed
+     */
+    size_t msg_pos;
+
+    /**
+     * Pointer to the response buffer (provided by process function)
+     */
+    uint8_t *rsp;
+
+    /**
+     * Size of response buffer (i.e. maximum length)
+     */
+    size_t rsp_size;
+
+    /**
+     * Current position inside the response (equivalent to length of the response at end of
+     * processing)
+     */
+    size_t rsp_pos;
+
+    /**
+     * Pointer to the start of JSON payload in the request
+     */
+    char *json_str;
+
+    /**
+     * JSON tokens in json_str parsed by JSMN
+     */
+    jsmntok_t tokens[CONFIG_THINGSET_NUM_JSON_TOKENS];
+
+    /**
+     * Number of JSON tokens parsed by JSMN
+     */
+    int tok_count;
+
+    /**
+     * Stores current authentication status (authentication as "normal" user as default)
+     */
+    uint8_t auth_flags;
+
+    /**
+     * Stores current authentication status (authentication as "normal" user as default)
+     */
+    uint8_t update_subsets;
+
+    /**
+     * Callback to be called from patch function if a value belonging to update_subsets
+     * was changed
+     */
+    void (*update_cb)(void);
+
+    /**
+     * Function pointers to mode-specific implementation (text or binary)
+     */
+    struct thingset_api *api;
+
+    /**
+     * Endpoint used for the current message
+     */
+    struct thingset_endpoint endpoint;
 };
 
 /**
@@ -165,6 +277,15 @@ int thingset_txt_delete(struct thingset_context *ts);
 int thingset_txt_desire(struct thingset_context *ts);
 
 /**
+ * Process message in text mode.
+ *
+ * @param ts Pointer to ThingSet context.
+ *
+ * @return see thingset_process_message.
+ */
+int thingset_txt_process(struct thingset_context *ts);
+
+/**
  * Process binary mode GET request.
  *
  * @param ts Pointer to ThingSet context.
@@ -226,6 +347,15 @@ int thingset_bin_delete(struct thingset_context *ts);
  * @return 0 for success or negative ThingSet response code in case of error
  */
 int thingset_bin_desire(struct thingset_context *ts);
+
+/**
+ * Process message in binary mode.
+ *
+ * @param ts Pointer to ThingSet context.
+ *
+ * @return see thingset_process_message.
+ */
+int thingset_bin_process(struct thingset_context *ts);
 
 #ifdef __cplusplus
 } /* extern "C" */

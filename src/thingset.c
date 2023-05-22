@@ -59,53 +59,24 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
         return -THINGSET_ERR_BAD_REQUEST;
     }
 
-    ts->msg = msg;
-    ts->msg_len = msg_len;
-    ts->msg_pos = 0;
-
-    /* desires (without response) */
-    if (ts->msg[0] == THINGSET_TXT_DESIRE) {
-        return thingset_txt_desire(ts);
-    }
-    else if (ts->msg[0] == THINGSET_BIN_DESIRE) {
-        return thingset_bin_desire(ts);
-    }
-
     if (rsp == NULL || rsp_size < 4) {
         /* response buffer with at least 4 bytes required to fit minimum response */
         return -THINGSET_ERR_INTERNAL_SERVER_ERR;
     }
 
+    ts->msg = msg;
+    ts->msg_len = msg_len;
+    ts->msg_pos = 0;
+
     ts->rsp = rsp;
     ts->rsp_size = rsp_size;
     ts->rsp_pos = 0;
 
-    /* requests ordered with expected highest probability first */
-    switch (ts->msg[0]) {
-        case THINGSET_TXT_GET_FETCH:
-            return thingset_txt_get_fetch(ts);
-        case THINGSET_TXT_UPDATE:
-            return thingset_txt_update(ts);
-        case THINGSET_TXT_EXEC:
-            return thingset_txt_exec(ts);
-        case THINGSET_TXT_CREATE:
-            return thingset_txt_create(ts);
-        case THINGSET_TXT_DELETE:
-            return thingset_txt_delete(ts);
-        case THINGSET_BIN_GET:
-            return thingset_bin_get(ts);
-        case THINGSET_BIN_FETCH:
-            return thingset_bin_fetch(ts);
-        case THINGSET_BIN_UPDATE:
-            return thingset_bin_update(ts);
-        case THINGSET_BIN_EXEC:
-            return thingset_bin_exec(ts);
-        case THINGSET_BIN_CREATE:
-            return thingset_bin_create(ts);
-        case THINGSET_BIN_DELETE:
-            return thingset_bin_delete(ts);
-        default:
-            return -THINGSET_ERR_BAD_REQUEST;
+    if (ts->msg[0] >= 0x20) {
+        return thingset_txt_process(ts);
+    }
+    else {
+        return thingset_bin_process(ts);
     }
 }
 

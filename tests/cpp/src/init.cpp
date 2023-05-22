@@ -8,6 +8,8 @@
 
 #include "thingset/thingset.h"
 
+#include "../../src/thingset_internal.h"
+
 /* use same test data as for standard test, but compile with g++ */
 #include "data.c"
 

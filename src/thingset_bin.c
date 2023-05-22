@@ -56,3 +56,26 @@ int thingset_bin_desire(struct thingset_context *ts)
 {
     return -THINGSET_ERR_NOT_IMPLEMENTED;
 }
+
+int thingset_bin_process(struct thingset_context *ts)
+{
+    /* requests ordered with expected highest probability first */
+    switch (ts->msg[0]) {
+        case THINGSET_BIN_GET:
+            return thingset_bin_get(ts);
+        case THINGSET_BIN_FETCH:
+            return thingset_bin_fetch(ts);
+        case THINGSET_BIN_UPDATE:
+            return thingset_bin_update(ts);
+        case THINGSET_BIN_EXEC:
+            return thingset_bin_exec(ts);
+        case THINGSET_BIN_CREATE:
+            return thingset_bin_create(ts);
+        case THINGSET_BIN_DELETE:
+            return thingset_bin_delete(ts);
+        case THINGSET_BIN_DESIRE:
+            return thingset_bin_desire(ts);
+        default:
+            return -THINGSET_ERR_BAD_REQUEST;
+    }
+}
