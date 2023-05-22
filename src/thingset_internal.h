@@ -357,6 +357,14 @@ int thingset_bin_desire(struct thingset_context *ts);
  */
 int thingset_bin_process(struct thingset_context *ts);
 
+int thingset_common_serialize_group(struct thingset_context *ts,
+                                    const struct thingset_data_object *object);
+
+int thingset_common_serialize_record(struct thingset_context *ts,
+                                     const struct thingset_data_object *object, int record_index);
+
+int thingset_common_get(struct thingset_context *ts);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

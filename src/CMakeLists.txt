@@ -3,4 +3,5 @@
 
 target_sources(thingset PRIVATE thingset.c)
 target_sources(thingset PRIVATE thingset_bin.c)
+target_sources(thingset PRIVATE thingset_common.c)
 target_sources(thingset PRIVATE thingset_txt.c)
