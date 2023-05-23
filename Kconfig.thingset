@@ -3,6 +3,9 @@
 
 config THINGSET
 	bool "ThingSet Node Library"
+	select ZCBOR
+	select ZCBOR_CANONICAL
+	select ZCBOR_STOP_ON_ERROR
 	help
 	  Enable the ThingSet node library.
 
