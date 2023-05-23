@@ -12,6 +12,8 @@
 #define JSMN_HEADER
 #include "jsmn.h"
 
+#include <zcbor_common.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,6 +27,8 @@ struct thingset_endpoint
     struct thingset_data_object *object;
     /** Index number or INDEX_NONE or INDEX_NEW */
     int index;
+    /** Use names or IDs (relevant for binary mode) */
+    bool use_ids;
 };
 
 /*
@@ -142,6 +146,12 @@ struct thingset_context
      * Endpoint used for the current message
      */
     struct thingset_endpoint endpoint;
+
+    /** CBOR encoder state for binary mode */
+    zcbor_state_t *encoder;
+
+    /** CBOR decoder state for binary mode */
+    zcbor_state_t *decoder;
 };
 
 /**

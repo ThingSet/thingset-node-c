@@ -14,7 +14,7 @@ Below tables show the implementation status of the different ThingSet functions:
 
 | Request/Response | Text mode     | Binary mode |
 | ---------------- | ------------- | ----------- |
-| GET              | yes           | no          |
+| GET              | yes           | yes         |
 | FETCH            | yes           | no          |
 | UPDATE           | yes           | no          |
 | EXEC             | yes           | no          |

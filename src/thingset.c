@@ -117,6 +117,7 @@ int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpo
     uint16_t parent = 0;
 
     endpoint->index = INDEX_NONE;
+    endpoint->use_ids = false;
 
     if (path_len == 0) {
         endpoint->object = &root_object;
@@ -181,8 +182,7 @@ int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoin
 {
     struct thingset_data_object *object;
     endpoint->index = INDEX_NONE;
-
-    printf("id: %d\n", id);
+    endpoint->use_ids = true;
 
     if (id == 0) {
         endpoint->object = &root_object;
