@@ -31,13 +31,16 @@
         uint8_t rsp_act[THINGSET_TEST_BUF_SIZE]; \
         uint8_t rsp_exp[THINGSET_TEST_BUF_SIZE]; \
         char rsp_act_hex[THINGSET_TEST_BUF_SIZE]; \
+        char rsp_exp_hex_formatted[THINGSET_TEST_BUF_SIZE]; \
         int req_len = hex2bin_spaced(req_hex, req, sizeof(req)); \
         int rsp_exp_len = hex2bin_spaced(rsp_exp_hex, rsp_exp, sizeof(rsp_exp)); \
+        bin2hex_spaced(rsp_exp, rsp_exp_len, rsp_exp_hex_formatted, \
+                       sizeof(rsp_exp_hex_formatted)); \
         int rsp_act_len = thingset_process_message(&ts, req, req_len, rsp_act, sizeof(rsp_act)); \
         bin2hex_spaced(rsp_act, rsp_act_len, rsp_act_hex, sizeof(rsp_act_hex)); \
         zassert_true(rsp_exp_len > 0 && rsp_act_len > 0); \
         zassert_mem_equal(rsp_exp, rsp_act, rsp_exp_len, "act: %s\nexp: %s", rsp_act_hex, \
-                          rsp_exp_hex); \
+                          rsp_exp_hex_formatted); \
         zassert_equal(rsp_act_len, rsp_exp_len, "act: %d, exp: %d", rsp_act_len, rsp_exp_len); \
     }
 

@@ -12,20 +12,25 @@
 
 size_t hex2bin_spaced(const char *hex, uint8_t *bin, size_t bin_size)
 {
-    int len = strlen(hex);
-    size_t pos = 0;
+    int hex_len = strlen(hex);
+    size_t bin_pos = 0;
 
-    for (size_t i = 0; i < len; i += 3) {
-        if (pos < bin_size) {
-            hex2bin(&hex[i], 2, &bin[pos], 1);
-            pos++;
+    size_t hex_pos = 0;
+    while (hex_pos < hex_len) {
+        if (bin_pos < bin_size) {
+            hex2bin(&hex[hex_pos], 2, &bin[bin_pos], 1);
+            bin_pos++;
+            hex_pos += 2;
         }
         else {
             return 0;
         }
+        while (hex[hex_pos] == ' ' && hex_pos < hex_len) {
+            hex_pos++;
+        }
     }
 
-    return pos;
+    return bin_pos;
 }
 
 size_t bin2hex_spaced(const uint8_t *bin, size_t bin_size, char *hex, size_t hex_size)
