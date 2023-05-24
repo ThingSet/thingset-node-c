@@ -75,7 +75,8 @@
 #define THINGSET_ASSERT_REPORT_TXT(path, rpt_exp, err_exp) \
     { \
         uint8_t rpt_act[THINGSET_TEST_BUF_SIZE]; \
-        int err_act = thingset_txt_report(&ts, path, rpt_act, sizeof(rpt_act)); \
+        int err_act = \
+            thingset_report_path(&ts, rpt_act, sizeof(rpt_act), path, THINGSET_MODE_TEXT); \
         if (err_exp > 0) { \
             zassert_true(err_act > 0, "err_act: 0x%02X", -err_act); \
             zassert_mem_equal(rpt_exp, rpt_act, err_exp, "act: %s\nexp: %s", rpt_act, rpt_exp); \
@@ -89,7 +90,8 @@
 #define THINGSET_ASSERT_EXPORT_TXT(subsets, rsp_exp, err_exp) \
     { \
         uint8_t rsp_act[THINGSET_TEST_BUF_SIZE]; \
-        int err_act = thingset_txt_export_subsets(&ts, subsets, rsp_act, sizeof(rsp_act)); \
+        int err_act = \
+            thingset_export_subsets(&ts, rsp_act, sizeof(rsp_act), subsets, THINGSET_MODE_TEXT); \
         if (err_exp > 0) { \
             zassert_true(err_act > 0, "err_act: 0x%02X", -err_act); \
             zassert_mem_equal(rsp_act, rsp_exp, err_exp, "act: %s\nexp: %s", rsp_act, rsp_exp); \

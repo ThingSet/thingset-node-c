@@ -303,6 +303,8 @@ int thingset_txt_desire(struct thingset_context *ts);
  */
 int thingset_txt_process(struct thingset_context *ts);
 
+void thingset_txt_setup(struct thingset_context *ts);
+
 /**
  * Process binary mode GET request.
  *
@@ -375,6 +377,8 @@ int thingset_bin_desire(struct thingset_context *ts);
  */
 int thingset_bin_process(struct thingset_context *ts);
 
+void thingset_bin_setup(struct thingset_context *ts);
+
 int thingset_common_serialize_group(struct thingset_context *ts,
                                     const struct thingset_data_object *object);
 
@@ -383,11 +387,11 @@ int thingset_common_serialize_record(struct thingset_context *ts,
 
 int thingset_common_get(struct thingset_context *ts);
 
-int thingset_common_export_subsets(struct thingset_context *ts, uint16_t subsets, char *buf,
-                                   size_t buf_size);
+int thingset_common_export_subsets(struct thingset_context *ts, char *buf, size_t buf_size,
+                                   uint16_t subsets);
 
-int thingset_common_report(struct thingset_context *ts, const char *path, char *buf,
-                           size_t buf_size);
+int thingset_common_report_path(struct thingset_context *ts, char *buf, size_t buf_size,
+                                const char *path);
 
 #ifdef __cplusplus
 } /* extern "C" */

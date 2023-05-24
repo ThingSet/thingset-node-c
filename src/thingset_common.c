@@ -113,8 +113,8 @@ int thingset_common_get(struct thingset_context *ts)
     }
 }
 
-int thingset_common_export_subsets(struct thingset_context *ts, uint16_t subsets, char *buf,
-                                   size_t buf_size)
+int thingset_common_export_subsets(struct thingset_context *ts, char *buf, size_t buf_size,
+                                   uint16_t subsets)
 {
     int err;
 
@@ -134,8 +134,8 @@ int thingset_common_export_subsets(struct thingset_context *ts, uint16_t subsets
     }
 }
 
-int thingset_common_report(struct thingset_context *ts, const char *path, char *buf,
-                           size_t buf_size)
+int thingset_common_report_path(struct thingset_context *ts, char *buf, size_t buf_size,
+                                const char *path)
 {
     struct thingset_endpoint endpoint;
     int err;

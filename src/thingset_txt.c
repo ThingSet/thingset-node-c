@@ -896,19 +896,9 @@ static struct thingset_api txt_api = {
     .serialize_finish = txt_serialize_finish,
 };
 
-int thingset_txt_export_subsets(struct thingset_context *ts, uint16_t subsets, char *buf,
-                                size_t buf_size)
+void thingset_txt_setup(struct thingset_context *ts)
 {
     ts->api = &txt_api;
-
-    return thingset_common_export_subsets(ts, subsets, buf, buf_size);
-}
-
-int thingset_txt_report(struct thingset_context *ts, const char *path, char *buf, size_t buf_size)
-{
-    ts->api = &txt_api;
-
-    return thingset_common_report(ts, path, buf, buf_size);
 }
 
 int thingset_txt_process(struct thingset_context *ts)

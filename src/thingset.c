@@ -80,6 +80,42 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
     }
 }
 
+int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_size,
+                            uint16_t subsets, enum thingset_mode mode)
+{
+    switch (mode) {
+        case THINGSET_MODE_TEXT:
+            thingset_txt_setup(ts);
+            break;
+        case THINGSET_MODE_BINARY_IDS:
+            return -THINGSET_ERR_NOT_IMPLEMENTED;
+            break;
+        case THINGSET_MODE_BINARY_NAMES:
+            return -THINGSET_ERR_NOT_IMPLEMENTED;
+            break;
+    }
+
+    return thingset_common_export_subsets(ts, buf, buf_size, subsets);
+}
+
+int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size, const char *path,
+                         enum thingset_mode mode)
+{
+    switch (mode) {
+        case THINGSET_MODE_TEXT:
+            thingset_txt_setup(ts);
+            break;
+        case THINGSET_MODE_BINARY_IDS:
+            return -THINGSET_ERR_NOT_IMPLEMENTED;
+            break;
+        case THINGSET_MODE_BINARY_NAMES:
+            return -THINGSET_ERR_NOT_IMPLEMENTED;
+            break;
+    }
+
+    return thingset_common_report_path(ts, buf, buf_size, path);
+}
+
 struct thingset_data_object *thingset_get_child_by_name(struct thingset_context *ts,
                                                         uint16_t parent_id, const char *name,
                                                         size_t len)

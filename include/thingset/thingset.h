@@ -546,6 +546,16 @@ enum thingset_callback_reason
 };
 
 /**
+ * Enum to define ThingSet protocol mode.
+ */
+enum thingset_mode
+{
+    THINGSET_MODE_TEXT,
+    THINGSET_MODE_BINARY_IDS,
+    THINGSET_MODE_BINARY_NAMES,
+};
+
+/**
  * Union for type-checking of provided data item variable pointers through the macros.
  */
 union thingset_data_pointer {
@@ -722,14 +732,15 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
  * in the returned length.
  *
  * @param ts Pointer to ThingSet context.
- * @param subsets Flags to select which subset(s) of data items should be exported
  * @param buf Pointer to the buffer where the data should be stored
  * @param buf_size Size of the buffer, i.e. maximum allowed length of the data
+ * @param subsets Flags to select which subset(s) of data items should be exported
+ * @param mode Protocol mode to be used (text, binary with IDs or binary with names)
  *
  * @return Actual length of the data or negative ThingSet response code in case of error.
  */
-int thingset_txt_export_subsets(struct thingset_context *ts, uint16_t subsets, char *buf,
-                                size_t buf_size);
+int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_size,
+                            uint16_t subsets, enum thingset_mode mode);
 
 /**
  * Generate report in text format (JSON) for a given path.
@@ -743,13 +754,15 @@ int thingset_txt_export_subsets(struct thingset_context *ts, uint16_t subsets, c
  * in the returned length.
  *
  * @param ts Pointer to ThingSet context.
- * @param path Path of subset/group/record to be published
  * @param buf Pointer to the buffer where the report should be stored
  * @param buf_size Size of the buffer, i.e. maximum allowed length of the report
+ * @param path Path of subset/group/record to be published
+ * @param mode Protocol mode to be used (text, binary with IDs or binary with names)
  *
  * @return Actual length of the report or negative ThingSet response code in case of error
  */
-int thingset_txt_report(struct thingset_context *ts, const char *path, char *buf, size_t buf_size);
+int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size, const char *path,
+                         enum thingset_mode mode);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -327,6 +327,11 @@ static struct thingset_api bin_api = {
     .serialize_finish = bin_serialize_finish,
 };
 
+inline void thingset_bin_setup(struct thingset_context *ts)
+{
+    ts->api = &bin_api;
+}
+
 int thingset_bin_process(struct thingset_context *ts)
 {
     int ret;
