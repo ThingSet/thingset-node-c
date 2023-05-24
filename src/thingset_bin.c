@@ -330,19 +330,19 @@ static struct thingset_api bin_api = {
 inline void thingset_bin_setup(struct thingset_context *ts)
 {
     ts->api = &bin_api;
+
+    zcbor_new_decode_state(ts->decoder, ZCBOR_ARRAY_SIZE(ts->decoder), ts->msg + 1, ts->msg_len - 1,
+                           1);
+
+    zcbor_new_encode_state(ts->encoder, ZCBOR_ARRAY_SIZE(ts->encoder), ts->rsp + 1,
+                           ts->rsp_size - 1, 1);
 }
 
 int thingset_bin_process(struct thingset_context *ts)
 {
     int ret;
 
-    ts->api = &bin_api;
-
-    ZCBOR_STATE_D(decoder, 2, ts->msg + 1, ts->msg_len - 1, 1);
-    ts->decoder = &decoder[0];
-
-    ZCBOR_STATE_E(encoder, 2, ts->rsp + 1, ts->rsp_size - 1, 1);
-    ts->encoder = &encoder[0];
+    thingset_bin_setup(ts);
 
     ret = bin_parse_endpoint(ts);
     if (ret != 0) {

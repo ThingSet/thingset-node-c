@@ -107,19 +107,34 @@ struct thingset_context
     size_t rsp_pos;
 
     /**
-     * Pointer to the start of JSON payload in the request
+     * Function pointers to mode-specific implementation (text or binary)
      */
-    char *json_str;
+    struct thingset_api *api;
 
-    /**
-     * JSON tokens in json_str parsed by JSMN
-     */
-    jsmntok_t tokens[CONFIG_THINGSET_NUM_JSON_TOKENS];
+    /* State information for data processing. */
+    union {
+        /* Text mode */
+        struct
+        {
+            /** Pointer to the start of JSON payload in the request */
+            char *json_str;
 
-    /**
-     * Number of JSON tokens parsed by JSMN
-     */
-    int tok_count;
+            /** JSON tokens in json_str parsed by JSMN */
+            jsmntok_t tokens[CONFIG_THINGSET_NUM_JSON_TOKENS];
+
+            /** Number of JSON tokens parsed by JSMN */
+            int tok_count;
+        };
+        /* Binary mode */
+        struct
+        {
+            /** CBOR encoder states for binary mode */
+            zcbor_state_t encoder[4];
+
+            /** CBOR decoder states for binary mode */
+            zcbor_state_t decoder[4];
+        };
+    };
 
     /**
      * Stores current authentication status (authentication as "normal" user as default)
@@ -138,20 +153,9 @@ struct thingset_context
     void (*update_cb)(void);
 
     /**
-     * Function pointers to mode-specific implementation (text or binary)
-     */
-    struct thingset_api *api;
-
-    /**
      * Endpoint used for the current message
      */
     struct thingset_endpoint endpoint;
-
-    /** CBOR encoder state for binary mode */
-    zcbor_state_t *encoder;
-
-    /** CBOR decoder state for binary mode */
-    zcbor_state_t *decoder;
 };
 
 /**
