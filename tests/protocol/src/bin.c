@@ -8,6 +8,7 @@
 
 #include "../../src/thingset_internal.h"
 
+#include "data.h"
 #include "test_utils.h"
 
 static struct thingset_context ts;
@@ -221,6 +222,40 @@ ZTEST(thingset_bin, test_desire_timestamp_zero)
     const int err_exp = -THINGSET_ERR_NOT_IMPLEMENTED;
 
     THINGSET_ASSERT_DESIRE_HEX(des_hex, err_exp);
+}
+
+ZTEST(thingset_bin, test_report_subset_ids)
+{
+    const char rpt_exp_hex[] =
+        "1F 19 08 00 A4 "
+        "10 19 03E8 "           /* t_s */
+        "19 02 01 F5 "          /* Types/wBool */
+        "19 07 01 01"           /* Nested/rBeginning */
+        "19 07 08 FA 400CCCCD"; /* Nested/Obj2/rItem2_V */
+
+    THINGSET_ASSERT_REPORT_HEX_IDS("mLive", rpt_exp_hex, 25);
+}
+
+ZTEST(thingset_bin, test_report_group_ids)
+{
+    const char rpt_exp_hex[] =
+        "1F 19 07 02 A2 "       /* Nested/Obj1 */
+        "19 07 03 FA 3F8CCCCD"  /* rItem1_V:1.1 */
+        "19 07 04 FA 3F99999A"; /* rItem2_V:1.2 */
+
+    THINGSET_ASSERT_REPORT_HEX_IDS("Nested/Obj1", rpt_exp_hex, 21);
+}
+
+ZTEST(thingset_bin, test_export_subset_ids)
+{
+    const char rsp_exp_hex[] =
+        "A4 "
+        "10 19 03E8 "           /* t_s */
+        "19 02 01 F5 "          /* Types/wBool */
+        "19 07 01 01"           /* Nested/rBeginning */
+        "19 07 08 FA 400CCCCD"; /* Nested/Obj2/rItem2_V */
+
+    THINGSET_ASSERT_EXPORT_HEX_IDS(SUBSET_LIVE, rsp_exp_hex, 21);
 }
 
 static void *thingset_setup(void)

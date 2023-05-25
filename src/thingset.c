@@ -83,37 +83,103 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
 int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_size,
                             uint16_t subsets, enum thingset_mode mode)
 {
+    int err;
+
+    ts->rsp = buf;
+    ts->rsp_size = buf_size;
+    ts->rsp_pos = 0;
+
     switch (mode) {
         case THINGSET_MODE_TEXT:
             thingset_txt_setup(ts);
             break;
         case THINGSET_MODE_BINARY_IDS:
-            return -THINGSET_ERR_NOT_IMPLEMENTED;
+            ts->endpoint.use_ids = true;
+            thingset_bin_setup(ts, 0);
             break;
         case THINGSET_MODE_BINARY_NAMES:
             return -THINGSET_ERR_NOT_IMPLEMENTED;
             break;
     }
 
-    return thingset_common_export_subsets(ts, buf, buf_size, subsets);
+    err = ts->api->serialize_subsets(ts, subsets);
+
+    ts->api->serialize_finish(ts);
+
+    if (err == 0) {
+        return ts->rsp_pos;
+    }
+    else {
+        return err;
+    }
 }
 
 int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size, const char *path,
                          enum thingset_mode mode)
 {
+    int err;
+
+    ts->rsp = buf;
+    ts->rsp_size = buf_size;
+    ts->rsp_pos = 0;
+
+    err = thingset_endpoint_by_path(ts, &ts->endpoint, path, strlen(path));
+    if (err != 0) {
+        return err;
+    }
+    else if (ts->endpoint.object == NULL) {
+        return -THINGSET_ERR_BAD_REQUEST;
+    }
+
     switch (mode) {
         case THINGSET_MODE_TEXT:
             thingset_txt_setup(ts);
             break;
         case THINGSET_MODE_BINARY_IDS:
-            return -THINGSET_ERR_NOT_IMPLEMENTED;
+            ts->endpoint.use_ids = true;
+            thingset_bin_setup(ts, 1);
             break;
         case THINGSET_MODE_BINARY_NAMES:
             return -THINGSET_ERR_NOT_IMPLEMENTED;
             break;
     }
 
-    return thingset_common_report_path(ts, buf, buf_size, path);
+    err = ts->api->serialize_report_header(ts, path);
+    if (err != 0) {
+        return err;
+    }
+
+    switch (ts->endpoint.object->type) {
+        case THINGSET_TYPE_GROUP:
+            err = thingset_common_serialize_group(ts, ts->endpoint.object);
+            break;
+        case THINGSET_TYPE_SUBSET:
+            err = ts->api->serialize_subsets(ts, ts->endpoint.object->data.subset);
+            break;
+        case THINGSET_TYPE_FN_VOID:
+        case THINGSET_TYPE_FN_I32:
+            /* bad request, as we can't read exec object's values */
+            err = -THINGSET_ERR_BAD_REQUEST;
+            break;
+        case THINGSET_TYPE_RECORDS:
+            if (ts->endpoint.index != INDEX_NONE) {
+                err = thingset_common_serialize_record(ts, ts->endpoint.object, ts->endpoint.index);
+                break;
+            }
+            /* fallthrough */
+        default:
+            err = ts->api->serialize_value(ts, ts->endpoint.object);
+            break;
+    }
+
+    ts->api->serialize_finish(ts);
+
+    if (err == 0) {
+        return ts->rsp_pos;
+    }
+    else {
+        return err;
+    }
 }
 
 struct thingset_data_object *thingset_get_child_by_name(struct thingset_context *ts,

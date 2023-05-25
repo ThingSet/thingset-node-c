@@ -87,6 +87,26 @@
         } \
     }
 
+#define THINGSET_ASSERT_REPORT_HEX_IDS(path, rpt_exp_hex, err_exp) \
+    { \
+        uint8_t rpt_act[THINGSET_TEST_BUF_SIZE]; \
+        uint8_t rpt_act_hex[THINGSET_TEST_BUF_SIZE]; \
+        uint8_t rpt_exp[THINGSET_TEST_BUF_SIZE]; \
+        int rpt_act_len = \
+            thingset_report_path(&ts, rpt_act, sizeof(rpt_act), path, THINGSET_MODE_BINARY_IDS); \
+        int rpt_exp_len = hex2bin_spaced(rpt_exp_hex, rpt_exp, sizeof(rpt_exp)); \
+        bin2hex_spaced(rpt_act, rpt_act_len, rpt_act_hex, sizeof(rpt_act_hex)); \
+        if (err_exp > 0) { \
+            zassert_true(rpt_act_len > 0, "err_act: 0x%02X", -rpt_act_len); \
+            zassert_mem_equal(rpt_exp, rpt_act, MAX(rpt_act_len, rpt_exp_len), "act: %s\nexp: %s", \
+                              rpt_act_hex, rpt_exp_hex); \
+            zassert_equal(rpt_act_len, err_exp, "act: %d, exp: %d", rpt_act_len, err_exp); \
+        } \
+        else { \
+            zassert_equal(rpt_act_len, err_exp, "act: %d, exp: %d", rpt_act_len, err_exp); \
+        } \
+    }
+
 #define THINGSET_ASSERT_EXPORT_TXT(subsets, rsp_exp, err_exp) \
     { \
         uint8_t rsp_act[THINGSET_TEST_BUF_SIZE]; \
@@ -99,6 +119,26 @@
         } \
         else { \
             zassert_equal(err_exp, err_act, "act: %d, exp: %d", err_act, err_exp); \
+        } \
+    }
+
+#define THINGSET_ASSERT_EXPORT_HEX_IDS(subsets, rpt_exp_hex, err_exp) \
+    { \
+        uint8_t rpt_act[THINGSET_TEST_BUF_SIZE]; \
+        uint8_t rpt_act_hex[THINGSET_TEST_BUF_SIZE]; \
+        uint8_t rpt_exp[THINGSET_TEST_BUF_SIZE]; \
+        int rpt_act_len = thingset_export_subsets(&ts, rpt_act, sizeof(rpt_act), subsets, \
+                                                  THINGSET_MODE_BINARY_IDS); \
+        int rpt_exp_len = hex2bin_spaced(rpt_exp_hex, rpt_exp, sizeof(rpt_exp)); \
+        bin2hex_spaced(rpt_act, rpt_act_len, rpt_act_hex, sizeof(rpt_act_hex)); \
+        if (err_exp > 0) { \
+            zassert_true(rpt_act_len > 0, "err_act: 0x%02X", -rpt_act_len); \
+            zassert_mem_equal(rpt_exp, rpt_act, MAX(rpt_act_len, rpt_exp_len), "act: %s\nexp: %s", \
+                              rpt_act_hex, rpt_exp_hex); \
+            zassert_equal(rpt_act_len, err_exp, "act: %d, exp: %d", rpt_act_len, err_exp); \
+        } \
+        else { \
+            zassert_equal(rpt_act_len, err_exp, "act: %d, exp: %d", rpt_act_len, err_exp); \
         } \
     }
 

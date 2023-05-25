@@ -306,12 +306,36 @@ int thingset_bin_desire(struct thingset_context *ts)
 
 static int bin_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
 {
-    return -THINGSET_ERR_NOT_IMPLEMENTED;
+    bool success;
+
+    success = zcbor_map_start_encode(ts->encoder, UINT8_MAX);
+
+    for (unsigned int i = 0; i < ts->num_objects; i++) {
+        if (ts->data_objects[i].subsets & subsets) {
+            bin_serialize_key_value(ts, &ts->data_objects[i]);
+        }
+    }
+
+    success = success && zcbor_map_end_encode(ts->encoder, UINT8_MAX);
+
+    if (success) {
+        return 0;
+    }
+    else {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
 }
 
 static int bin_serialize_report_header(struct thingset_context *ts, const char *path)
 {
-    return -THINGSET_ERR_NOT_IMPLEMENTED;
+    ts->rsp[0] = THINGSET_BIN_REPORT;
+
+    if (zcbor_uint32_put(ts->encoder, ts->endpoint.object->id)) {
+        return 0;
+    }
+    else {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
 }
 
 static struct thingset_api bin_api = {
@@ -327,22 +351,22 @@ static struct thingset_api bin_api = {
     .serialize_finish = bin_serialize_finish,
 };
 
-inline void thingset_bin_setup(struct thingset_context *ts)
+inline void thingset_bin_setup(struct thingset_context *ts, size_t rsp_buf_offset)
 {
     ts->api = &bin_api;
 
     zcbor_new_decode_state(ts->decoder, ZCBOR_ARRAY_SIZE(ts->decoder), ts->msg + 1, ts->msg_len - 1,
                            1);
 
-    zcbor_new_encode_state(ts->encoder, ZCBOR_ARRAY_SIZE(ts->encoder), ts->rsp + 1,
-                           ts->rsp_size - 1, 1);
+    zcbor_new_encode_state(ts->encoder, ZCBOR_ARRAY_SIZE(ts->encoder), ts->rsp + rsp_buf_offset,
+                           ts->rsp_size - rsp_buf_offset, 1);
 }
 
 int thingset_bin_process(struct thingset_context *ts)
 {
     int ret;
 
-    thingset_bin_setup(ts);
+    thingset_bin_setup(ts, 1);
 
     ret = bin_parse_endpoint(ts);
     if (ret != 0) {

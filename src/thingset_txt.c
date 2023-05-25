@@ -896,7 +896,7 @@ static struct thingset_api txt_api = {
     .serialize_finish = txt_serialize_finish,
 };
 
-void thingset_txt_setup(struct thingset_context *ts)
+inline void thingset_txt_setup(struct thingset_context *ts)
 {
     ts->api = &txt_api;
 }
@@ -905,7 +905,7 @@ int thingset_txt_process(struct thingset_context *ts)
 {
     int ret;
 
-    ts->api = &txt_api;
+    thingset_txt_setup(ts);
 
     /* requests ordered with expected highest probability first */
     int (*request_fn)(struct thingset_context * ts);
