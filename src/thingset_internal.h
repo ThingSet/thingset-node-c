@@ -56,6 +56,16 @@ struct thingset_api
     int (*serialize_report_header)(struct thingset_context *ts, const char *path);
 
     void (*serialize_finish)(struct thingset_context *ts);
+
+    /**
+     * Deserialize string with zero-copy
+     *
+     * @param str_start Pointer to store start of string
+     * @param str_len Pointer to store length of string in the buffer EXCLUDING null-termination
+     *
+     * @returns 0 for success or negative ThingSet response code in case of error
+     */
+    int (*deserialize_string)(struct thingset_context *ts, const char **str_start, size_t *str_len);
 };
 
 /**
@@ -123,7 +133,10 @@ struct thingset_context
             jsmntok_t tokens[CONFIG_THINGSET_NUM_JSON_TOKENS];
 
             /** Number of JSON tokens parsed by JSMN */
-            int tok_count;
+            size_t tok_count;
+
+            /** Current position of the parsing process */
+            size_t tok_pos;
         };
         /* Binary mode */
         struct
@@ -390,6 +403,10 @@ int thingset_common_serialize_record(struct thingset_context *ts,
                                      const struct thingset_data_object *object, int record_index);
 
 int thingset_common_get(struct thingset_context *ts);
+
+int thingset_common_create(struct thingset_context *ts);
+
+int thingset_common_delete(struct thingset_context *ts);
 
 #ifdef __cplusplus
 } /* extern "C" */

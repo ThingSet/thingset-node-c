@@ -323,23 +323,26 @@ static int txt_parse_endpoint(struct thingset_context *ts)
 static int txt_parse_payload(struct thingset_context *ts)
 {
     struct jsmn_parser parser;
+    int ret;
+
+    ts->json_str = (char *)ts->msg + ts->msg_pos;
+    ts->tok_pos = 0;
 
     jsmn_init(&parser);
 
-    ts->json_str = (char *)ts->msg + ts->msg_pos;
-    ts->tok_count = jsmn_parse(&parser, ts->json_str, ts->msg_len - ts->msg_pos, ts->tokens,
-                               sizeof(ts->tokens));
-
-    if (ts->tok_count == JSMN_ERROR_NOMEM) {
+    ret = jsmn_parse(&parser, ts->json_str, ts->msg_len - ts->msg_pos, ts->tokens,
+                     sizeof(ts->tokens));
+    if (ret == JSMN_ERROR_NOMEM) {
         ts->rsp_pos = 0;
         return -THINGSET_ERR_REQUEST_TOO_LARGE;
     }
-    else if (ts->tok_count < 0) {
+    else if (ret < 0) {
         /* other parsing error */
         ts->rsp_pos = 0;
         return -THINGSET_ERR_BAD_REQUEST;
     }
 
+    ts->tok_count = ret;
     return 0;
 }
 
@@ -742,60 +745,6 @@ int thingset_txt_exec(struct thingset_context *ts)
     return 0;
 }
 
-static int thingset_txt_create_delete(struct thingset_context *ts, bool create)
-{
-    if (ts->endpoint.object->id == 0) {
-        return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "Endpoint item required");
-    }
-    else if (ts->tok_count != 1) {
-        return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
-                                           "Only single value supported");
-    }
-
-    if (ts->endpoint.object->type == THINGSET_TYPE_ARRAY) {
-        return ts->api->serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED,
-                                           "Arrays not yet supported");
-    }
-    else if (ts->endpoint.object->type == THINGSET_TYPE_SUBSET) {
-#if CONFIG_THINGSET_IMMUTABLE_OBJECTS
-        return ts->api->serialize_response(ts, THINGSET_ERR_METHOD_NOT_ALLOWED,
-                                           "Subset is immutable");
-#else
-        if (ts->tokens[0].type == JSMN_STRING) {
-            struct thingset_endpoint element;
-            int ret = thingset_endpoint_by_path(ts, &element, ts->json_str + ts->tokens[0].start,
-                                                ts->tokens[0].end - ts->tokens[0].start);
-            if (ret >= 0 && element.index == INDEX_NONE) {
-                if (create) {
-                    element.object->subsets |= ts->endpoint.object->data.subset;
-                    return ts->api->serialize_response(ts, THINGSET_STATUS_CREATED, NULL);
-                }
-                else {
-                    element.object->subsets &= ~ts->endpoint.object->data.subset;
-                    return ts->api->serialize_response(ts, THINGSET_STATUS_DELETED, NULL);
-                }
-            }
-            return ts->api->serialize_response(ts, THINGSET_ERR_NOT_FOUND, NULL);
-        }
-        else {
-            return ts->api->serialize_response(ts, THINGSET_ERR_UNSUPPORTED_FORMAT, NULL);
-        }
-#endif /* CONFIG_THINGSET_IMMUTABLE_OBJECTS */
-    }
-
-    return ts->api->serialize_response(ts, THINGSET_ERR_METHOD_NOT_ALLOWED, NULL);
-}
-
-int thingset_txt_create(struct thingset_context *ts)
-{
-    return thingset_txt_create_delete(ts, true);
-}
-
-int thingset_txt_delete(struct thingset_context *ts)
-{
-    return thingset_txt_create_delete(ts, false);
-}
-
 int thingset_txt_desire(struct thingset_context *ts)
 {
     return -THINGSET_ERR_NOT_IMPLEMENTED;
@@ -883,6 +832,20 @@ static int txt_serialize_report_header(struct thingset_context *ts, const char *
     }
 }
 
+static int txt_deserialize_string(struct thingset_context *ts, const char **str_start,
+                                  size_t *str_len)
+{
+    if (ts->tokens[ts->tok_pos].type == JSMN_STRING) {
+        *str_start = ts->json_str + ts->tokens[ts->tok_pos].start;
+        *str_len = ts->tokens[ts->tok_pos].end - ts->tokens[ts->tok_pos].start;
+        ts->tok_pos++;
+        return 0;
+    }
+    else {
+        return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    }
+}
+
 static struct thingset_api txt_api = {
     .serialize_response = txt_serialize_response,
     .serialize_value = txt_serialize_value,
@@ -894,6 +857,7 @@ static struct thingset_api txt_api = {
     .serialize_subsets = txt_serialize_subsets,
     .serialize_report_header = txt_serialize_report_header,
     .serialize_finish = txt_serialize_finish,
+    .deserialize_string = txt_deserialize_string,
 };
 
 inline void thingset_txt_setup(struct thingset_context *ts)
@@ -920,10 +884,10 @@ int thingset_txt_process(struct thingset_context *ts)
             request_fn = thingset_txt_exec;
             break;
         case THINGSET_TXT_CREATE:
-            request_fn = thingset_txt_create;
+            request_fn = thingset_common_create;
             break;
         case THINGSET_TXT_DELETE:
-            request_fn = thingset_txt_delete;
+            request_fn = thingset_common_delete;
             break;
         case THINGSET_TXT_DESIRE:
             request_fn = thingset_txt_desire;

@@ -389,8 +389,7 @@ ZTEST(thingset_txt, test_create_root_item)
 
 ZTEST(thingset_txt, test_create_multiple_values)
 {
-    THINGSET_ASSERT_REQUEST_TXT("+mLive [\"Types/wBool\",\"Types/wI32\"]",
-                                ":A0 \"Only single value supported\"");
+    THINGSET_ASSERT_REQUEST_TXT("+mLive [\"Types/wBool\",\"Types/wI32\"]", ":AF");
 }
 
 ZTEST(thingset_txt, test_create_non_existing_item)

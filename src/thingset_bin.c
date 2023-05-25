@@ -49,6 +49,10 @@ int bin_serialize_response(struct thingset_context *ts, uint8_t code, const char
             zcbor_nil_put(ts->encoder, NULL);
         }
     }
+    else if (code == THINGSET_STATUS_CREATED || code == THINGSET_STATUS_DELETED) {
+        /* messages without payload */
+        zcbor_nil_put(ts->encoder, NULL);
+    }
 
     return 0;
 }
@@ -271,6 +275,10 @@ static int bin_parse_endpoint(struct thingset_context *ts)
         return err;
     }
 
+    /* re-initialize decoder for payload parsing */
+    zcbor_new_decode_state(ts->decoder, ZCBOR_ARRAY_SIZE(ts->decoder), ts->decoder->payload,
+                           ts->decoder->payload_end - ts->decoder->payload, 1);
+
     return 0;
 }
 
@@ -285,16 +293,6 @@ int thingset_bin_update(struct thingset_context *ts)
 }
 
 int thingset_bin_exec(struct thingset_context *ts)
-{
-    return ts->api->serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
-}
-
-int thingset_bin_create(struct thingset_context *ts)
-{
-    return ts->api->serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
-}
-
-int thingset_bin_delete(struct thingset_context *ts)
 {
     return ts->api->serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
 }
@@ -338,6 +336,20 @@ static int bin_serialize_report_header(struct thingset_context *ts, const char *
     }
 }
 
+static int bin_deserialize_string(struct thingset_context *ts, const char **str_start,
+                                  size_t *str_len)
+{
+    struct zcbor_string str;
+    if (zcbor_tstr_decode(ts->decoder, &str) == true) {
+        *str_start = str.value;
+        *str_len = str.len;
+        return 0;
+    }
+    else {
+        return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    }
+}
+
 static struct thingset_api bin_api = {
     .serialize_response = bin_serialize_response,
     .serialize_value = bin_serialize_value,
@@ -349,6 +361,7 @@ static struct thingset_api bin_api = {
     .serialize_subsets = bin_serialize_subsets,
     .serialize_report_header = bin_serialize_report_header,
     .serialize_finish = bin_serialize_finish,
+    .deserialize_string = bin_deserialize_string,
 };
 
 inline void thingset_bin_setup(struct thingset_context *ts, size_t rsp_buf_offset)
@@ -390,10 +403,10 @@ int thingset_bin_process(struct thingset_context *ts)
             ret = thingset_bin_exec(ts);
             break;
         case THINGSET_BIN_CREATE:
-            ret = thingset_bin_create(ts);
+            ret = thingset_common_create(ts);
             break;
         case THINGSET_BIN_DELETE:
-            ret = thingset_bin_delete(ts);
+            ret = thingset_common_delete(ts);
             break;
         case THINGSET_BIN_DESIRE:
             ret = thingset_bin_desire(ts);

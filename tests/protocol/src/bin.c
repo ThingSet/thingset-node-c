@@ -200,20 +200,48 @@ ZTEST(thingset_bin, test_exec)
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
 
-ZTEST(thingset_bin, test_create)
+ZTEST(thingset_bin, test_create_delete_subset_item)
 {
-    const char req_hex[] = "06 00 00";     /* invalid request */
-    const char rsp_exp_hex[] = "C1 F6 F6"; /* not yet implemented */
+    /* before change */
+    THINGSET_ASSERT_REQUEST_HEX(
+        "01 65 6D4C697665", /* GET mLive */
+        "85 F6 84 "
+        "63 745F73 "                                  /* t_s */
+        "6B 54797065732F77426F6F6C "                  /* Types/wBool */
+        "71 4E65737465642F72426567696E6E696E67 "      /* Nested/rBeginning */
+        "74 4E65737465642F4F626A322F724974656D325F56" /* Nested/Obj2/rItem2_V */
+    );
 
-    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
-}
+    /* delete "Types/wBool" */
+    THINGSET_ASSERT_REQUEST_HEX(
+        "04 65 6D4C697665 6B 54797065732F77426F6F6C", /* DELETE Types/wBool from mLive subset */
+        "82 F6 F6 "                                   /* Deleted. */
+    );
 
-ZTEST(thingset_bin, test_delete)
-{
-    const char req_hex[] = "04 00 00";     /* invalid request */
-    const char rsp_exp_hex[] = "C1 F6 F6"; /* not yet implemented */
+    /* check if it was deleted */
+    THINGSET_ASSERT_REQUEST_HEX(
+        "01 65 6D4C697665", /* GET mLive */
+        "85 F6 83 "
+        "63 745F73 "                                  /* t_s */
+        "71 4E65737465642F72426567696E6E696E67 "      /* Nested/rBeginning */
+        "74 4E65737465642F4F626A322F724974656D325F56" /* Nested/Obj2/rItem2_V */
+    );
 
-    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+    /* append "Types/wBool" again */
+    THINGSET_ASSERT_REQUEST_HEX(
+        "06 65 6D4C697665 6B 54797065732F77426F6F6C", /* CREATE Types/wBool in mLive subset */
+        "81 F6 F6 "                                   /* Created. */
+    );
+
+    /* check if it was appended */
+    THINGSET_ASSERT_REQUEST_HEX(
+        "01 65 6D4C697665", /* GET mLive */
+        "85 F6 84 "
+        "63 745F73 "                                  /* t_s */
+        "6B 54797065732F77426F6F6C "                  /* Types/wBool */
+        "71 4E65737465642F72426567696E6E696E67 "      /* Nested/rBeginning */
+        "74 4E65737465642F4F626A322F724974656D325F56" /* Nested/Obj2/rItem2_V */
+    );
 }
 
 ZTEST(thingset_bin, test_desire_timestamp_zero)
