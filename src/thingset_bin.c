@@ -40,18 +40,7 @@ int bin_serialize_response(struct thingset_context *ts, uint8_t code, const char
             if (ret >= 0 && ret < msg_buf_size) {
                 zcbor_tstr_encode_ptr(ts->encoder, msg_buf_start, msg_buf_size);
             }
-            else {
-                /* message did not fit: keep minimum message with error code only */
-                zcbor_nil_put(ts->encoder, NULL);
-            }
         }
-        else {
-            zcbor_nil_put(ts->encoder, NULL);
-        }
-    }
-    else if (code == THINGSET_STATUS_CREATED || code == THINGSET_STATUS_DELETED) {
-        /* messages without payload */
-        zcbor_nil_put(ts->encoder, NULL);
     }
 
     return 0;
@@ -251,6 +240,10 @@ static int bin_serialize_list_end(struct thingset_context *ts)
 static void bin_serialize_finish(struct thingset_context *ts)
 {
     ts->rsp_pos = ts->encoder->payload - ts->rsp;
+    if (ts->rsp_pos == 2) {
+        /* message with empty payload */
+        ts->rsp[ts->rsp_pos++] = 0xF6;
+    }
 }
 
 /**
@@ -288,11 +281,6 @@ int thingset_bin_fetch(struct thingset_context *ts)
 }
 
 int thingset_bin_update(struct thingset_context *ts)
-{
-    return ts->api->serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
-}
-
-int thingset_bin_exec(struct thingset_context *ts)
 {
     return ts->api->serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
 }
@@ -358,12 +346,90 @@ static int bin_deserialize_list_start(struct thingset_context *ts)
 static int bin_deserialize_value(struct thingset_context *ts,
                                  const struct thingset_data_object *object)
 {
-    return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    bool success;
+
+    if (ts->decoder->payload_end == ts->decoder->payload) {
+        /* no more data to decode */
+        return -THINGSET_ERR_BAD_REQUEST;
+    }
+
+    switch (object->type) {
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+        case THINGSET_TYPE_U64:
+            success = zcbor_uint64_decode(ts->decoder, object->data.u64);
+            break;
+        case THINGSET_TYPE_I64:
+            success = zcbor_int64_decode(ts->decoder, object->data.i64);
+            break;
+#endif
+        case THINGSET_TYPE_U32:
+            success = zcbor_uint32_decode(ts->decoder, object->data.u32);
+            break;
+        case THINGSET_TYPE_I32:
+            success = zcbor_int32_decode(ts->decoder, object->data.i32);
+            break;
+        case THINGSET_TYPE_U16:
+            success = zcbor_uint_decode(ts->decoder, object->data.u16, 2);
+            break;
+        case THINGSET_TYPE_I16:
+            success = zcbor_int_decode(ts->decoder, object->data.i16, 2);
+            break;
+        case THINGSET_TYPE_U8:
+            success = zcbor_uint_decode(ts->decoder, object->data.u8, 1);
+            break;
+        case THINGSET_TYPE_I8:
+            success = zcbor_int_decode(ts->decoder, object->data.i8, 1);
+            break;
+        case THINGSET_TYPE_F32:
+            success = zcbor_float32_decode(ts->decoder, object->data.f32);
+            break;
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+        case THINGSET_TYPE_DECFRAC:
+            /* not yet supported */
+            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+#endif
+        case THINGSET_TYPE_BOOL:
+            success = zcbor_bool_decode(ts->decoder, object->data.b);
+            break;
+        case THINGSET_TYPE_STRING: {
+            struct zcbor_string str;
+            success = zcbor_tstr_decode(ts->decoder, &str);
+            if (str.len < object->detail) {
+                strncpy(object->data.str, str.value, str.len);
+                object->data.str[str.len] = '\0';
+            }
+            else {
+                success = false;
+            }
+            break;
+        }
+#if CONFIG_THINGSET_BYTE_STRING_TYPE_SUPPORT
+        case THINGSET_TYPE_BYTES: {
+            struct thingset_bytes *bytes_buf = object->data.bytes;
+            struct zcbor_string bstr;
+            success = zcbor_bstr_decode(ts->decoder, &bstr);
+            if (bstr.len <= bytes_buf->max_bytes) {
+                memcpy(bytes_buf->bytes, bstr.value, bstr.len);
+            }
+            else {
+                success = false;
+            }
+            break;
+        }
+#endif
+        case THINGSET_TYPE_ARRAY:
+            /* not yet supported */
+            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+        default:
+            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    }
+
+    return success ? 0 : -THINGSET_ERR_UNSUPPORTED_FORMAT;
 }
 
 static int bin_deserialize_finish(struct thingset_context *ts)
 {
-    return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    return ts->decoder->payload_end == ts->decoder->payload ? 0 : THINGSET_ERR_BAD_REQUEST;
 }
 
 static struct thingset_api bin_api = {
@@ -419,7 +485,7 @@ int thingset_bin_process(struct thingset_context *ts)
             ret = thingset_bin_update(ts);
             break;
         case THINGSET_BIN_EXEC:
-            ret = thingset_bin_exec(ts);
+            ret = thingset_common_exec(ts);
             break;
         case THINGSET_BIN_CREATE:
             ret = thingset_common_create(ts);

@@ -16,3 +16,7 @@ manifest:
         name-allowlist:
           - edtt
           - zcbor
+    - name: zcbor
+      remote: zephyrproject-rtos
+      revision: 67fd8bb88d3136738661fa8bb5f9989103f4599e
+      path: modules/lib/zcbor

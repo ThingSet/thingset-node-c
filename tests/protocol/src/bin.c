@@ -192,12 +192,110 @@ ZTEST(thingset_bin, test_update_timestamp_zero)
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
 
-ZTEST(thingset_bin, test_exec)
+ZTEST(thingset_bin, test_exec_fn_void_id)
 {
-    const char req_hex[] = "02 00 00";     /* invalid request */
-    const char rsp_exp_hex[] = "C1 F6 F6"; /* not yet implemented */
+    fn_void_called = false;
 
-    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+    /* !Exec/xVoid */
+    THINGSET_ASSERT_REQUEST_HEX("02 19 0401 80", "84 F6 F6");
+
+    zassert_equal(true, fn_void_called);
+}
+
+ZTEST(thingset_bin, test_exec_fn_void_name)
+{
+    fn_void_called = false;
+
+    /* !Exec/xVoid */
+    THINGSET_ASSERT_REQUEST_HEX("02 6A 457865632F78566F6964 80", "84 F6 F6");
+
+    zassert_equal(true, fn_void_called);
+}
+
+ZTEST(thingset_bin, test_exec_fn_void_mfr_only_id)
+{
+    /* !Exec/xVoidMfrOnly */
+    THINGSET_ASSERT_REQUEST_HEX("02 19 0407", "A1 F6 F6");
+}
+
+ZTEST(thingset_bin, test_exec_fn_void_mfr_only_name)
+{
+    /* !Exec/xVoidMfrOnly */
+    THINGSET_ASSERT_REQUEST_HEX("02 71 457865632F78566F69644D66724F6E6C79 80", "A1 F6 F6");
+}
+
+ZTEST(thingset_bin, test_exec_fn_void_params_id)
+{
+    fn_void_params_called = false;
+    fn_void_param_b = false;
+
+    /* !Exec/xVoidParams [true] */
+    THINGSET_ASSERT_REQUEST_HEX("02 19 0402 81 F5", "84 F6 F6");
+
+    zassert_equal(true, fn_void_params_called);
+    zassert_equal(true, fn_void_param_b);
+}
+
+ZTEST(thingset_bin, test_exec_fn_void_params_name)
+{
+    fn_void_params_called = false;
+    fn_void_param_b = false;
+
+    /* !Exec/xVoidParams [true] */
+    THINGSET_ASSERT_REQUEST_HEX("02 70 457865632F78566F6964506172616D73 81 F5", "84 F6 F6");
+
+    zassert_equal(true, fn_void_params_called);
+    zassert_equal(true, fn_void_param_b);
+}
+
+ZTEST(thingset_bin, test_exec_fn_void_invalid_params)
+{
+    THINGSET_ASSERT_REQUEST_HEX("02 19 0402 F5", "A0 F6 F6");
+}
+
+ZTEST(thingset_bin, test_exec_fn_void_too_many_params)
+{
+    THINGSET_ASSERT_REQUEST_HEX("02 19 0402 82 F5 18 7B", "A0 F6 F6");
+}
+
+ZTEST(thingset_bin, test_exec_fn_void_not_enough_params)
+{
+    THINGSET_ASSERT_REQUEST_HEX("02 19 0402 80", "A0 F6 F6");
+}
+
+ZTEST(thingset_bin, test_exec_fn_void_wrong_params)
+{
+    THINGSET_ASSERT_REQUEST_HEX("02 19 0402 81 65 77726F6E67", "AF F6 F6");
+}
+
+ZTEST(thingset_bin, test_exec_fn_not_executable)
+{
+    /* !Access/rItem */
+    THINGSET_ASSERT_REQUEST_HEX("02 6C 4163636573732F724974656D 80", "A3 F6 F6");
+}
+
+ZTEST(thingset_bin, test_exec_fn_int32_id)
+{
+    fn_i32_param_str[0] = '\0';
+    fn_i32_param_num = 0;
+
+    /* !Exec/xI32Params ["test",123] */
+    THINGSET_ASSERT_REQUEST_HEX("02 19 0404 82 64 74657374 18 7B", "84 F6 20");
+
+    zassert_mem_equal("test", fn_i32_param_str, 4);
+    zassert_equal(123, fn_i32_param_num);
+}
+
+ZTEST(thingset_bin, test_exec_fn_int32_name)
+{
+    fn_i32_param_str[0] = '\0';
+    fn_i32_param_num = 0;
+
+    THINGSET_ASSERT_REQUEST_HEX("02 6F 457865632F78493332506172616D73 82 64 74657374 18 7B",
+                                "84 F6 20");
+
+    zassert_mem_equal("test", fn_i32_param_str, 4);
+    zassert_equal(123, fn_i32_param_num);
 }
 
 ZTEST(thingset_bin, test_create_delete_subset_item)
