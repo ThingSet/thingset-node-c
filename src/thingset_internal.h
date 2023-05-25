@@ -66,6 +66,16 @@ struct thingset_api
      * @returns 0 for success or negative ThingSet response code in case of error
      */
     int (*deserialize_string)(struct thingset_context *ts, const char **str_start, size_t *str_len);
+
+    int (*deserialize_list_start)(struct thingset_context *ts);
+
+    /**
+     * @returns 0 for success or negative ThingSet response code in case of error
+     */
+    int (*deserialize_value)(struct thingset_context *ts,
+                             const struct thingset_data_object *object);
+
+    int (*deserialize_finish)(struct thingset_context *ts);
 };
 
 /**
@@ -403,6 +413,8 @@ int thingset_common_serialize_record(struct thingset_context *ts,
                                      const struct thingset_data_object *object, int record_index);
 
 int thingset_common_get(struct thingset_context *ts);
+
+int thingset_common_exec(struct thingset_context *ts);
 
 int thingset_common_create(struct thingset_context *ts);
 

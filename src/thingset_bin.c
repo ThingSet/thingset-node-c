@@ -350,6 +350,22 @@ static int bin_deserialize_string(struct thingset_context *ts, const char **str_
     }
 }
 
+static int bin_deserialize_list_start(struct thingset_context *ts)
+{
+    return zcbor_list_start_decode(ts->decoder) ? 0 : -THINGSET_ERR_UNSUPPORTED_FORMAT;
+}
+
+static int bin_deserialize_value(struct thingset_context *ts,
+                                 const struct thingset_data_object *object)
+{
+    return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+}
+
+static int bin_deserialize_finish(struct thingset_context *ts)
+{
+    return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+}
+
 static struct thingset_api bin_api = {
     .serialize_response = bin_serialize_response,
     .serialize_value = bin_serialize_value,
@@ -362,6 +378,9 @@ static struct thingset_api bin_api = {
     .serialize_report_header = bin_serialize_report_header,
     .serialize_finish = bin_serialize_finish,
     .deserialize_string = bin_deserialize_string,
+    .deserialize_list_start = bin_deserialize_list_start,
+    .deserialize_value = bin_deserialize_value,
+    .deserialize_finish = bin_deserialize_finish,
 };
 
 inline void thingset_bin_setup(struct thingset_context *ts, size_t rsp_buf_offset)

@@ -113,6 +113,72 @@ int thingset_common_get(struct thingset_context *ts)
     }
 }
 
+int thingset_common_exec(struct thingset_context *ts)
+{
+    int err;
+
+    err = ts->api->deserialize_list_start(ts);
+    if (err != 0) {
+        err = ts->api->deserialize_finish(ts);
+        if (err != 0) {
+            return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "Invalid parameters");
+        }
+    }
+
+    if ((ts->endpoint.object->access & THINGSET_WRITE_MASK)
+        && (ts->endpoint.object->type == THINGSET_TYPE_FN_VOID
+            || ts->endpoint.object->type == THINGSET_TYPE_FN_I32))
+    {
+        /* object is generally executable, but are we authorized? */
+        if ((ts->endpoint.object->access & THINGSET_WRITE_MASK & ts->auth_flags) == 0) {
+            return ts->api->serialize_response(ts, THINGSET_ERR_UNAUTHORIZED,
+                                               "Authentication required");
+        }
+    }
+    else {
+        return ts->api->serialize_response(ts, THINGSET_ERR_FORBIDDEN, "%s is not executable",
+                                           ts->endpoint.object->name);
+    }
+
+    for (unsigned int i = 0; i < ts->num_objects; i++) {
+        if (ts->data_objects[i].parent_id == ts->endpoint.object->id) {
+            err = ts->api->deserialize_value(ts, &ts->data_objects[i]);
+            if (err == -THINGSET_ERR_BAD_REQUEST) {
+                /* more child objects found than parameters were passed */
+                return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
+                                                   "Not enough parameters");
+            }
+            else if (err != 0) {
+                /* deserializing the value was not successful */
+                return ts->api->serialize_response(ts, -err, NULL);
+            }
+        }
+    }
+
+    err = ts->api->deserialize_finish(ts);
+    if (err != 0) {
+        /* more parameters passed than child objects found */
+        return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "Too many parameters");
+    }
+
+    ts->api->serialize_response(ts, THINGSET_STATUS_CHANGED, NULL);
+
+    /* if we got here, finally create function pointer and call function */
+    if (ts->endpoint.object->type == THINGSET_TYPE_FN_I32) {
+        int32_t ret = ts->endpoint.object->data.i32_fn();
+        struct thingset_data_object ret_object = THINGSET_ITEM_INT32(0, 0, "", &ret, 0, 0);
+        err = ts->api->serialize_value(ts, &ret_object);
+        if (err != 0) {
+            return ts->api->serialize_response(ts, THINGSET_ERR_RESPONSE_TOO_LARGE, NULL);
+        }
+    }
+    else {
+        ts->endpoint.object->data.void_fn();
+    }
+
+    return 0;
+}
+
 int thingset_common_create_delete(struct thingset_context *ts, bool create)
 {
     int err;
