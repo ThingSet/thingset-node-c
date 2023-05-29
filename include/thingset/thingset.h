@@ -65,6 +65,9 @@ extern "C" {
 /* Status codes (ThingSet specific errors) */
 #define THINGSET_ERR_RESPONSE_TOO_LARGE 0xE1
 
+/* Internal status code to indicate finished parsing */
+#define THINGSET_ERR_DESERIALIZATION_FINISHED 0xF0
+
 #define THINGET_ERROR(code)   (code >= 0xA0)
 #define THINGET_SUCCESS(code) (code >= 0x80 && code < 0xA0)
 

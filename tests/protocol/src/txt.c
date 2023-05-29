@@ -139,7 +139,7 @@ ZTEST(thingset_txt, test_fetch_node_id)
 ZTEST(thingset_txt, test_fetch_bad_elem)
 {
     const char req[] = "? [true]";
-    const char rsp_exp[] = ":A0 \"Only string elements allowed\"";
+    const char rsp_exp[] = ":A0";
 
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
 }
@@ -147,7 +147,7 @@ ZTEST(thingset_txt, test_fetch_bad_elem)
 ZTEST(thingset_txt, test_fetch_not_found)
 {
     const char req[] = "? [\"foo\"]";
-    const char rsp_exp[] = ":A4 \"Item foo not found\"";
+    const char rsp_exp[] = ":A4";
 
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
 }

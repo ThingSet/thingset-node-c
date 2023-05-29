@@ -6,6 +6,8 @@
 
 #include <zephyr/ztest.h>
 
+#include <math.h>
+
 #include "../../src/thingset_internal.h"
 
 #include "data.h"
@@ -176,10 +178,158 @@ ZTEST(thingset_bin, test_get_record_names)
 }
 #endif
 
-ZTEST(thingset_bin, test_fetch_root_names)
+ZTEST(thingset_bin, test_fetch_root_ids)
 {
     const char req_hex[] = "05 00 F6";
-    const char rsp_exp_hex[] = "C1 F6 F6"; /* not yet implemented */
+    const char rsp_exp_hex[] =
+        "85 f6 89 10 18 1d 19 02 00 19 03 00 19 04 00 19 05 00 19 06 00 19 07 00 19 08 00";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_root_names)
+{
+    const char req_hex[] = "05 60 F6";
+    const char rsp_exp_hex[] =
+        "85 f6 89 "
+        "63 74 5f 73 "             /* t_s */
+        "67 63 4e 6f 64 65 49 44"  /* cNodeID */
+        "65 54 79 70 65 73 "       /* Types */
+        "66 41 72 72 61 79 73 "    /* Arrays */
+        "64 45 78 65 63 "          /* Exec */
+        "66 41 63 63 65 73 73 "    /* Access */
+        "67 52 65 63 6f 72 64 73 " /* Records */
+        "66 4e 65 73 74 65 64 "    /* Nested */
+        "65 6d 4c 69 76 65";       /* mLive */
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_nested_ids)
+{
+    const char req_hex[] = "05 19 0700 F6";
+    const char rsp_exp_hex[] = "85 F6 85 19 07 01 19 07 02 19 07 05 19 07 06 19 07 09";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_nested_names)
+{
+    const char req_hex[] = "05 66 4E6573746564 F6";
+    const char rsp_exp_hex[] =
+        "85 F6 85 "
+        "6A 72426567696E6E696E67" /* rBeginning */
+        "64 4F626A31"             /* Obj1 */
+        "68 724265747765656E"     /* rBetween */
+        "64 4F626A32"             /* Obj2 */
+        "64 72456E64";            /* rEnd */
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_node_id_id)
+{
+    const char req_hex[] = "05 00 81 18 1D";                   /* ? ["cNodeID"] */
+    const char rsp_exp_hex[] = "85 F6 81 68 4142434431323334"; /* ["ABCD1234"] */
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_node_id_name)
+{
+    const char req_hex[] = "05 00 81 67 634E6F64654944";       /* ? ["cNodeID"] */
+    const char rsp_exp_hex[] = "85 F6 81 68 4142434431323334"; /* ["ABCD1234"] */
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_bad_elem)
+{
+    const char req_hex[] = "05 00 81 F5"; /* ? [true] */
+    const char rsp_exp_hex[] = "A0 F6 F6";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_not_found)
+{
+    const char req_hex[] = "05 00 81 63 666F6F"; /* ? ["foo"] */
+    const char rsp_exp_hex[] = "A4 F6 F6";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_group)
+{
+    const char req_hex[] = "05 00 81 66 4E6573746564"; /* ? ["foo"] */
+    const char rsp_exp_hex[] = "A0 F6 F6";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_multiple)
+{
+    const char req_hex[] =
+        "05 65 5479706573 83 " /* ?Types [*/
+        "64 77463332"          /* "wF32", */
+        "65 77426F6F6C"        /* "wBool", */
+        "64 77553332";         /* "wU32"] */
+
+    const char rsp_exp_hex[] = "85 F6 83 FA C04CCCCD F5 18 20"; /* [-3.2,true,32] */
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_rounded)
+{
+    float bak = f32;
+    f32 = 3.15;
+
+    /* the binary float values are not rounded */
+    THINGSET_ASSERT_REQUEST_HEX("05 19 0200 81 19 020A", "85 F6 81 FA 4049999A"); /* 3.15 */
+
+    f32 = bak;
+}
+
+ZTEST(thingset_bin, test_fetch_nan)
+{
+    float bak = f32;
+    uint32_t nan = 0x7F800001;
+    f32 = *(float *)&nan;
+
+    zassert_true(isnan(f32));
+
+    /* for some reason the below fetch request may result in 0x7C800001, which is also NaN. The
+     * assert cannot handle two or more possible values, so this test is disabled */
+    /* THINGSET_ASSERT_REQUEST_HEX("05 19 0200 81 19 020A", "85 f6 81 fa 7f800001"); */
+
+    f32 = bak;
+}
+
+ZTEST(thingset_bin, test_fetch_inf)
+{
+    float bak = f32;
+    uint32_t inf = 0x7F800000;
+    f32 = *(float *)&inf;
+
+    THINGSET_ASSERT_REQUEST_HEX("05 19 0200 81 19 020A", "85 f6 81 fa 7f800000");
+
+    f32 = bak;
+}
+
+ZTEST(thingset_bin, test_fetch_int32_array)
+{
+    const char req_hex[] = "05 19 0300 81 19 0307";    /* ?Arrays ["wI32"] */
+    const char rsp_exp_hex[] = "85 F6 81 83 20 21 22"; /* [[-1,-2,-3]] */
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_float_array)
+{
+    const char req_hex[] = "05 19 0300 81 19 030A"; /* ?Arrays ["wF32"] */
+    const char rsp_exp_hex[] =
+        "85 F6 81 83 fa bf 8c cc cd fa c0 0c cc cd fa c0 53 33 33"; /* [[-1.1,-2.2,-3.3]] */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }

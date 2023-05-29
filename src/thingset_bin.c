@@ -131,68 +131,71 @@ static int bin_serialize_value(struct thingset_context *ts,
     int err;
 
     err = bin_serialize_simple_value(ts->encoder, object->data, object->type, object->detail);
-
-    if (err != 0) {
-        /* not a simple value */
-        if (object->type == THINGSET_TYPE_GROUP) {
-            success = zcbor_nil_put(ts->encoder, NULL);
-        }
-        else if (object->type == THINGSET_TYPE_RECORDS) {
-            success = zcbor_uint32_put(ts->encoder, object->data.records->num_records);
-        }
-        else if (object->type == THINGSET_TYPE_FN_VOID || object->type == THINGSET_TYPE_FN_I32) {
-            success = zcbor_list_start_encode(ts->encoder, UINT8_MAX);
-            for (unsigned int i = 0; i < ts->num_objects; i++) {
-                if (ts->data_objects[i].parent_id == object->id) {
-                    zcbor_tstr_put_term(ts->encoder, ts->data_objects[i].name);
-                }
-            }
-            success = success && zcbor_list_end_encode(ts->encoder, UINT8_MAX);
-        }
-        else if (object->type == THINGSET_TYPE_SUBSET) {
-            success = zcbor_list_start_encode(ts->encoder, UINT8_MAX);
-            for (unsigned int i = 0; i < ts->num_objects; i++) {
-                if (ts->data_objects[i].subsets & object->data.subset) {
-                    if (ts->endpoint.use_ids) {
-                        success = success && zcbor_uint32_put(ts->encoder, ts->data_objects[i].id);
-                    }
-                    else {
-                        /* zcbor uses memmove internally, so we can use the encoder buffer with an
-                         * offset for the string header for temporary storage of the path
-                         */
-                        uint8_t *buf_path_start = ts->encoder->payload_mut + 2;
-                        size_t buf_path_size = ts->encoder->payload_end - buf_path_start;
-                        int path_len = thingset_serialize_path(ts, (char *)buf_path_start,
-                                                               buf_path_size, &ts->data_objects[i]);
-                        success =
-                            success && zcbor_tstr_encode_ptr(ts->encoder, buf_path_start, path_len);
-                    }
-                }
-            }
-            success = success && zcbor_list_end_encode(ts->encoder, UINT8_MAX);
-        }
-        else if (object->type == THINGSET_TYPE_ARRAY) {
-            struct thingset_array *array = object->data.array;
-
-            success = zcbor_list_start_encode(ts->encoder, array->num_elements);
-
-            size_t type_size = thingset_type_size(array->element_type);
-            for (int i = 0; i < array->num_elements; i++) {
-                /* using uint8_t pointer for byte-wise pointer arithmetics */
-                union thingset_data_pointer data = { .u8 = array->elements.u8 + i * type_size };
-                err |= bin_serialize_simple_value(ts->encoder, data, array->element_type,
-                                                  array->decimals);
-            }
-
-            success =
-                success && err == 0 && zcbor_list_end_encode(ts->encoder, array->num_elements);
-        }
-        else {
-            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
-        }
+    if (err == 0) {
+        return 0;
     }
 
-    if (err == 0 || success) {
+    /* not a simple value */
+    if (object->type == THINGSET_TYPE_GROUP) {
+        success = zcbor_nil_put(ts->encoder, NULL);
+    }
+    else if (object->type == THINGSET_TYPE_RECORDS) {
+        success = zcbor_uint32_put(ts->encoder, object->data.records->num_records);
+    }
+    else if (object->type == THINGSET_TYPE_FN_VOID || object->type == THINGSET_TYPE_FN_I32) {
+        success = zcbor_list_start_encode(ts->encoder, UINT8_MAX);
+        for (unsigned int i = 0; i < ts->num_objects; i++) {
+            if (ts->data_objects[i].parent_id == object->id) {
+                zcbor_tstr_put_term(ts->encoder, ts->data_objects[i].name);
+            }
+        }
+        success = success && zcbor_list_end_encode(ts->encoder, UINT8_MAX);
+    }
+    else if (object->type == THINGSET_TYPE_SUBSET) {
+        success = zcbor_list_start_encode(ts->encoder, UINT8_MAX);
+        for (unsigned int i = 0; i < ts->num_objects; i++) {
+            if (ts->data_objects[i].subsets & object->data.subset) {
+                if (ts->endpoint.use_ids) {
+                    success = success && zcbor_uint32_put(ts->encoder, ts->data_objects[i].id);
+                }
+                else {
+                    /* zcbor uses memmove internally, so we can use the encoder buffer with an
+                     * offset for the string header for temporary storage of the path
+                     */
+                    uint8_t *buf_path_start = ts->encoder->payload_mut + 2;
+                    size_t buf_path_size = ts->encoder->payload_end - buf_path_start;
+                    int path_len = thingset_serialize_path(ts, (char *)buf_path_start,
+                                                           buf_path_size, &ts->data_objects[i]);
+                    success =
+                        success && zcbor_tstr_encode_ptr(ts->encoder, buf_path_start, path_len);
+                }
+            }
+        }
+        success = success && zcbor_list_end_encode(ts->encoder, UINT8_MAX);
+    }
+    else if (object->type == THINGSET_TYPE_ARRAY) {
+        struct thingset_array *array = object->data.array;
+
+        success = zcbor_list_start_encode(ts->encoder, array->num_elements);
+
+        size_t type_size = thingset_type_size(array->element_type);
+        for (int i = 0; i < array->num_elements; i++) {
+            /* using uint8_t pointer for byte-wise pointer arithmetics */
+            union thingset_data_pointer data = { .u8 = array->elements.u8 + i * type_size };
+            err =
+                bin_serialize_simple_value(ts->encoder, data, array->element_type, array->decimals);
+            if (err != 0) {
+                return err;
+            }
+        }
+
+        success = success && zcbor_list_end_encode(ts->encoder, array->num_elements);
+    }
+    else {
+        return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    }
+
+    if (success) {
         return 0;
     }
     else {
@@ -200,8 +203,7 @@ static int bin_serialize_value(struct thingset_context *ts,
     }
 }
 
-static int bin_serialize_key_value(struct thingset_context *ts,
-                                   const struct thingset_data_object *object)
+static int bin_serialize_key(struct thingset_context *ts, const struct thingset_data_object *object)
 {
     if (ts->endpoint.use_ids) {
         if (zcbor_uint32_put(ts->encoder, object->id) == false) {
@@ -212,6 +214,17 @@ static int bin_serialize_key_value(struct thingset_context *ts,
         if (zcbor_tstr_put_term(ts->encoder, object->name) == false) {
             return -THINGSET_ERR_RESPONSE_TOO_LARGE;
         }
+    }
+
+    return 0;
+}
+
+static int bin_serialize_key_value(struct thingset_context *ts,
+                                   const struct thingset_data_object *object)
+{
+    int err = ts->api->serialize_key(ts, object);
+    if (err != 0) {
+        return err;
     }
 
     return ts->api->serialize_value(ts, object);
@@ -275,11 +288,6 @@ static int bin_parse_endpoint(struct thingset_context *ts)
     return 0;
 }
 
-int thingset_bin_fetch(struct thingset_context *ts)
-{
-    return ts->api->serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
-}
-
 int thingset_bin_update(struct thingset_context *ts)
 {
     return ts->api->serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
@@ -338,6 +346,43 @@ static int bin_deserialize_string(struct thingset_context *ts, const char **str_
     }
 }
 
+static int bin_deserialize_null(struct thingset_context *ts)
+{
+    return zcbor_nil_expect(ts->decoder, NULL) ? 0 : -THINGSET_ERR_UNSUPPORTED_FORMAT;
+}
+
+static int bin_deserialize_child(struct thingset_context *ts, uint16_t parent_id,
+                                 const struct thingset_data_object **object)
+{
+    struct zcbor_string name;
+    uint32_t id;
+
+    if (ts->decoder->payload_end == ts->decoder->payload) {
+        return -THINGSET_ERR_DESERIALIZATION_FINISHED;
+    }
+
+    if (zcbor_tstr_decode(ts->decoder, &name) == true) {
+        *object = thingset_get_child_by_name(ts, parent_id, name.value, name.len);
+        if (*object == NULL) {
+            return -THINGSET_ERR_NOT_FOUND;
+        }
+    }
+    else if (zcbor_uint32_decode(ts->decoder, &id) == true && id <= UINT16_MAX) {
+        *object = thingset_get_object_by_id(ts, id);
+        if (*object == NULL) {
+            return -THINGSET_ERR_NOT_FOUND;
+        }
+        else if ((*object)->parent_id != parent_id) {
+            return -THINGSET_ERR_BAD_REQUEST;
+        }
+    }
+    else {
+        return -THINGSET_ERR_BAD_REQUEST;
+    }
+
+    return 0;
+}
+
 static int bin_deserialize_list_start(struct thingset_context *ts)
 {
     return zcbor_list_start_decode(ts->decoder) ? 0 : -THINGSET_ERR_UNSUPPORTED_FORMAT;
@@ -349,8 +394,7 @@ static int bin_deserialize_value(struct thingset_context *ts,
     bool success;
 
     if (ts->decoder->payload_end == ts->decoder->payload) {
-        /* no more data to decode */
-        return -THINGSET_ERR_BAD_REQUEST;
+        return -THINGSET_ERR_DESERIALIZATION_FINISHED;
     }
 
     switch (object->type) {
@@ -434,6 +478,7 @@ static int bin_deserialize_finish(struct thingset_context *ts)
 
 static struct thingset_api bin_api = {
     .serialize_response = bin_serialize_response,
+    .serialize_key = bin_serialize_key,
     .serialize_value = bin_serialize_value,
     .serialize_key_value = bin_serialize_key_value,
     .serialize_map_start = bin_serialize_map_start,
@@ -444,6 +489,8 @@ static struct thingset_api bin_api = {
     .serialize_report_header = bin_serialize_report_header,
     .serialize_finish = bin_serialize_finish,
     .deserialize_string = bin_deserialize_string,
+    .deserialize_null = bin_deserialize_null,
+    .deserialize_child = bin_deserialize_child,
     .deserialize_list_start = bin_deserialize_list_start,
     .deserialize_value = bin_deserialize_value,
     .deserialize_finish = bin_deserialize_finish,
@@ -479,7 +526,7 @@ int thingset_bin_process(struct thingset_context *ts)
             ret = thingset_common_get(ts);
             break;
         case THINGSET_BIN_FETCH:
-            ret = thingset_bin_fetch(ts);
+            ret = thingset_common_fetch(ts);
             break;
         case THINGSET_BIN_UPDATE:
             ret = thingset_bin_update(ts);

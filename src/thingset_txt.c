@@ -346,106 +346,13 @@ static int txt_parse_payload(struct thingset_context *ts)
     return 0;
 }
 
-static int thingset_txt_fetch(struct thingset_context *ts)
-{
-    int tok = 0; /* current token */
-    int err;
-
-    /* initialize response with success message */
-    ts->api->serialize_response(ts, THINGSET_STATUS_CONTENT, NULL);
-
-    ts->api->serialize_list_start(ts);
-
-    if (ts->tok_count == 1 && ts->tokens[0].type == JSMN_PRIMITIVE
-        && strncmp(ts->json_str + ts->tokens[0].start, "null",
-                   ts->tokens[0].end - ts->tokens[0].start)
-               == 0)
-    {
-        /* fetch names */
-        for (unsigned int i = 0; i < ts->num_objects; i++) {
-            if ((ts->data_objects[i].access & THINGSET_READ_MASK)
-                && (ts->data_objects[i].parent_id == ts->endpoint.object->id))
-            {
-                ts->rsp_pos += snprintf((char *)ts->rsp + ts->rsp_pos, ts->rsp_size - ts->rsp_pos,
-                                        "\"%s\",", ts->data_objects[i].name);
-
-                if (ts->rsp_pos >= ts->rsp_size - 1) {
-                    return ts->api->serialize_response(ts, THINGSET_ERR_RESPONSE_TOO_LARGE, NULL);
-                }
-
-                tok++; /* increase token to indicate that the array is not empty */
-            }
-        }
-    }
-    else if (ts->tokens[0].type == JSMN_ARRAY) {
-        /* fetch values */
-        tok++;
-
-        if (ts->endpoint.object->data.group_callback != NULL) {
-            ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_PRE_READ);
-        }
-
-        while (tok < ts->tok_count) {
-            if (ts->tokens[tok].type != JSMN_STRING) {
-                return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
-                                                   "Only string elements allowed");
-            }
-
-            char *item = ts->json_str + ts->tokens[tok].start;
-            size_t item_len = ts->tokens[tok].end - ts->tokens[tok].start;
-
-            const struct thingset_data_object *object =
-                thingset_get_child_by_name(ts, ts->endpoint.object->id, item, item_len);
-
-            if (object == NULL) {
-                return ts->api->serialize_response(ts, THINGSET_ERR_NOT_FOUND,
-                                                   "Item %.*s not found", item_len, item);
-            }
-            else if (object->type == THINGSET_TYPE_GROUP) {
-                return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "%.*s is a group",
-                                                   item_len, item);
-            }
-
-            if ((object->access & THINGSET_READ_MASK & ts->auth_flags) == 0) {
-                if (object->access & THINGSET_READ_MASK) {
-                    return ts->api->serialize_response(ts, THINGSET_ERR_UNAUTHORIZED,
-                                                       "Authentication required for %.*s", item_len,
-                                                       item);
-                }
-                else {
-                    return ts->api->serialize_response(ts, THINGSET_ERR_FORBIDDEN,
-                                                       "Reading %.*s forbidden", item_len, item);
-                }
-            }
-
-            err = ts->api->serialize_value(ts, object);
-            if (err != 0) {
-                return ts->api->serialize_response(ts, THINGSET_ERR_RESPONSE_TOO_LARGE, NULL);
-            }
-
-            tok++;
-        }
-
-        if (ts->endpoint.object->data.group_callback != NULL) {
-            ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_POST_READ);
-        }
-    }
-    else {
-        return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "Invalid payload");
-    }
-
-    ts->api->serialize_list_end(ts);
-
-    return 0;
-}
-
 int thingset_txt_get_fetch(struct thingset_context *ts)
 {
     if (ts->tok_count == 0) {
         return thingset_common_get(ts);
     }
     else {
-        return thingset_txt_fetch(ts);
+        return thingset_common_fetch(ts);
     }
 }
 
@@ -453,7 +360,7 @@ static int txt_deserialize_value(struct thingset_context *ts,
                                  const struct thingset_data_object *object)
 {
     if (ts->tok_pos >= ts->tok_count) {
-        return -THINGSET_ERR_BAD_REQUEST;
+        return -THINGSET_ERR_DESERIALIZATION_FINISHED;
     }
 
     const char *buf = ts->json_str + ts->tokens[ts->tok_pos].start;
@@ -789,6 +696,49 @@ static int txt_deserialize_string(struct thingset_context *ts, const char **str_
     }
 }
 
+static int txt_deserialize_child(struct thingset_context *ts, uint16_t parent_id,
+                                 const struct thingset_data_object **object)
+{
+    if (ts->tok_pos >= ts->tok_count) {
+        return -THINGSET_ERR_DESERIALIZATION_FINISHED;
+    }
+
+    if (ts->tokens[ts->tok_pos].type != JSMN_STRING) {
+        return -THINGSET_ERR_BAD_REQUEST;
+    }
+
+    char *name = ts->json_str + ts->tokens[ts->tok_pos].start;
+    size_t name_len = ts->tokens[ts->tok_pos].end - ts->tokens[ts->tok_pos].start;
+
+    *object = thingset_get_child_by_name(ts, parent_id, name, name_len);
+
+    if (*object == NULL) {
+        return -THINGSET_ERR_NOT_FOUND;
+    }
+
+    ts->tok_pos++;
+    return 0;
+}
+
+static int txt_deserialize_null(struct thingset_context *ts)
+{
+    if (ts->tok_pos < ts->tok_count) {
+        jsmntok_t *token = &ts->tokens[ts->tok_pos];
+        if (token->type == JSMN_PRIMITIVE
+            && strncmp(ts->json_str + token->start, "null", token->end - token->start) == 0)
+        {
+            ts->tok_pos++;
+            return 0;
+        }
+        else {
+            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+        }
+    }
+    else {
+        return -THINGSET_ERR_BAD_REQUEST;
+    }
+}
+
 static int txt_deserialize_list_start(struct thingset_context *ts)
 {
     if (ts->tok_pos < ts->tok_count) {
@@ -812,6 +762,7 @@ static int txt_deserialize_finish(struct thingset_context *ts)
 
 static struct thingset_api txt_api = {
     .serialize_response = txt_serialize_response,
+    .serialize_key = txt_serialize_name,
     .serialize_value = txt_serialize_value,
     .serialize_key_value = txt_serialize_name_value,
     .serialize_map_start = txt_serialize_map_start,
@@ -822,7 +773,9 @@ static struct thingset_api txt_api = {
     .serialize_report_header = txt_serialize_report_header,
     .serialize_finish = txt_serialize_finish,
     .deserialize_string = txt_deserialize_string,
+    .deserialize_null = txt_deserialize_null,
     .deserialize_list_start = txt_deserialize_list_start,
+    .deserialize_child = txt_deserialize_child,
     .deserialize_value = txt_deserialize_value,
     .deserialize_finish = txt_deserialize_finish,
 };

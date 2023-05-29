@@ -113,6 +113,78 @@ int thingset_common_get(struct thingset_context *ts)
     }
 }
 
+int thingset_common_fetch(struct thingset_context *ts)
+{
+    int err;
+
+    /* initialize response with success message */
+    ts->api->serialize_response(ts, THINGSET_STATUS_CONTENT, NULL);
+
+    ts->api->serialize_list_start(ts);
+
+    if (ts->api->deserialize_null(ts) == 0) {
+        /* fetch names */
+        for (unsigned int i = 0; i < ts->num_objects; i++) {
+            if ((ts->data_objects[i].access & THINGSET_READ_MASK)
+                && (ts->data_objects[i].parent_id == ts->endpoint.object->id))
+            {
+                err = ts->api->serialize_key(ts, &ts->data_objects[i]);
+                if (err != 0) {
+                    return ts->api->serialize_response(ts, -err, NULL);
+                }
+            }
+        }
+    }
+    else if (ts->api->deserialize_list_start(ts) == 0) {
+        /* fetch values */
+        if (ts->endpoint.object->data.group_callback != NULL) {
+            ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_PRE_READ);
+        }
+
+        const struct thingset_data_object *object;
+        while ((err = ts->api->deserialize_child(ts, ts->endpoint.object->id, &object))
+               != -THINGSET_ERR_DESERIALIZATION_FINISHED)
+        {
+            if (err != 0) {
+                return ts->api->serialize_response(ts, -err, NULL);
+            }
+
+            if (object->type == THINGSET_TYPE_GROUP) {
+                return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "%s is a group",
+                                                   object->name);
+            }
+
+            if ((object->access & THINGSET_READ_MASK & ts->auth_flags) == 0) {
+                if (object->access & THINGSET_READ_MASK) {
+                    return ts->api->serialize_response(ts, THINGSET_ERR_UNAUTHORIZED,
+                                                       "Authentication required for %s",
+                                                       object->name);
+                }
+                else {
+                    return ts->api->serialize_response(ts, THINGSET_ERR_FORBIDDEN,
+                                                       "Reading %s forbidden", object->name);
+                }
+            }
+
+            err = ts->api->serialize_value(ts, object);
+            if (err != 0) {
+                return ts->api->serialize_response(ts, -err, NULL);
+            }
+        }
+
+        if (ts->endpoint.object->data.group_callback != NULL) {
+            ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_POST_READ);
+        }
+    }
+    else {
+        return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "Invalid payload");
+    }
+
+    ts->api->serialize_list_end(ts);
+
+    return 0;
+}
+
 int thingset_common_exec(struct thingset_context *ts)
 {
     int err;
@@ -143,7 +215,7 @@ int thingset_common_exec(struct thingset_context *ts)
     for (unsigned int i = 0; i < ts->num_objects; i++) {
         if (ts->data_objects[i].parent_id == ts->endpoint.object->id) {
             err = ts->api->deserialize_value(ts, &ts->data_objects[i]);
-            if (err == -THINGSET_ERR_BAD_REQUEST) {
+            if (err == -THINGSET_ERR_DESERIALIZATION_FINISHED) {
                 /* more child objects found than parameters were passed */
                 return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
                                                    "Not enough parameters");

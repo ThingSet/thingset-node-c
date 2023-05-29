@@ -67,7 +67,12 @@ struct thingset_api
      */
     int (*deserialize_string)(struct thingset_context *ts, const char **str_start, size_t *str_len);
 
+    int (*deserialize_null)(struct thingset_context *ts);
+
     int (*deserialize_list_start)(struct thingset_context *ts);
+
+    int (*deserialize_child)(struct thingset_context *ts, uint16_t parent_id,
+                             const struct thingset_data_object **object);
 
     /**
      * @returns 0 for success or negative ThingSet response code in case of error
@@ -413,6 +418,8 @@ int thingset_common_serialize_record(struct thingset_context *ts,
                                      const struct thingset_data_object *object, int record_index);
 
 int thingset_common_get(struct thingset_context *ts);
+
+int thingset_common_fetch(struct thingset_context *ts);
 
 int thingset_common_exec(struct thingset_context *ts);
 
