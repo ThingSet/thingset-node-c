@@ -185,6 +185,85 @@ int thingset_common_fetch(struct thingset_context *ts)
     return 0;
 }
 
+int thingset_common_update(struct thingset_context *ts)
+{
+    const struct thingset_data_object *object;
+    bool updated = false;
+    int err;
+
+    err = ts->api->deserialize_map_start(ts);
+    if (err != 0) {
+        return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "Map with data required");
+    }
+
+    /* loop through all elements to check if request is valid */
+    while ((err = ts->api->deserialize_child(ts, ts->endpoint.object->id, &object))
+           != -THINGSET_ERR_DESERIALIZATION_FINISHED)
+    {
+
+        if (err != 0) {
+            return ts->api->serialize_response(ts, -err, NULL);
+        }
+
+        if ((object->access & THINGSET_WRITE_MASK & ts->auth_flags) == 0) {
+            if (object->access & THINGSET_WRITE_MASK) {
+                return ts->api->serialize_response(ts, THINGSET_ERR_UNAUTHORIZED,
+                                                   "Authentication required for %s", object->name);
+            }
+            else {
+                return ts->api->serialize_response(ts, THINGSET_ERR_FORBIDDEN,
+                                                   "Item %s is read-only", object->name);
+            }
+        }
+
+        /*
+         * Test format of simple data types (up to 64-bit) by deserializing the value into a dummy
+         * object of the same type. For string and byte buffers only the size of the buffers is
+         * checked.
+         */
+        uint8_t dummy_data[8];
+        struct thingset_data_object dummy_object = {
+            0, 0, "Dummy", { .u8 = dummy_data }, object->type, object->detail
+        };
+
+        err = ts->api->deserialize_value(ts, &dummy_object, true);
+        if (err != 0) {
+            return ts->api->serialize_response(ts, -err, NULL);
+        }
+    }
+
+    ts->api->deserialize_payload_reset(ts);
+    ts->api->deserialize_map_start(ts);
+
+    if (ts->endpoint.object->data.group_callback != NULL) {
+        ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_PRE_WRITE);
+    }
+
+    /* actually write data */
+    while ((err = ts->api->deserialize_child(ts, ts->endpoint.object->id, &object))
+           != -THINGSET_ERR_DESERIALIZATION_FINISHED)
+    {
+        err = ts->api->deserialize_value(ts, object, false);
+        if (err != 0) {
+            return ts->api->serialize_response(ts, -err, NULL);
+        }
+
+        if (ts->update_subsets & object->subsets) {
+            updated = true;
+        }
+    }
+
+    if (updated && ts->update_cb != NULL) {
+        ts->update_cb();
+    }
+
+    if (ts->endpoint.object->data.group_callback != NULL) {
+        ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_POST_WRITE);
+    }
+
+    return ts->api->serialize_response(ts, THINGSET_STATUS_CHANGED, NULL);
+}
+
 int thingset_common_exec(struct thingset_context *ts)
 {
     int err;
@@ -214,7 +293,7 @@ int thingset_common_exec(struct thingset_context *ts)
 
     for (unsigned int i = 0; i < ts->num_objects; i++) {
         if (ts->data_objects[i].parent_id == ts->endpoint.object->id) {
-            err = ts->api->deserialize_value(ts, &ts->data_objects[i]);
+            err = ts->api->deserialize_value(ts, &ts->data_objects[i], false);
             if (err == -THINGSET_ERR_DESERIALIZATION_FINISHED) {
                 /* more child objects found than parameters were passed */
                 return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST,

@@ -325,12 +325,12 @@ static int txt_parse_payload(struct thingset_context *ts)
     struct jsmn_parser parser;
     int ret;
 
-    ts->json_str = (char *)ts->msg + ts->msg_pos;
+    ts->msg_payload = ts->msg + ts->msg_pos;
     ts->tok_pos = 0;
 
     jsmn_init(&parser);
 
-    ret = jsmn_parse(&parser, ts->json_str, ts->msg_len - ts->msg_pos, ts->tokens,
+    ret = jsmn_parse(&parser, ts->msg_payload, ts->msg_len - ts->msg_pos, ts->tokens,
                      sizeof(ts->tokens));
     if (ret == JSMN_ERROR_NOMEM) {
         ts->rsp_pos = 0;
@@ -357,13 +357,13 @@ int thingset_txt_get_fetch(struct thingset_context *ts)
 }
 
 static int txt_deserialize_value(struct thingset_context *ts,
-                                 const struct thingset_data_object *object)
+                                 const struct thingset_data_object *object, bool check_only)
 {
     if (ts->tok_pos >= ts->tok_count) {
         return -THINGSET_ERR_DESERIALIZATION_FINISHED;
     }
 
-    const char *buf = ts->json_str + ts->tokens[ts->tok_pos].start;
+    const char *buf = ts->msg_payload + ts->tokens[ts->tok_pos].start;
     size_t len = ts->tokens[ts->tok_pos].end - ts->tokens[ts->tok_pos].start;
 
     if (ts->tokens[ts->tok_pos].type != JSMN_PRIMITIVE
@@ -434,8 +434,10 @@ static int txt_deserialize_value(struct thingset_context *ts,
             {
                 return -THINGSET_ERR_REQUEST_TOO_LARGE;
             }
-            strncpy(object->data.str, buf, len);
-            object->data.str[len] = '\0';
+            if (!check_only) {
+                strncpy(object->data.str, buf, len);
+                object->data.str[len] = '\0';
+            }
             break;
 #if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
         case THINGSET_TYPE_BYTES: {
@@ -444,13 +446,15 @@ static int txt_deserialize_value(struct thingset_context *ts,
             {
                 return -THINGSET_ERR_REQUEST_TOO_LARGE;
             }
-            struct thingset_bytes *bytes_buf = object->data.bytes;
-            size_t byteslen;
-            int err = base64_decode(bytes_buf->bytes, bytes_buf->max_bytes, &byteslen,
-                                    (uint8_t *)buf, len);
-            bytes_buf->num_bytes = byteslen;
-            if (err != 0) {
-                return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+            if (!check_only) {
+                struct thingset_bytes *bytes_buf = object->data.bytes;
+                size_t byteslen;
+                int err = base64_decode(bytes_buf->bytes, bytes_buf->max_bytes, &byteslen,
+                                        (uint8_t *)buf, len);
+                bytes_buf->num_bytes = byteslen;
+                if (err != 0) {
+                    return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+                }
             }
             break;
         }
@@ -465,129 +469,6 @@ static int txt_deserialize_value(struct thingset_context *ts,
 
     ts->tok_pos++;
     return 0;
-}
-
-int thingset_txt_update(struct thingset_context *ts)
-{
-    int err;
-    bool updated = false;
-
-    if (ts->tok_count < 3 || ts->tokens[0].type != JSMN_OBJECT) {
-        return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "Map with data required");
-    }
-
-    ts->tok_pos = 1; /* skip JSON_OBJECT */
-
-    /* loop through all elements to check if request is valid */
-    while (ts->tok_pos + 1 < ts->tok_count) {
-
-        if (ts->tokens[ts->tok_pos].type != JSMN_STRING
-            || (ts->tokens[ts->tok_pos + 1].type != JSMN_PRIMITIVE
-                && ts->tokens[ts->tok_pos + 1].type != JSMN_STRING))
-        {
-            return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, NULL);
-        }
-
-        char *item = ts->json_str + ts->tokens[ts->tok_pos].start;
-        size_t item_len = ts->tokens[ts->tok_pos].end - ts->tokens[ts->tok_pos].start;
-
-        const struct thingset_data_object *object =
-            thingset_get_child_by_name(ts, ts->endpoint.object->id, item, item_len);
-
-        if (object == NULL) {
-            return ts->api->serialize_response(ts, THINGSET_ERR_NOT_FOUND, "Item %.*s not found",
-                                               item_len, item);
-        }
-
-        if ((object->access & THINGSET_WRITE_MASK & ts->auth_flags) == 0) {
-            if (object->access & THINGSET_WRITE_MASK) {
-                return ts->api->serialize_response(ts, THINGSET_ERR_UNAUTHORIZED,
-                                                   "Authentication required for %.*s", item_len,
-                                                   item);
-            }
-            else {
-                return ts->api->serialize_response(ts, THINGSET_ERR_FORBIDDEN,
-                                                   "Item %.*s is read-only", item_len, item);
-            }
-        }
-
-        ts->tok_pos++;
-
-        /* extract the value and check buffer lengths */
-        size_t value_len = ts->tokens[ts->tok_pos].end - ts->tokens[ts->tok_pos].start;
-        if (object->type == THINGSET_TYPE_STRING) {
-            if (value_len < (size_t)object->detail) {
-                /* provided string fits into data object buffer */
-                ts->tok_pos += 1;
-                continue;
-            }
-            else {
-                return ts->api->serialize_response(ts, THINGSET_ERR_REQUEST_TOO_LARGE, NULL);
-            }
-        }
-        else if (object->type == THINGSET_TYPE_BYTES) {
-#if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
-            if (value_len / 4 * 3 <= object->data.bytes->max_bytes) {
-                /* decoded base64-encoded string fits into data object buffer */
-                ts->tok_pos += 1;
-                continue;
-            }
-            else {
-                return ts->api->serialize_response(ts, THINGSET_ERR_REQUEST_TOO_LARGE, NULL);
-            }
-#else
-            return ts->api->serialize_response(ts, THINGSET_ERR_UNSUPPORTED_FORMAT, NULL);
-#endif
-        }
-        else {
-            /*
-             * Test format of simple data types (up to 64-bit) by deserializing the value into a
-             * dummy object of the same type.
-             *
-             * Caution: This does not work for strings and byte buffers.
-             */
-            uint8_t dummy_data[8];
-            struct thingset_data_object dummy_object = {
-                0, 0, "Dummy", { .u8 = dummy_data }, object->type, object->detail
-            };
-
-            err = ts->api->deserialize_value(ts, &dummy_object);
-            if (err != 0) {
-                return ts->api->serialize_response(ts, THINGSET_ERR_UNSUPPORTED_FORMAT, NULL);
-            }
-        }
-    }
-
-    if (ts->endpoint.object->data.group_callback != NULL) {
-        ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_PRE_WRITE);
-    }
-
-    /* actually write data */
-    ts->tok_pos = 1;
-    while (ts->tok_pos + 1 < ts->tok_count) {
-
-        const struct thingset_data_object *object = thingset_get_child_by_name(
-            ts, ts->endpoint.object->id, ts->json_str + ts->tokens[ts->tok_pos].start,
-            ts->tokens[ts->tok_pos].end - ts->tokens[ts->tok_pos].start);
-
-        ts->tok_pos++;
-
-        ts->api->deserialize_value(ts, object);
-
-        if (ts->update_subsets & object->subsets) {
-            updated = true;
-        }
-    }
-
-    if (updated && ts->update_cb != NULL) {
-        ts->update_cb();
-    }
-
-    if (ts->endpoint.object->data.group_callback != NULL) {
-        ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_POST_WRITE);
-    }
-
-    return ts->api->serialize_response(ts, THINGSET_STATUS_CHANGED, NULL);
 }
 
 int thingset_txt_desire(struct thingset_context *ts)
@@ -677,12 +558,17 @@ static int txt_serialize_report_header(struct thingset_context *ts, const char *
     }
 }
 
+static void txt_deserialize_payload_reset(struct thingset_context *ts)
+{
+    ts->tok_pos = 0;
+}
+
 static int txt_deserialize_string(struct thingset_context *ts, const char **str_start,
                                   size_t *str_len)
 {
     if (ts->tok_pos < ts->tok_count) {
         if (ts->tokens[ts->tok_pos].type == JSMN_STRING) {
-            *str_start = ts->json_str + ts->tokens[ts->tok_pos].start;
+            *str_start = ts->msg_payload + ts->tokens[ts->tok_pos].start;
             *str_len = ts->tokens[ts->tok_pos].end - ts->tokens[ts->tok_pos].start;
             ts->tok_pos++;
             return 0;
@@ -707,7 +593,7 @@ static int txt_deserialize_child(struct thingset_context *ts, uint16_t parent_id
         return -THINGSET_ERR_BAD_REQUEST;
     }
 
-    char *name = ts->json_str + ts->tokens[ts->tok_pos].start;
+    const char *name = (char *)ts->msg_payload + ts->tokens[ts->tok_pos].start;
     size_t name_len = ts->tokens[ts->tok_pos].end - ts->tokens[ts->tok_pos].start;
 
     *object = thingset_get_child_by_name(ts, parent_id, name, name_len);
@@ -725,7 +611,7 @@ static int txt_deserialize_null(struct thingset_context *ts)
     if (ts->tok_pos < ts->tok_count) {
         jsmntok_t *token = &ts->tokens[ts->tok_pos];
         if (token->type == JSMN_PRIMITIVE
-            && strncmp(ts->json_str + token->start, "null", token->end - token->start) == 0)
+            && strncmp(ts->msg_payload + token->start, "null", token->end - token->start) == 0)
         {
             ts->tok_pos++;
             return 0;
@@ -755,6 +641,22 @@ static int txt_deserialize_list_start(struct thingset_context *ts)
     }
 }
 
+static int txt_deserialize_map_start(struct thingset_context *ts)
+{
+    if (ts->tok_pos < ts->tok_count) {
+        if (ts->tokens[ts->tok_pos].type == JSMN_OBJECT) {
+            ts->tok_pos++;
+            return 0;
+        }
+        else {
+            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+        }
+    }
+    else {
+        return -THINGSET_ERR_BAD_REQUEST;
+    }
+}
+
 static int txt_deserialize_finish(struct thingset_context *ts)
 {
     return ts->tok_count == ts->tok_pos ? 0 : -THINGSET_ERR_BAD_REQUEST;
@@ -772,9 +674,11 @@ static struct thingset_api txt_api = {
     .serialize_subsets = txt_serialize_subsets,
     .serialize_report_header = txt_serialize_report_header,
     .serialize_finish = txt_serialize_finish,
+    .deserialize_payload_reset = txt_deserialize_payload_reset,
     .deserialize_string = txt_deserialize_string,
     .deserialize_null = txt_deserialize_null,
     .deserialize_list_start = txt_deserialize_list_start,
+    .deserialize_map_start = txt_deserialize_map_start,
     .deserialize_child = txt_deserialize_child,
     .deserialize_value = txt_deserialize_value,
     .deserialize_finish = txt_deserialize_finish,
@@ -798,7 +702,7 @@ int thingset_txt_process(struct thingset_context *ts)
             request_fn = thingset_txt_get_fetch;
             break;
         case THINGSET_TXT_UPDATE:
-            request_fn = thingset_txt_update;
+            request_fn = thingset_common_update;
             break;
         case THINGSET_TXT_EXEC:
             request_fn = thingset_common_exec;

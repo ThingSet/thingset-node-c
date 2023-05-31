@@ -104,7 +104,7 @@ static int bin_serialize_simple_value(zcbor_state_t *encoder, union thingset_dat
         case THINGSET_TYPE_STRING:
             success = zcbor_tstr_put_term(encoder, data.str);
             break;
-#if CONFIG_THINGSET_BYTE_STRING_TYPE_SUPPORT
+#if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
         case THINGSET_TYPE_BYTES:
             success = zcbor_bstr_encode_ptr(encoder, data.bytes->bytes, data.bytes->num_bytes);
             break;
@@ -281,16 +281,13 @@ static int bin_parse_endpoint(struct thingset_context *ts)
         return err;
     }
 
+    ts->msg_payload = ts->decoder->payload;
+
     /* re-initialize decoder for payload parsing */
-    zcbor_new_decode_state(ts->decoder, ZCBOR_ARRAY_SIZE(ts->decoder), ts->decoder->payload,
-                           ts->decoder->payload_end - ts->decoder->payload, 1);
+    zcbor_new_decode_state(ts->decoder, ZCBOR_ARRAY_SIZE(ts->decoder), ts->msg_payload,
+                           ts->msg_len - (ts->msg_payload - ts->msg), 1);
 
     return 0;
-}
-
-int thingset_bin_update(struct thingset_context *ts)
-{
-    return ts->api->serialize_response(ts, THINGSET_ERR_NOT_IMPLEMENTED, NULL);
 }
 
 int thingset_bin_desire(struct thingset_context *ts)
@@ -330,6 +327,12 @@ static int bin_serialize_report_header(struct thingset_context *ts, const char *
     else {
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
+}
+
+static void bin_deserialize_payload_reset(struct thingset_context *ts)
+{
+    zcbor_new_decode_state(ts->decoder, ZCBOR_ARRAY_SIZE(ts->decoder), ts->msg_payload,
+                           ts->msg_len - (ts->msg_payload - ts->msg), 1);
 }
 
 static int bin_deserialize_string(struct thingset_context *ts, const char **str_start,
@@ -388,8 +391,13 @@ static int bin_deserialize_list_start(struct thingset_context *ts)
     return zcbor_list_start_decode(ts->decoder) ? 0 : -THINGSET_ERR_UNSUPPORTED_FORMAT;
 }
 
+static int bin_deserialize_map_start(struct thingset_context *ts)
+{
+    return zcbor_map_start_decode(ts->decoder) ? 0 : -THINGSET_ERR_UNSUPPORTED_FORMAT;
+}
+
 static int bin_deserialize_value(struct thingset_context *ts,
-                                 const struct thingset_data_object *object)
+                                 const struct thingset_data_object *object, bool check_only)
 {
     bool success;
 
@@ -426,6 +434,14 @@ static int bin_deserialize_value(struct thingset_context *ts,
             break;
         case THINGSET_TYPE_F32:
             success = zcbor_float32_decode(ts->decoder, object->data.f32);
+            if (!success) {
+                /* try integer type */
+                int32_t tmp;
+                if (zcbor_int32_decode(ts->decoder, &tmp) == true) {
+                    *object->data.f32 = tmp;
+                    success = true;
+                }
+            }
             break;
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
         case THINGSET_TYPE_DECFRAC:
@@ -439,21 +455,26 @@ static int bin_deserialize_value(struct thingset_context *ts,
             struct zcbor_string str;
             success = zcbor_tstr_decode(ts->decoder, &str);
             if (str.len < object->detail) {
-                strncpy(object->data.str, str.value, str.len);
-                object->data.str[str.len] = '\0';
+                if (!check_only) {
+                    strncpy(object->data.str, str.value, str.len);
+                    object->data.str[str.len] = '\0';
+                }
             }
             else {
                 success = false;
             }
             break;
         }
-#if CONFIG_THINGSET_BYTE_STRING_TYPE_SUPPORT
+#if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
         case THINGSET_TYPE_BYTES: {
             struct thingset_bytes *bytes_buf = object->data.bytes;
             struct zcbor_string bstr;
             success = zcbor_bstr_decode(ts->decoder, &bstr);
             if (bstr.len <= bytes_buf->max_bytes) {
-                memcpy(bytes_buf->bytes, bstr.value, bstr.len);
+                if (!check_only) {
+                    memcpy(bytes_buf->bytes, bstr.value, bstr.len);
+                    bytes_buf->num_bytes = bstr.len;
+                }
             }
             else {
                 success = false;
@@ -488,10 +509,12 @@ static struct thingset_api bin_api = {
     .serialize_subsets = bin_serialize_subsets,
     .serialize_report_header = bin_serialize_report_header,
     .serialize_finish = bin_serialize_finish,
+    .deserialize_payload_reset = bin_deserialize_payload_reset,
     .deserialize_string = bin_deserialize_string,
     .deserialize_null = bin_deserialize_null,
     .deserialize_child = bin_deserialize_child,
     .deserialize_list_start = bin_deserialize_list_start,
+    .deserialize_map_start = bin_deserialize_map_start,
     .deserialize_value = bin_deserialize_value,
     .deserialize_finish = bin_deserialize_finish,
 };
@@ -515,6 +538,7 @@ int thingset_bin_process(struct thingset_context *ts)
 
     ret = bin_parse_endpoint(ts);
     if (ret != 0) {
+        ts->api->serialize_finish(ts);
         return ts->rsp_pos;
     }
 
@@ -529,7 +553,7 @@ int thingset_bin_process(struct thingset_context *ts)
             ret = thingset_common_fetch(ts);
             break;
         case THINGSET_BIN_UPDATE:
-            ret = thingset_bin_update(ts);
+            ret = thingset_common_update(ts);
             break;
         case THINGSET_BIN_EXEC:
             ret = thingset_common_exec(ts);

@@ -334,12 +334,104 @@ ZTEST(thingset_bin, test_fetch_float_array)
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
 
-ZTEST(thingset_bin, test_update_timestamp_zero)
+ZTEST(thingset_bin, test_update_timestamp_zero_id)
 {
-    const char req_hex[] = "07 10 00";
-    const char rsp_exp_hex[] = "C1 F6 F6"; /* not yet implemented */
+    const char req_hex[] = "07 00 A1 10 00";
+    const char rsp_exp_hex[] = "84 F6 F6";
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+    zassert_equal(timestamp, 0);
+
+    timestamp = 1000;
+}
+
+ZTEST(thingset_bin, test_update_timestamp_zero_name)
+{
+    const char req_hex[] = "07 00 A1 63 745F73 00";
+    const char rsp_exp_hex[] = "84 F6 F6";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+    zassert_equal(timestamp, 0);
+
+    timestamp = 1000;
+}
+
+ZTEST(thingset_bin, test_update_wrong_endpoint_id)
+{
+    const char req_hex[] = "07 00 A1 19 0206 00";
+    const char rsp_exp_hex[] = "A0 F6 F6";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+#if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
+
+ZTEST(thingset_bin, test_update_bytes_buffer)
+{
+    /* =Types {"wBytes":"QUJDREVGRw=="} */
+    THINGSET_ASSERT_REQUEST_HEX("07 19 0200 A1 19 020D 47 41424344454647", "84 F6 F6");
+
+    zassert_equal(7, bytes_item.num_bytes);
+}
+
+#else
+
+ZTEST(thingset_bin, test_update_bytes_buffer)
+{
+    THINGSET_ASSERT_REQUEST_HEX("07 19 0200 A1 19 020D 47 41424344454647", "AF F6 F6");
+}
+
+#endif
+
+ZTEST(thingset_bin, test_update_readonly)
+{
+    /* =Access {"rItem":52} */
+    THINGSET_ASSERT_REQUEST_HEX("07 19 0500 A1 19 0501 18 34", "A3 F6 F6");
+}
+
+ZTEST(thingset_bin, test_update_wrong_path)
+{
+    /* =Type {"wI32":52} */
+    THINGSET_ASSERT_REQUEST_HEX("07 64 54797065 A1 64 77493332 18 34", "A4 F6 F6");
+}
+
+ZTEST(thingset_bin, test_update_unknown_object)
+{
+    /* =Types {"wI3":52} */
+    THINGSET_ASSERT_REQUEST_HEX("07 65 5479706573 A1 63 774933 18 34", "A4 F6 F6");
+}
+
+ZTEST(thingset_bin, test_update_group_callback)
+{
+    callback_pre_read_count = 0;
+    callback_post_read_count = 0;
+    callback_pre_write_count = 0;
+    callback_post_write_count = 0;
+
+    /* =Access {"wItem":1} */
+    THINGSET_ASSERT_REQUEST_HEX("07 19 0500 A1 19 0502 01", "84 F6 F6");
+
+    zassert_equal(callback_pre_read_count, 0);
+    zassert_equal(callback_post_read_count, 0);
+    zassert_equal(callback_pre_write_count, 1);
+    zassert_equal(callback_post_write_count, 1);
+
+    /* ?Access */
+    THINGSET_ASSERT_REQUEST_HEX("01 19 0500",
+                                "85 F6 a2 19 05 01 fa 3f 80 00 00 19 05 02 fa 3f 80 00 00");
+
+    zassert_equal(callback_pre_read_count, 1);
+    zassert_equal(callback_post_read_count, 1);
+    zassert_equal(callback_pre_write_count, 1);
+    zassert_equal(callback_post_write_count, 1);
+
+    /* ?Access ["wItem"] */
+    THINGSET_ASSERT_REQUEST_HEX("05 19 0500 81 19 0502", "85 F6 81 fa 3f 80 00 00");
+
+    zassert_equal(callback_pre_read_count, 2);
+    zassert_equal(callback_post_read_count, 2);
+    zassert_equal(callback_pre_write_count, 1);
+    zassert_equal(callback_post_write_count, 1);
 }
 
 ZTEST(thingset_bin, test_exec_fn_void_id)

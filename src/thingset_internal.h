@@ -57,6 +57,8 @@ struct thingset_api
 
     void (*serialize_finish)(struct thingset_context *ts);
 
+    void (*deserialize_payload_reset)(struct thingset_context *ts);
+
     /**
      * Deserialize string with zero-copy
      *
@@ -71,14 +73,16 @@ struct thingset_api
 
     int (*deserialize_list_start)(struct thingset_context *ts);
 
+    int (*deserialize_map_start)(struct thingset_context *ts);
+
     int (*deserialize_child)(struct thingset_context *ts, uint16_t parent_id,
                              const struct thingset_data_object **object);
 
     /**
      * @returns 0 for success or negative ThingSet response code in case of error
      */
-    int (*deserialize_value)(struct thingset_context *ts,
-                             const struct thingset_data_object *object);
+    int (*deserialize_value)(struct thingset_context *ts, const struct thingset_data_object *object,
+                             bool check);
 
     int (*deserialize_finish)(struct thingset_context *ts);
 };
@@ -116,6 +120,11 @@ struct thingset_context
     size_t msg_pos;
 
     /**
+     * Pointer to the start of the payload in the message buffer
+     */
+    const uint8_t *msg_payload;
+
+    /**
      * Pointer to the response buffer (provided by process function)
      */
     uint8_t *rsp;
@@ -141,10 +150,7 @@ struct thingset_context
         /* Text mode */
         struct
         {
-            /** Pointer to the start of JSON payload in the request */
-            char *json_str;
-
-            /** JSON tokens in json_str parsed by JSMN */
+            /** JSON tokens in msg_payload parsed by JSMN */
             jsmntok_t tokens[CONFIG_THINGSET_NUM_JSON_TOKENS];
 
             /** Number of JSON tokens parsed by JSMN */
@@ -420,6 +426,8 @@ int thingset_common_serialize_record(struct thingset_context *ts,
 int thingset_common_get(struct thingset_context *ts);
 
 int thingset_common_fetch(struct thingset_context *ts);
+
+int thingset_common_update(struct thingset_context *ts);
 
 int thingset_common_exec(struct thingset_context *ts);
 

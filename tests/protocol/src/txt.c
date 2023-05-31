@@ -229,7 +229,7 @@ ZTEST(thingset_txt, test_update_whitespaces)
     zassert_equal((float)52.8, f32);
     zassert_equal(50, i32);
 
-    f32 = 3.2F;
+    f32 = -3.2F;
     i32 = -32;
 }
 
@@ -263,7 +263,7 @@ ZTEST(thingset_txt, test_update_wrong_path)
 
 ZTEST(thingset_txt, test_update_unknown_object)
 {
-    THINGSET_ASSERT_REQUEST_TXT("=Types {\"wI3\" : 52}", ":A4 \"Item wI3 not found\"");
+    THINGSET_ASSERT_REQUEST_TXT("=Types {\"wI3\" : 52}", ":A4");
 }
 
 ZTEST(thingset_txt, test_update_group_callback)
