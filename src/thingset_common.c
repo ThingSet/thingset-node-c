@@ -95,7 +95,7 @@ int thingset_common_get(struct thingset_context *ts)
             err = -THINGSET_ERR_BAD_REQUEST;
             break;
         case THINGSET_TYPE_RECORDS:
-            if (ts->endpoint.index != INDEX_NONE) {
+            if (ts->endpoint.index != ENDPOINT_INDEX_NONE) {
                 err = thingset_common_serialize_record(ts, ts->endpoint.object, ts->endpoint.index);
                 break;
             }
@@ -356,7 +356,7 @@ int thingset_common_create_delete(struct thingset_context *ts, bool create)
 
         struct thingset_endpoint element;
         int ret = thingset_endpoint_by_path(ts, &element, str_start, str_len);
-        if (ret >= 0 && element.index == INDEX_NONE) {
+        if (ret >= 0 && element.index == ENDPOINT_INDEX_NONE) {
             if (create) {
                 element.object->subsets |= ts->endpoint.object->data.subset;
                 return ts->api->serialize_response(ts, THINGSET_STATUS_CREATED, NULL);

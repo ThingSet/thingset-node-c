@@ -162,7 +162,7 @@ int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size
             err = -THINGSET_ERR_BAD_REQUEST;
             break;
         case THINGSET_TYPE_RECORDS:
-            if (ts->endpoint.index != INDEX_NONE) {
+            if (ts->endpoint.index != ENDPOINT_INDEX_NONE) {
                 err = thingset_common_serialize_record(ts, ts->endpoint.object, ts->endpoint.index);
                 break;
             }
@@ -218,7 +218,7 @@ int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpo
     const char *end;
     uint16_t parent = 0;
 
-    endpoint->index = INDEX_NONE;
+    endpoint->index = ENDPOINT_INDEX_NONE;
     endpoint->use_ids = false;
 
     if (path_len == 0) {
@@ -244,7 +244,7 @@ int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpo
             }
             else if (start[0] == '-') {
                 /* non-existent element behind the last array element */
-                endpoint->index = INDEX_NEW;
+                endpoint->index = ENDPOINT_INDEX_NEW;
                 endpoint->object = object;
             }
             else {
@@ -283,7 +283,7 @@ int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoin
                             uint16_t id)
 {
     struct thingset_data_object *object;
-    endpoint->index = INDEX_NONE;
+    endpoint->index = ENDPOINT_INDEX_NONE;
     endpoint->use_ids = true;
 
     if (id == 0) {

@@ -18,14 +18,14 @@
 extern "C" {
 #endif
 
-#define INDEX_NONE (-1)
-#define INDEX_NEW  (-2) /* non-existent element behind the last array element */
+#define ENDPOINT_INDEX_NONE (-1)
+#define ENDPOINT_INDEX_NEW  (-2) /* non-existent element behind the last array element */
 
 struct thingset_endpoint
 {
     /** Pointer to the data object in memory (must never be NULL) */
     struct thingset_data_object *object;
-    /** Index number or INDEX_NONE or INDEX_NEW */
+    /** Index number or ENDPOINT_INDEX_NONE or ENDPOINT_INDEX_NEW */
     int index;
     /** Use names or IDs (relevant for binary mode) */
     bool use_ids;
