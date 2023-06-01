@@ -121,9 +121,6 @@ static int bin_serialize_simple_value(zcbor_state_t *encoder, union thingset_dat
     }
 }
 
-/**
- * @returns 0 or negative ThingSet reponse code in case of error
- */
 static int bin_serialize_value(struct thingset_context *ts,
                                const struct thingset_data_object *object)
 {
@@ -261,6 +258,7 @@ static void bin_serialize_finish(struct thingset_context *ts)
 
 /**
  * Parse endpoint and fill response buffer with response in case of error.
+ *
  * @returns 0 for success or negative ThingSet reponse code in case of error
  */
 static int bin_parse_endpoint(struct thingset_context *ts)
