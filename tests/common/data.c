@@ -67,11 +67,11 @@ static THINGSET_DEFINE_INT64_ARRAY(i64_arr_item, i64_arr, 3);
 #endif
 
 float f32_arr[100] = { -1.1, -2.2, -3.3 };
-static THINGSET_DEFINE_FLOAT_ARRAY(f32_arr_item, f32_arr, 1, 3);
+static THINGSET_DEFINE_FLOAT_ARRAY(f32_arr_item, 1, f32_arr, 3);
 
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
 int32_t decfrac_arr[100] = { -32 };
-static THINGSET_DEFINE_DECFRAC_ARRAY(decfrac_arr_item, decfrac_arr, 2, 1);
+static THINGSET_DEFINE_DECFRAC_ARRAY(decfrac_arr_item, 2, decfrac_arr, 1);
 #endif
 
 /* Exec */

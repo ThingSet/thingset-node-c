@@ -966,10 +966,11 @@ extern "C" {
  * Define a struct thingset_array to expose `float` arrays with #THINGSET_ITEM_ARRAY
  *
  * @param var_name Name of the created struct thingset_array variable
+ * @param decimals Number of decimal digits to be serialized in text mode
  * @param array Existing fixed-size array of type `float` (must be an array and not a pointer)
  * @param used_elements Currently used elements in the array
  */
-#define THINGSET_DEFINE_FLOAT_ARRAY(var_name, array, decimals, used_elements) \
+#define THINGSET_DEFINE_FLOAT_ARRAY(var_name, decimals, array, used_elements) \
     struct thingset_array var_name = { \
         { .f32 = array }, THINGSET_TYPE_F32, decimals, _ARRAY_SIZE(array), used_elements, \
     };
@@ -978,10 +979,11 @@ extern "C" {
  * Define a struct thingset_array to expose decimal fraction arrays with #THINGSET_ITEM_ARRAY
  *
  * @param var_name Name of the created struct thingset_array variable
+ * @param decimals Number of decimal digits to be serialized in text mode
  * @param array Existing fixed-size array of type `int32_t` (must be an array and not a pointer)
  * @param used_elements Currently used elements in the array
  */
-#define THINGSET_DEFINE_DECFRAC_ARRAY(var_name, array, decimals, used_elements) \
+#define THINGSET_DEFINE_DECFRAC_ARRAY(var_name, decimals, array, used_elements) \
     struct thingset_array var_name = { \
         { .decfrac = array }, THINGSET_TYPE_DECFRAC, decimals, _ARRAY_SIZE(array), used_elements, \
     };
