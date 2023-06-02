@@ -6,7 +6,7 @@
 
 #include <zephyr/ztest.h>
 
-#include "thingset/thingset.h"
+#include <thingset.h>
 
 #include "../../src/thingset_internal.h"
 

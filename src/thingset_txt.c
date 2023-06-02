@@ -7,7 +7,8 @@
 /* this must be included before thingset.h */
 #include "jsmn.h"
 
-#include "thingset/thingset.h"
+#include <thingset.h>
+
 #include "thingset_internal.h"
 
 #include <errno.h>

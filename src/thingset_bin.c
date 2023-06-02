@@ -4,7 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "thingset/thingset.h"
+#include <thingset.h>
+
 #include "thingset_internal.h"
 
 #include <zcbor_common.h>

@@ -6,7 +6,7 @@
 
 #include <zephyr/kernel.h>
 
-#include "thingset/thingset.h"
+#include <thingset.h>
 
 #include "data.h"
 

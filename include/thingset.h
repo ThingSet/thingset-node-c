@@ -4,12 +4,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef THINGSET_THINGSET_H_
-#define THINGSET_THINGSET_H_
+#ifndef THINGSET_H_
+#define THINGSET_H_
 
 /**
  * @file
  */
+
+/** @cond INTERNAL_HIDDEN */
+#define JSMN_HEADER
+/** @endcond */
+#include "jsmn.h"
+
+#include <zcbor_common.h>
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -1039,6 +1046,9 @@ extern "C" {
 #define THINGSET_ANY_RW \
     THINGSET_READ_WRITE(THINGSET_ROLE_ANY) /**< Read/write access for any user */
 
+#define THINGSET_ENDPOINT_INDEX_NONE (-1) /**< No index provided for endpoint */
+#define THINGSET_ENDPOINT_INDEX_NEW  (-2) /**< Non-existent element behind the last element */
+
 /** ThingSet data object ID (16-bit) */
 typedef uint16_t thingset_object_id_t;
 
@@ -1228,12 +1238,128 @@ struct thingset_data_object
 };
 
 /**
- * Forward-declaration of ThingSet context struct
- *
- * The struct is defined in thingset_internal.h and should not be used directly by the user of the
- * ThingSet API.
+ * Data to describe the endpoint parsed from a ThingSet request
  */
-struct thingset_context;
+struct thingset_endpoint
+{
+    /** Pointer to the data object in memory (must never be NULL) */
+    struct thingset_data_object *object;
+    /** Index number or THINGSET_ENDPOINT_INDEX_NONE or THINGSET_ENDPOINT_INDEX_NEW */
+    int index;
+    /** Use names or IDs (relevant for binary mode) */
+    bool use_ids;
+};
+
+/* Forward-declaration of internal ThingSet API struct (defined in thingset_internal.h) */
+struct thingset_api;
+
+/**
+ * ThingSet context.
+ *
+ * Stores and handles all data objects exposed to different communication interfaces.
+ */
+struct thingset_context
+{
+    /**
+     * Array of objects database provided during initialization
+     */
+    struct thingset_data_object *data_objects;
+
+    /**
+     * Number of objects in the data_objects array
+     */
+    size_t num_objects;
+
+    /**
+     * Pointer to the incoming message buffer (request or desire, provided by process function)
+     */
+    const uint8_t *msg;
+
+    /**
+     * Length of the incoming message
+     */
+    size_t msg_len;
+
+    /**
+     * Position in the message currently being parsed
+     */
+    size_t msg_pos;
+
+    /**
+     * Pointer to the start of the payload in the message buffer
+     */
+    const uint8_t *msg_payload;
+
+    /**
+     * Pointer to the response buffer (provided by process function)
+     */
+    uint8_t *rsp;
+
+    /**
+     * Size of response buffer (i.e. maximum length)
+     */
+    size_t rsp_size;
+
+    /**
+     * Current position inside the response (equivalent to length of the response at end of
+     * processing)
+     */
+    size_t rsp_pos;
+
+    /**
+     * Function pointers to mode-specific implementation (text or binary)
+     */
+    struct thingset_api *api;
+
+    /**
+     * State information for data processing, either for text mode or binary mode depending on the
+     * assigned api.
+     */
+    union {
+        /* Text mode */
+        struct
+        {
+            /** JSON tokens in msg_payload parsed by JSMN */
+            jsmntok_t tokens[CONFIG_THINGSET_NUM_JSON_TOKENS];
+
+            /** Number of JSON tokens parsed by JSMN */
+            size_t tok_count;
+
+            /** Current position of the parsing process */
+            size_t tok_pos;
+        };
+        /* Binary mode */
+        struct
+        {
+            /** CBOR encoder states for binary mode */
+            zcbor_state_t encoder[4];
+
+            /** CBOR decoder states for binary mode */
+            zcbor_state_t decoder[4];
+        };
+    };
+
+    /**
+     * Stores current authentication status (authentication as "normal" user as default)
+     */
+    uint8_t auth_flags;
+
+    /**
+     * Stores current authentication status (authentication as "normal" user as default)
+     */
+    uint8_t update_subsets;
+
+    /**
+     * Callback to be called from patch function if a value belonging to update_subsets
+     * was changed
+     */
+    void (*update_cb)(void);
+
+    /**
+     * Endpoint used for the current message
+     */
+    struct thingset_endpoint endpoint;
+};
 
 /**
  * Initialize a ThingSet context.
@@ -1322,4 +1448,4 @@ int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size
 } /* extern "C" */
 #endif
 
-#endif /* THINGSET_THINGSET_H_ */
+#endif /* THINGSET_H_ */

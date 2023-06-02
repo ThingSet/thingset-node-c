@@ -6,6 +6,8 @@
 
 #include <zephyr/ztest.h>
 
+#include <thingset.h>
+
 #include "../../src/thingset_internal.h"
 
 #include "test_utils.h"
@@ -23,28 +25,28 @@ ZTEST(thingset_common, test_endpoint_from_path)
     zassert_equal(ret, 0);
     zassert_not_equal(endpoint.object, NULL);
     zassert_equal(endpoint.object->id, 0);
-    zassert_equal(endpoint.index, ENDPOINT_INDEX_NONE);
+    zassert_equal(endpoint.index, THINGSET_ENDPOINT_INDEX_NONE);
 
     path = "Types";
     ret = thingset_endpoint_by_path(&ts, &endpoint, path, strlen(path));
     zassert_false(ret < 0);
     zassert_not_equal(endpoint.object, NULL);
     zassert_equal(endpoint.object->id, 0x200);
-    zassert_equal(endpoint.index, ENDPOINT_INDEX_NONE);
+    zassert_equal(endpoint.index, THINGSET_ENDPOINT_INDEX_NONE);
 
     path = "Types/";
     ret = thingset_endpoint_by_path(&ts, &endpoint, path, strlen(path));
     zassert_false(ret < 0);
     zassert_not_equal(endpoint.object, NULL);
     zassert_equal(endpoint.object->id, 0x200);
-    zassert_equal(endpoint.index, ENDPOINT_INDEX_NONE);
+    zassert_equal(endpoint.index, THINGSET_ENDPOINT_INDEX_NONE);
 
     path = "Records";
     ret = thingset_endpoint_by_path(&ts, &endpoint, path, strlen(path));
     zassert_false(ret < 0);
     zassert_not_equal(endpoint.object, NULL);
     zassert_equal(endpoint.object->id, 0x600);
-    zassert_equal(endpoint.index, ENDPOINT_INDEX_NONE);
+    zassert_equal(endpoint.index, THINGSET_ENDPOINT_INDEX_NONE);
 
     path = "Records/1";
     ret = thingset_endpoint_by_path(&ts, &endpoint, path, strlen(path));
@@ -58,14 +60,14 @@ ZTEST(thingset_common, test_endpoint_from_path)
     zassert_false(ret < 0);
     zassert_not_equal(endpoint.object, NULL);
     zassert_equal(endpoint.object->id, 0x600);
-    zassert_equal(endpoint.index, ENDPOINT_INDEX_NEW);
+    zassert_equal(endpoint.index, THINGSET_ENDPOINT_INDEX_NEW);
 
     path = "Nested/Obj2/rItem1_V";
     ret = thingset_endpoint_by_path(&ts, &endpoint, path, strlen(path));
     zassert_false(ret < 0);
     zassert_not_equal(endpoint.object, NULL);
     zassert_equal(endpoint.object->id, 0x707);
-    zassert_equal(endpoint.index, ENDPOINT_INDEX_NONE);
+    zassert_equal(endpoint.index, THINGSET_ENDPOINT_INDEX_NONE);
 
     path = "/";
     ret = thingset_endpoint_by_path(&ts, &endpoint, path, strlen(path));

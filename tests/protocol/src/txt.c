@@ -8,7 +8,7 @@
 
 #include <math.h>
 
-#include "../../src/thingset_internal.h"
+#include <thingset.h>
 
 #include "data.h"
 #include "test_utils.h"

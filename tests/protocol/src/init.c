@@ -6,9 +6,7 @@
 
 #include <zephyr/ztest.h>
 
-#include "thingset/thingset.h"
-
-#include "../../src/thingset_internal.h"
+#include <thingset.h>
 
 extern struct thingset_data_object data_objects[];
 extern size_t data_objects_size;
