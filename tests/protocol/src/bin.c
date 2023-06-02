@@ -626,6 +626,23 @@ ZTEST(thingset_bin, test_export_subset_ids)
     THINGSET_ASSERT_EXPORT_HEX_IDS(SUBSET_LIVE, rsp_exp_hex, 21);
 }
 
+ZTEST(thingset_bin, test_import)
+{
+    const char rsp_exp_hex[] =
+        "A2 "
+        "10 19 03E9 "  /* t_s */
+        "19 02 01 F4"; /* Types/wBool */
+
+    THINGSET_ASSERT_IMPORT_HEX_IDS(rsp_exp_hex, 0, THINGSET_WRITE_MASK);
+
+    zassert_equal(timestamp, 1001);
+    zassert_equal(b, false);
+
+    /* reset to default values */
+    timestamp = 1000;
+    b = true;
+}
+
 static void *thingset_setup(void)
 {
     thingset_init_global(&ts);

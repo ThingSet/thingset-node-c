@@ -122,24 +122,32 @@
         } \
     }
 
-#define THINGSET_ASSERT_EXPORT_HEX_IDS(subsets, rpt_exp_hex, err_exp) \
+#define THINGSET_ASSERT_EXPORT_HEX_IDS(subsets, data_exp_hex, err_exp) \
     { \
-        uint8_t rpt_act[THINGSET_TEST_BUF_SIZE]; \
-        uint8_t rpt_act_hex[THINGSET_TEST_BUF_SIZE]; \
-        uint8_t rpt_exp[THINGSET_TEST_BUF_SIZE]; \
-        int rpt_act_len = thingset_export_subsets(&ts, rpt_act, sizeof(rpt_act), subsets, \
-                                                  THINGSET_MODE_BINARY_IDS); \
-        int rpt_exp_len = hex2bin_spaced(rpt_exp_hex, rpt_exp, sizeof(rpt_exp)); \
-        bin2hex_spaced(rpt_act, rpt_act_len, rpt_act_hex, sizeof(rpt_act_hex)); \
+        uint8_t data_act[THINGSET_TEST_BUF_SIZE]; \
+        uint8_t data_act_hex[THINGSET_TEST_BUF_SIZE]; \
+        uint8_t data_exp[THINGSET_TEST_BUF_SIZE]; \
+        int data_act_len = thingset_export_subsets(&ts, data_act, sizeof(data_act), subsets, \
+                                                   THINGSET_MODE_BINARY_IDS); \
+        int data_exp_len = hex2bin_spaced(data_exp_hex, data_exp, sizeof(data_exp)); \
+        bin2hex_spaced(data_act, data_act_len, data_act_hex, sizeof(data_act_hex)); \
         if (err_exp > 0) { \
-            zassert_true(rpt_act_len > 0, "err_act: 0x%02X", -rpt_act_len); \
-            zassert_mem_equal(rpt_exp, rpt_act, MAX(rpt_act_len, rpt_exp_len), "act: %s\nexp: %s", \
-                              rpt_act_hex, rpt_exp_hex); \
-            zassert_equal(rpt_act_len, err_exp, "act: %d, exp: %d", rpt_act_len, err_exp); \
+            zassert_true(data_act_len > 0, "err_act: 0x%02X", -data_act_len); \
+            zassert_mem_equal(data_exp, data_act, MAX(data_act_len, data_exp_len), \
+                              "act: %s\nexp: %s", data_act_hex, data_exp_hex); \
+            zassert_equal(data_act_len, err_exp, "act: %d, exp: %d", data_act_len, err_exp); \
         } \
         else { \
-            zassert_equal(rpt_act_len, err_exp, "act: %d, exp: %d", rpt_act_len, err_exp); \
+            zassert_equal(data_act_len, err_exp, "act: %d, exp: %d", data_act_len, err_exp); \
         } \
+    }
+
+#define THINGSET_ASSERT_IMPORT_HEX_IDS(data_hex, err_exp, auth_flags) \
+    { \
+        uint8_t data[THINGSET_TEST_BUF_SIZE]; \
+        int data_len = hex2bin_spaced(data_hex, data, sizeof(data)); \
+        int err = thingset_import_data(&ts, data, data_len, auth_flags, THINGSET_MODE_BINARY_IDS); \
+        zassert_equal(err, err_exp, "act: 0x%X, exp: 0x%X", -err, -err_exp); \
     }
 
 size_t hex2bin_spaced(const char *hex, uint8_t *bin, size_t bin_size);

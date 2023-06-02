@@ -493,7 +493,7 @@ static int bin_deserialize_value(struct thingset_context *ts,
 
 static int bin_deserialize_finish(struct thingset_context *ts)
 {
-    return ts->decoder->payload_end == ts->decoder->payload ? 0 : THINGSET_ERR_BAD_REQUEST;
+    return ts->decoder->payload_end == ts->decoder->payload ? 0 : -THINGSET_ERR_BAD_REQUEST;
 }
 
 static struct thingset_api bin_api = {
@@ -527,6 +527,36 @@ inline void thingset_bin_setup(struct thingset_context *ts, size_t rsp_buf_offse
 
     zcbor_new_encode_state(ts->encoder, ZCBOR_ARRAY_SIZE(ts->encoder), ts->rsp + rsp_buf_offset,
                            ts->rsp_size - rsp_buf_offset, 1);
+}
+
+int thingset_bin_import_data(struct thingset_context *ts, uint8_t auth_flags,
+                             enum thingset_mode mode)
+{
+    int err;
+
+    err = ts->api->deserialize_map_start(ts);
+    if (err != 0) {
+        return err;
+    }
+
+    uint32_t id;
+    while (zcbor_uint32_decode(ts->decoder, &id)) {
+        if (id <= UINT16_MAX) {
+            const struct thingset_data_object *object = thingset_get_object_by_id(ts, id);
+            if (object != NULL) {
+                if ((object->access & THINGSET_WRITE_MASK & auth_flags) != 0) {
+                    err = ts->api->deserialize_value(ts, object, false);
+                    if (err == 0) {
+                        continue;
+                    }
+                }
+            }
+        }
+        /* silently ignore this item if it caused an error */
+        zcbor_any_skip(ts->decoder, NULL);
+    }
+
+    return ts->api->deserialize_finish(ts);
 }
 
 int thingset_bin_process(struct thingset_context *ts)

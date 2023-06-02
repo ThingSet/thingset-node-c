@@ -345,6 +345,9 @@ int thingset_bin_process(struct thingset_context *ts);
 
 void thingset_bin_setup(struct thingset_context *ts, size_t buf_offset);
 
+int thingset_bin_import_data(struct thingset_context *ts, uint8_t auth_flags,
+                             enum thingset_mode mode);
+
 int thingset_common_serialize_group(struct thingset_context *ts,
                                     const struct thingset_data_object *object);
 

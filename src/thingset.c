@@ -115,6 +115,28 @@ int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_s
     }
 }
 
+int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_t len,
+                         uint8_t auth_flags, enum thingset_mode mode)
+{
+    ts->msg = data;
+    ts->msg_len = len;
+    ts->msg_pos = 0;
+    ts->rsp = NULL;
+    ts->rsp_size = 0;
+    ts->rsp_pos = 0;
+
+    switch (mode) {
+        case THINGSET_MODE_BINARY_IDS:
+            ts->endpoint.use_ids = true;
+            thingset_bin_setup(ts, 0);
+            ts->msg_payload = data;
+            ts->api->deserialize_payload_reset(ts);
+            return thingset_bin_import_data(ts, auth_flags, mode);
+        default:
+            return -THINGSET_ERR_NOT_IMPLEMENTED;
+    }
+}
+
 int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size, const char *path,
                          enum thingset_mode mode)
 {

@@ -1425,6 +1425,23 @@ int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_s
                             uint16_t subsets, enum thingset_mode mode);
 
 /**
+ * Import data into data objects.
+ *
+ * This function can be used to initialize data objects from previously exported data (using
+ * thingset_export_subsets function) and stored in the EEPROM or other non-volatile memory.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param data Buffer containing ID/value map that should be written to the data objects
+ * @param len Length of the data in the buffer
+ * @param auth_flags Authentication flags to be used in this function (to override auth_flags)
+ * @param mode Protocol mode to be used (text, binary with IDs or binary with names)
+ *
+ * @returns 0 for success or negative ThingSet response code in case of error
+ */
+int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_t len,
+                         uint8_t auth_flags, enum thingset_mode mode);
+
+/**
  * Generate a report for a given path.
  *
  * @note Searching the object database to find the path and items to be published based on the
