@@ -239,6 +239,8 @@ THINGSET_ADD_FN_VOID(0x400, 0x407, "xVoidMfrOnly", &fn_void, THINGSET_ANY_R | TH
 THINGSET_ADD_GROUP(THINGSET_ID_ROOT, 0x500, "Access", group_callback);
 THINGSET_ADD_ITEM_FLOAT(0x500, 0x501, "rItem", &access_item, 2, THINGSET_ANY_R, 0);
 THINGSET_ADD_ITEM_FLOAT(0x500, 0x502, "wItem", &access_item, 2, THINGSET_ANY_RW, SUBSET_NVM);
+THINGSET_ADD_ITEM_FLOAT(0x500, 0x503, "wMfrOnly", &access_item, 2, THINGSET_ANY_R | THINGSET_MFR_RW,
+                        0);
 
 /* Records */
 THINGSET_ADD_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_R, 0);
@@ -341,6 +343,8 @@ struct thingset_data_object data_objects[] = {
     THINGSET_GROUP(THINGSET_ID_ROOT, 0x500, "Access", group_callback),
     THINGSET_ITEM_FLOAT(0x500, 0x501, "rItem", &access_item, 2, THINGSET_ANY_R, 0),
     THINGSET_ITEM_FLOAT(0x500, 0x502, "wItem", &access_item, 2, THINGSET_ANY_RW, SUBSET_NVM),
+    THINGSET_ITEM_FLOAT(0x500, 0x503, "wMfrOnly", &access_item, 2, THINGSET_ANY_R | THINGSET_MFR_RW,
+                        0),
 
     /* Records */
     THINGSET_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_R, 0),

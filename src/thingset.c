@@ -205,6 +205,11 @@ int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size
     }
 }
 
+void thingset_set_authentication(struct thingset_context *ts, uint8_t flags)
+{
+    ts->auth_flags = flags;
+}
+
 void thingset_set_update_callback(struct thingset_context *ts, const uint16_t subsets,
                                   void (*update_cb)(void))
 {

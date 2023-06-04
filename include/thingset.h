@@ -1464,6 +1464,16 @@ int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size
                          enum thingset_mode mode);
 
 /**
+ * Set current authentication level.
+ *
+ * The authentication flags must match with read/write access flags of the a data objects.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param flags Flags to define authentication level (1 = access allowed)
+ */
+void thingset_set_authentication(struct thingset_context *ts, uint8_t flags);
+
+/**
  * Configure a callback for notification if data belonging to specified subset(s) was updated.
  *
  * @param ts Pointer to ThingSet context.

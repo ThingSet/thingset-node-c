@@ -287,7 +287,7 @@ ZTEST(thingset_txt, test_update_group_callback)
     zassert_equal(callback_pre_write_count, 1);
     zassert_equal(callback_post_write_count, 1);
 
-    THINGSET_ASSERT_REQUEST_TXT("?Access", ":85 {\"rItem\":1.00,\"wItem\":1.00}");
+    THINGSET_ASSERT_REQUEST_TXT("?Access", ":85 {\"rItem\":1.00,\"wItem\":1.00,\"wMfrOnly\":1.00}");
 
     zassert_equal(callback_pre_read_count, 1);
     zassert_equal(callback_post_read_count, 1);
@@ -497,6 +497,23 @@ ZTEST(thingset_txt, test_update_callback)
     thingset_set_update_callback(&ts, SUBSET_NVM, update_callback);
     THINGSET_ASSERT_REQUEST_TXT("=Access {\"wItem\":1}", ":84");
     zassert_equal(true, update_callback_called);
+}
+
+ZTEST(thingset_txt, test_auth)
+{
+    /* before authentication */
+    thingset_set_authentication(&ts, THINGSET_USR_MASK);
+    THINGSET_ASSERT_REQUEST_TXT("=Access {\"wMfrOnly\":1}",
+                                ":A1 \"Authentication required for wMfrOnly\"");
+    THINGSET_ASSERT_REQUEST_TXT("!Exec/xVoidMfrOnly", ":A1 \"Authentication required\"");
+
+    /* after authentication */
+    thingset_set_authentication(&ts, THINGSET_USR_MASK | THINGSET_MFR_MASK);
+    THINGSET_ASSERT_REQUEST_TXT("=Access {\"wItem\":1}", ":84");
+    THINGSET_ASSERT_REQUEST_TXT("!Exec/xVoidMfrOnly", ":84");
+
+    /* reset authentication */
+    thingset_set_authentication(&ts, THINGSET_USR_MASK);
 }
 
 static void *thingset_setup(void)

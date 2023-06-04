@@ -417,8 +417,9 @@ ZTEST(thingset_bin, test_update_group_callback)
     zassert_equal(callback_post_write_count, 1);
 
     /* ?Access */
-    THINGSET_ASSERT_REQUEST_HEX("01 19 0500",
-                                "85 F6 a2 19 05 01 fa 3f 80 00 00 19 05 02 fa 3f 80 00 00");
+    THINGSET_ASSERT_REQUEST_HEX(
+        "01 19 0500",
+        "85 f6 a3 19 05 01 fa 3f 80 00 00 19 05 02 fa 3f 80 00 00 19 05 03 fa 3f 80 00 00");
 
     zassert_equal(callback_pre_read_count, 1);
     zassert_equal(callback_post_read_count, 1);
