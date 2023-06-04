@@ -15,6 +15,13 @@
 
 static struct thingset_context ts;
 
+bool update_callback_called;
+
+void update_callback(void)
+{
+    update_callback_called = true;
+}
+
 ZTEST(thingset_txt, test_get_root)
 {
     const char req[] = "?";
@@ -475,6 +482,21 @@ ZTEST(thingset_txt, test_export_subset)
         "}";
 
     THINGSET_ASSERT_EXPORT_TXT(SUBSET_LIVE, rsp_exp, strlen(rsp_exp));
+}
+
+ZTEST(thingset_txt, test_update_callback)
+{
+    update_callback_called = false;
+
+    /* without callback */
+    thingset_set_update_callback(&ts, SUBSET_NVM, NULL);
+    THINGSET_ASSERT_REQUEST_TXT("=Access {\"wItem\":1}", ":84");
+    zassert_equal(false, update_callback_called);
+
+    /* with configured callback */
+    thingset_set_update_callback(&ts, SUBSET_NVM, update_callback);
+    THINGSET_ASSERT_REQUEST_TXT("=Access {\"wItem\":1}", ":84");
+    zassert_equal(true, update_callback_called);
 }
 
 static void *thingset_setup(void)

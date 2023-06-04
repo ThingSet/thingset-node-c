@@ -1463,6 +1463,16 @@ int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_
 int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size, const char *path,
                          enum thingset_mode mode);
 
+/**
+ * Configure a callback for notification if data belonging to specified subset(s) was updated.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param subsets Flags to select which subset(s) of data items should be considered
+ * @param update_cb Callback to be called after an update.
+ */
+void thingset_set_update_callback(struct thingset_context *ts, const uint16_t subsets,
+                                  void (*update_cb)(void));
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
