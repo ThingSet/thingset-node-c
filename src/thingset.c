@@ -81,7 +81,7 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
     }
 }
 
-int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_size,
+int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
                             uint16_t subsets, enum thingset_data_format format)
 {
     int err;
@@ -112,6 +112,56 @@ int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_s
     else {
         return err;
     }
+}
+
+int thingset_export_item(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
+                         const struct thingset_data_object *obj, enum thingset_data_format format)
+{
+    int err;
+
+    ts->rsp = buf;
+    ts->rsp_size = buf_size;
+    ts->rsp_pos = 0;
+
+    switch (format) {
+        case THINGSET_TXT_VALUES_ONLY:
+            thingset_txt_setup(ts);
+            break;
+        case THINGSET_BIN_VALUES_ONLY:
+            ts->endpoint.use_ids = true;
+            thingset_bin_setup(ts, 0);
+            break;
+        default:
+            return -THINGSET_ERR_NOT_IMPLEMENTED;
+    }
+
+    err = ts->api->serialize_value(ts, obj);
+
+    ts->api->serialize_finish(ts);
+
+    if (err == 0) {
+        return ts->rsp_pos;
+    }
+    else {
+        return err;
+    }
+}
+
+struct thingset_data_object *thingset_iterate_subsets(struct thingset_context *ts, uint16_t subset,
+                                                      struct thingset_data_object *start_obj)
+{
+    if (start_obj == NULL) {
+        start_obj = ts->data_objects;
+    }
+
+    struct thingset_data_object *end_obj = ts->data_objects + ts->num_objects;
+    for (struct thingset_data_object *obj = start_obj; obj < end_obj; obj++) {
+        if (obj->subsets & subset) {
+            return obj;
+        }
+    }
+
+    return NULL;
 }
 
 int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_t len,

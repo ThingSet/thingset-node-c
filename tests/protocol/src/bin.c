@@ -627,6 +627,41 @@ ZTEST(thingset_bin, test_export_subset_ids)
     THINGSET_ASSERT_EXPORT_HEX_IDS(SUBSET_LIVE, rsp_exp_hex, 21);
 }
 
+ZTEST(thingset_bin, test_iterate_subsets)
+{
+    struct thingset_data_object *obj = NULL;
+    uint8_t buf_act[10];
+    uint8_t buf_exp[10];
+    int err;
+
+    /* t_s */
+    obj = thingset_iterate_subsets(&ts, SUBSET_LIVE, obj);
+    zassert_not_equal(obj, NULL);
+    zassert_equal(obj->id, 0x10);
+
+    err = thingset_export_item(&ts, buf_act, sizeof(buf_act), obj, THINGSET_BIN_VALUES_ONLY);
+    hex2bin_spaced("19 03E8", buf_exp, sizeof(buf_exp));
+    zassert_mem_equal(buf_exp, buf_act, 3);
+
+    /* Types/wBool */
+    obj = thingset_iterate_subsets(&ts, SUBSET_LIVE, ++obj);
+    zassert_not_equal(obj, NULL);
+    zassert_equal(obj->id, 0x201);
+
+    /* Nested/rBeginning */
+    obj = thingset_iterate_subsets(&ts, SUBSET_LIVE, ++obj);
+    zassert_not_equal(obj, NULL);
+    zassert_equal(obj->id, 0x701);
+
+    /* Nested/Obj2/rItem2_V */
+    obj = thingset_iterate_subsets(&ts, SUBSET_LIVE, ++obj);
+    zassert_not_equal(obj, NULL);
+    zassert_equal(obj->id, 0x708);
+
+    obj = thingset_iterate_subsets(&ts, SUBSET_LIVE, ++obj);
+    zassert_equal(obj, NULL);
+}
+
 ZTEST(thingset_bin, test_import)
 {
     const char rsp_exp_hex[] =

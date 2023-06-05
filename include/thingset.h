@@ -1425,8 +1425,40 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
  *
  * @return Actual length of the data or negative ThingSet response code in case of error.
  */
-int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_size,
+int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
                             uint16_t subsets, enum thingset_data_format format);
+
+/**
+ * Export id, value and/or name of a single data item.
+ *
+ * This function is typically used together with thingset_iterate_subsets to export items of a
+ * subset one by one, e.g. for publishing them via CAN.
+ *
+ * The string in the buffer will be null-terminated, but the termination character is not included
+ * in the returned length.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param buf Pointer to the buffer where the data should be stored
+ * @param buf_size Size of the buffer, i.e. maximum allowed length of the data
+ * @param obj Pointer to data item which should be exported
+ * @param format Protocol data format to be used (text, binary with IDs or binary with names)
+ *
+ * @return Actual length of the data or negative ThingSet response code in case of error.
+ */
+int thingset_export_item(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
+                         const struct thingset_data_object *obj, enum thingset_data_format format);
+
+/**
+ * Iterate over all objects of given subset(s).
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param subsets Flags to select which subset(s) of data items should be iterated over
+ * @param start_obj Data object to start searching (use NULL to start at the beginning)
+ *
+ * @returns Pointer to the next object found or NULL if end of data objects was reached
+ */
+struct thingset_data_object *thingset_iterate_subsets(struct thingset_context *ts, uint16_t subset,
+                                                      struct thingset_data_object *start_obj);
 
 /**
  * Import data into data objects.
