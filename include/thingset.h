@@ -1122,7 +1122,7 @@ union thingset_data_pointer {
     uint64_t *u64;                    /**< Pointer to uint64_t variable */
     int64_t *i64;                     /**< Pointer to int64_t variable */
     float *f32;                       /**< Pointer to float variable */
-    int32_t *decfrac;                 /**< Pointer to decimal fraction variable */
+    int32_t *decfrac;                 /**< Pointer to decimal fraction mantissa */
     char *str;                        /**< Pointer to string buffer */
     struct thingset_bytes *bytes;     /**< Pointer to thingset_bytes struct */
     struct thingset_array *array;     /**< Pointer to thingset_array struct */

@@ -381,12 +381,12 @@ static int txt_deserialize_value(struct thingset_context *ts,
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
         case THINGSET_TYPE_DECFRAC: {
             float tmp = strtod(buf, NULL);
-            /* positive exponent */
-            for (int16_t i = 0; i < object->detail; i++) {
+            /* negative decimals and positive exponent */
+            for (int16_t i = 0; i < -object->detail; i++) {
                 tmp /= 10.0F;
             }
-            /* negative exponent */
-            for (int16_t i = 0; i > object->detail; i--) {
+            /* positive decimals and negative exponent */
+            for (int16_t i = 0; i > -object->detail; i--) {
                 tmp *= 10.0F;
             }
             *object->data.decfrac = (int32_t)tmp;

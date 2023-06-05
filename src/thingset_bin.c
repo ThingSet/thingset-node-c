@@ -65,7 +65,7 @@ static int bin_serialize_simple_value(zcbor_state_t *encoder, union thingset_dat
             break;
 #endif
         case THINGSET_TYPE_U32:
-            success = zcbor_int32_put(encoder, *data.u32);
+            success = zcbor_uint32_put(encoder, *data.u32);
             break;
         case THINGSET_TYPE_I32:
             success = zcbor_int32_put(encoder, *data.i32);
@@ -92,7 +92,7 @@ static int bin_serialize_simple_value(zcbor_state_t *encoder, union thingset_dat
             break;
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
         case THINGSET_TYPE_DECFRAC:
-            success = zcbor_tag_encode(encoder, 4); /* decimal fraction type */
+            success = zcbor_tag_encode(encoder, ZCBOR_TAG_DECFRAC_ARR);
             success = success && zcbor_list_start_encode(encoder, 2);
             success = success && zcbor_int32_put(encoder, -detail);       /* exponent */
             success = success && zcbor_int32_put(encoder, *data.decfrac); /* mantissa */
@@ -443,9 +443,54 @@ static int bin_deserialize_value(struct thingset_context *ts,
             }
             break;
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
-        case THINGSET_TYPE_DECFRAC:
-            /* not yet supported */
-            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+        case THINGSET_TYPE_DECFRAC: {
+            int32_t exponent = -object->detail;
+            int32_t *mantissa = object->data.decfrac;
+            if (zcbor_tag_expect(ts->decoder, ZCBOR_TAG_DECFRAC_ARR)) {
+                success = zcbor_list_start_decode(ts->decoder);
+                int32_t mantissa_tmp;
+                int32_t exponent_received;
+                success = success && zcbor_int32_decode(ts->decoder, &exponent_received);
+                success = success && zcbor_int32_decode(ts->decoder, &mantissa_tmp);
+
+                for (int i = exponent_received; i < exponent; i++) {
+                    mantissa_tmp /= 10;
+                }
+                for (int i = exponent_received; i > exponent; i--) {
+                    mantissa_tmp *= 10;
+                }
+                *mantissa = mantissa_tmp;
+            }
+            else {
+                /* try integer and float types */
+                int32_t i32;
+                float f32;
+                if (zcbor_int32_decode(ts->decoder, &i32) == true) {
+                    for (int i = 0; i < exponent; i++) {
+                        i32 /= 10;
+                    }
+                    for (int i = 0; i > exponent; i--) {
+                        i32 *= 10;
+                    }
+                    *mantissa = i32;
+                    success = true;
+                }
+                else if (zcbor_float32_decode(ts->decoder, &f32) == true) {
+                    for (int i = 0; i < exponent; i++) {
+                        f32 /= 10.0F;
+                    }
+                    for (int i = 0; i > exponent; i--) {
+                        f32 *= 10.0F;
+                    }
+                    *mantissa = (int32_t)f32;
+                    success = true;
+                }
+                else {
+                    success = false;
+                }
+            }
+            break;
+        }
 #endif
         case THINGSET_TYPE_BOOL:
             success = zcbor_bool_decode(ts->decoder, object->data.b);
