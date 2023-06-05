@@ -530,7 +530,7 @@ inline void thingset_bin_setup(struct thingset_context *ts, size_t rsp_buf_offse
 }
 
 int thingset_bin_import_data(struct thingset_context *ts, uint8_t auth_flags,
-                             enum thingset_mode mode)
+                             enum thingset_data_format format)
 {
     int err;
 

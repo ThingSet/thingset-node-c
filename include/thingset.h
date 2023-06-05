@@ -1138,13 +1138,17 @@ union thingset_data_pointer {
 /** @endcond */
 
 /**
- * Enum to define ThingSet protocol mode.
+ * Enum to define ThingSet data format (used by export/import and report functions).
  */
-enum thingset_mode
+enum thingset_data_format
 {
-    THINGSET_MODE_TEXT,         /**< Text mode */
-    THINGSET_MODE_BINARY_IDS,   /**< Binary mode using IDs */
-    THINGSET_MODE_BINARY_NAMES, /**< Binary mode using names */
+    THINGSET_TXT_NAMES_VALUES, /**< Text names and values (JSON) */
+    THINGSET_TXT_NAMES_ONLY,   /**< Text names only (JSON) */
+    THINGSET_TXT_VALUES_ONLY,  /**< Text values only (JSON) */
+    THINGSET_BIN_IDS_VALUES,   /**< Binary IDs and values (CBOR) */
+    THINGSET_BIN_NAMES_VALUES, /**< Binary names and values (CBOR) */
+    THINGSET_BIN_IDS_ONLY,     /**< Binary IDs only (CBOR) */
+    THINGSET_BIN_VALUES_ONLY,  /**< Binary values only (CBOR) */
 };
 
 /**
@@ -1417,12 +1421,12 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
  * @param buf Pointer to the buffer where the data should be stored
  * @param buf_size Size of the buffer, i.e. maximum allowed length of the data
  * @param subsets Flags to select which subset(s) of data items should be exported
- * @param mode Protocol mode to be used (text, binary with IDs or binary with names)
+ * @param format Protocol data format to be used (text, binary with IDs or binary with names)
  *
  * @return Actual length of the data or negative ThingSet response code in case of error.
  */
 int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_size,
-                            uint16_t subsets, enum thingset_mode mode);
+                            uint16_t subsets, enum thingset_data_format format);
 
 /**
  * Import data into data objects.
@@ -1434,12 +1438,12 @@ int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_s
  * @param data Buffer containing ID/value map that should be written to the data objects
  * @param len Length of the data in the buffer
  * @param auth_flags Authentication flags to be used in this function (to override auth_flags)
- * @param mode Protocol mode to be used (text, binary with IDs or binary with names)
+ * @param format Protocol data format to be used (text, binary with IDs or binary with names)
  *
  * @returns 0 for success or negative ThingSet response code in case of error
  */
 int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_t len,
-                         uint8_t auth_flags, enum thingset_mode mode);
+                         uint8_t auth_flags, enum thingset_data_format format);
 
 /**
  * Generate a report for a given path.
@@ -1456,12 +1460,12 @@ int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_
  * @param buf Pointer to the buffer where the report should be stored
  * @param buf_size Size of the buffer, i.e. maximum allowed length of the report
  * @param path Path of subset/group/record to be published
- * @param mode Protocol mode to be used (text, binary with IDs or binary with names)
+ * @param format Protocol data format to be used (text, binary with IDs or binary with names)
  *
  * @return Actual length of the report or negative ThingSet response code in case of error
  */
 int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size, const char *path,
-                         enum thingset_mode mode);
+                         enum thingset_data_format format);
 
 /**
  * Set current authentication level.

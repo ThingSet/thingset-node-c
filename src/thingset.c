@@ -82,7 +82,7 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
 }
 
 int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_size,
-                            uint16_t subsets, enum thingset_mode mode)
+                            uint16_t subsets, enum thingset_data_format format)
 {
     int err;
 
@@ -90,17 +90,16 @@ int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_s
     ts->rsp_size = buf_size;
     ts->rsp_pos = 0;
 
-    switch (mode) {
-        case THINGSET_MODE_TEXT:
+    switch (format) {
+        case THINGSET_TXT_NAMES_VALUES:
             thingset_txt_setup(ts);
             break;
-        case THINGSET_MODE_BINARY_IDS:
+        case THINGSET_BIN_IDS_VALUES:
             ts->endpoint.use_ids = true;
             thingset_bin_setup(ts, 0);
             break;
-        case THINGSET_MODE_BINARY_NAMES:
+        default:
             return -THINGSET_ERR_NOT_IMPLEMENTED;
-            break;
     }
 
     err = ts->api->serialize_subsets(ts, subsets);
@@ -116,7 +115,7 @@ int thingset_export_subsets(struct thingset_context *ts, char *buf, size_t buf_s
 }
 
 int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_t len,
-                         uint8_t auth_flags, enum thingset_mode mode)
+                         uint8_t auth_flags, enum thingset_data_format format)
 {
     ts->msg = data;
     ts->msg_len = len;
@@ -125,20 +124,20 @@ int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_
     ts->rsp_size = 0;
     ts->rsp_pos = 0;
 
-    switch (mode) {
-        case THINGSET_MODE_BINARY_IDS:
+    switch (format) {
+        case THINGSET_BIN_IDS_VALUES:
             ts->endpoint.use_ids = true;
             thingset_bin_setup(ts, 0);
             ts->msg_payload = data;
             ts->api->deserialize_payload_reset(ts);
-            return thingset_bin_import_data(ts, auth_flags, mode);
+            return thingset_bin_import_data(ts, auth_flags, format);
         default:
             return -THINGSET_ERR_NOT_IMPLEMENTED;
     }
 }
 
 int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size, const char *path,
-                         enum thingset_mode mode)
+                         enum thingset_data_format format)
 {
     int err;
 
@@ -154,17 +153,16 @@ int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size
         return -THINGSET_ERR_BAD_REQUEST;
     }
 
-    switch (mode) {
-        case THINGSET_MODE_TEXT:
+    switch (format) {
+        case THINGSET_TXT_NAMES_VALUES:
             thingset_txt_setup(ts);
             break;
-        case THINGSET_MODE_BINARY_IDS:
+        case THINGSET_BIN_IDS_VALUES:
             ts->endpoint.use_ids = true;
             thingset_bin_setup(ts, 1);
             break;
-        case THINGSET_MODE_BINARY_NAMES:
+        default:
             return -THINGSET_ERR_NOT_IMPLEMENTED;
-            break;
     }
 
     err = ts->api->serialize_report_header(ts, path);
