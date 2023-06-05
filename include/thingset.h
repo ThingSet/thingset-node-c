@@ -16,6 +16,8 @@
 /** @endcond */
 #include "jsmn.h"
 
+#include <zephyr/kernel.h>
+
 #include <zcbor_common.h>
 
 #include <stdbool.h>
@@ -1051,6 +1053,8 @@ extern "C" {
 #define THINGSET_ENDPOINT_INDEX_NONE (-1) /**< No index provided for endpoint */
 #define THINGSET_ENDPOINT_INDEX_NEW  (-2) /**< Non-existent element behind the last element */
 
+#define THINGSET_CONTEXT_LOCK_TIMEOUT_MS (1000)
+
 /** ThingSet data object ID (16-bit) */
 typedef uint16_t thingset_object_id_t;
 
@@ -1275,6 +1279,12 @@ struct thingset_context
      * Number of objects in the data_objects array
      */
     size_t num_objects;
+
+    /**
+     * Semaphore to lock this context and avoid race conditions if the context may be used by
+     * multiple threads in parallel.
+     */
+    struct k_sem lock;
 
     /**
      * Pointer to the incoming message buffer (request or desire, provided by process function)
