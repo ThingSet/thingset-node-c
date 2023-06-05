@@ -169,15 +169,15 @@ ZTEST(thingset_txt, test_fetch_group)
 
 ZTEST(thingset_txt, test_fetch_multiple)
 {
-    THINGSET_ASSERT_REQUEST_TXT("?Types [\"wF32\",\"wBool\",\"wU32\"]", ":85 [-3.2,true,32]");
+    THINGSET_ASSERT_REQUEST_TXT("?Types [\"wF32\",\"wBool\",\"wU32\"]", ":85 [-3.20,true,32]");
 }
 
 ZTEST(thingset_txt, test_fetch_rounded)
 {
     float bak = f32;
-    f32 = 3.15;
+    f32 = 3.115;
 
-    THINGSET_ASSERT_REQUEST_TXT("?Types [\"wF32\"]", ":85 [3.2]");
+    THINGSET_ASSERT_REQUEST_TXT("?Types [\"wF32\"]", ":85 [3.12]");
 
     f32 = bak;
 }
