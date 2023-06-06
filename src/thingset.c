@@ -17,8 +17,15 @@
 LOG_MODULE_REGISTER(thingset, CONFIG_THINGSET_LOG_LEVEL);
 
 /* pointers to iterable section data */
+#ifdef STRUCT_SECTION_START_EXTERN
 STRUCT_SECTION_START_EXTERN(thingset_data_object);
 STRUCT_SECTION_END_EXTERN(thingset_data_object);
+#else
+/* Zephyr versions below v3.4 are missing some macros... */
+extern struct thingset_data_object _thingset_data_object_list_start[];
+extern struct thingset_data_object _thingset_data_object_list_end[];
+#define TYPE_SECTION_START(secname) _CONCAT(_##secname, _list_start)
+#endif /* STRUCT_SECTION_START_EXTERN */
 
 /* dummy object to avoid using NULL pointer for root object */
 static struct thingset_data_object root_object = THINGSET_GROUP(0, 0, "", NULL);
