@@ -353,7 +353,7 @@ static int bin_deserialize_null(struct thingset_context *ts)
     return zcbor_nil_expect(ts->decoder, NULL) ? 0 : -THINGSET_ERR_UNSUPPORTED_FORMAT;
 }
 
-static int bin_deserialize_child(struct thingset_context *ts, uint16_t parent_id,
+static int bin_deserialize_child(struct thingset_context *ts,
                                  const struct thingset_data_object **object)
 {
     struct zcbor_string name;
@@ -364,7 +364,7 @@ static int bin_deserialize_child(struct thingset_context *ts, uint16_t parent_id
     }
 
     if (zcbor_tstr_decode(ts->decoder, &name) == true) {
-        *object = thingset_get_child_by_name(ts, parent_id, name.value, name.len);
+        *object = thingset_get_child_by_name(ts, ts->endpoint.object->id, name.value, name.len);
         if (*object == NULL) {
             return -THINGSET_ERR_NOT_FOUND;
         }
@@ -374,7 +374,7 @@ static int bin_deserialize_child(struct thingset_context *ts, uint16_t parent_id
         if (*object == NULL) {
             return -THINGSET_ERR_NOT_FOUND;
         }
-        else if ((*object)->parent_id != parent_id) {
+        else if ((*object)->parent_id != ts->endpoint.object->id) {
             return -THINGSET_ERR_BAD_REQUEST;
         }
     }

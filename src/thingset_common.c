@@ -143,7 +143,7 @@ int thingset_common_fetch(struct thingset_context *ts)
         }
 
         const struct thingset_data_object *object;
-        while ((err = ts->api->deserialize_child(ts, ts->endpoint.object->id, &object))
+        while ((err = ts->api->deserialize_child(ts, &object))
                != -THINGSET_ERR_DESERIALIZATION_FINISHED)
         {
             if (err != 0) {
@@ -198,10 +198,9 @@ int thingset_common_update(struct thingset_context *ts)
     }
 
     /* loop through all elements to check if request is valid */
-    while ((err = ts->api->deserialize_child(ts, ts->endpoint.object->id, &object))
+    while ((err = ts->api->deserialize_child(ts, &object))
            != -THINGSET_ERR_DESERIALIZATION_FINISHED)
     {
-
         if (err != 0) {
             return ts->api->serialize_response(ts, -err, NULL);
         }
@@ -242,7 +241,7 @@ int thingset_common_update(struct thingset_context *ts)
     }
 
     /* actually write data */
-    while ((err = ts->api->deserialize_child(ts, ts->endpoint.object->id, &object))
+    while ((err = ts->api->deserialize_child(ts, &object))
            != -THINGSET_ERR_DESERIALIZATION_FINISHED)
     {
         err = ts->api->deserialize_value(ts, object, false);
@@ -334,8 +333,6 @@ int thingset_common_exec(struct thingset_context *ts)
 
 int thingset_common_create_delete(struct thingset_context *ts, bool create)
 {
-    int err;
-
     if (ts->endpoint.object->id == 0) {
         return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "Endpoint item required");
     }
@@ -351,7 +348,7 @@ int thingset_common_create_delete(struct thingset_context *ts, bool create)
 #else
         const char *str_start;
         size_t str_len;
-        err = ts->api->deserialize_string(ts, &str_start, &str_len);
+        int err = ts->api->deserialize_string(ts, &str_start, &str_len);
         if (err != 0) {
             return ts->api->serialize_response(ts, THINGSET_ERR_UNSUPPORTED_FORMAT, NULL);
         }

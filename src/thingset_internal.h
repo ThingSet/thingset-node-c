@@ -187,12 +187,11 @@ struct thingset_api
      * Deserialize a child object by name or ID for a given parent ID.
      *
      * @param ts Pointer to ThingSet context
-     * @param parent_id ID of the parent (usually the endpoint of the request)
      * @param object Pointer to store the pointer to the found child object
      *
      * @returns 0 for success or negative ThingSet response code in case of error
      */
-    int (*deserialize_child)(struct thingset_context *ts, uint16_t parent_id,
+    int (*deserialize_child)(struct thingset_context *ts,
                              const struct thingset_data_object **object);
 
     /**

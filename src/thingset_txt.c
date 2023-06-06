@@ -583,7 +583,7 @@ static int txt_deserialize_string(struct thingset_context *ts, const char **str_
     }
 }
 
-static int txt_deserialize_child(struct thingset_context *ts, uint16_t parent_id,
+static int txt_deserialize_child(struct thingset_context *ts,
                                  const struct thingset_data_object **object)
 {
     if (ts->tok_pos >= ts->tok_count) {
@@ -597,7 +597,7 @@ static int txt_deserialize_child(struct thingset_context *ts, uint16_t parent_id
     const char *name = (char *)ts->msg_payload + ts->tokens[ts->tok_pos].start;
     size_t name_len = ts->tokens[ts->tok_pos].end - ts->tokens[ts->tok_pos].start;
 
-    *object = thingset_get_child_by_name(ts, parent_id, name, name_len);
+    *object = thingset_get_child_by_name(ts, ts->endpoint.object->id, name, name_len);
 
     if (*object == NULL) {
         return -THINGSET_ERR_NOT_FOUND;
