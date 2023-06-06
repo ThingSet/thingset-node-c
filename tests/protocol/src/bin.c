@@ -368,10 +368,13 @@ ZTEST(thingset_bin, test_update_wrong_endpoint_id)
 
 ZTEST(thingset_bin, test_update_bytes_buffer)
 {
+    const uint8_t bytes_exp[] = { 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47 };
+
     /* =Types {"wBytes":"QUJDREVGRw=="} */
     THINGSET_ASSERT_REQUEST_HEX("07 19 0200 A1 19 020D 47 41424344454647", "84 F6 F6");
 
     zassert_equal(7, bytes_item.num_bytes);
+    zassert_mem_equal(bytes_item.bytes, bytes_exp, sizeof(bytes_exp));
 }
 
 #else

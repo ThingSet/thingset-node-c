@@ -223,8 +223,9 @@ int thingset_common_update(struct thingset_context *ts)
          * checked.
          */
         uint8_t dummy_data[8];
+        uint8_t *data = object->type == THINGSET_TYPE_BYTES ? object->data.u8 : dummy_data;
         struct thingset_data_object dummy_object = {
-            0, 0, "Dummy", { .u8 = dummy_data }, object->type, object->detail
+            0, 0, "Dummy", { .u8 = data }, object->type, object->detail
         };
 
         err = ts->api->deserialize_value(ts, &dummy_object, true);

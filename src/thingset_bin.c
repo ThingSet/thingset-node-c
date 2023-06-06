@@ -498,7 +498,7 @@ static int bin_deserialize_value(struct thingset_context *ts,
         case THINGSET_TYPE_STRING: {
             struct zcbor_string str;
             success = zcbor_tstr_decode(ts->decoder, &str);
-            if (str.len < object->detail) {
+            if (success && str.len < object->detail) {
                 if (!check_only) {
                     strncpy(object->data.str, str.value, str.len);
                     object->data.str[str.len] = '\0';
@@ -514,7 +514,7 @@ static int bin_deserialize_value(struct thingset_context *ts,
             struct thingset_bytes *bytes_buf = object->data.bytes;
             struct zcbor_string bstr;
             success = zcbor_bstr_decode(ts->decoder, &bstr);
-            if (bstr.len <= bytes_buf->max_bytes) {
+            if (success && bstr.len <= bytes_buf->max_bytes) {
                 if (!check_only) {
                     memcpy(bytes_buf->bytes, bstr.value, bstr.len);
                     bytes_buf->num_bytes = bstr.len;
