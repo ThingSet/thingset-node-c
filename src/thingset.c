@@ -235,6 +235,76 @@ int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_
     return err;
 }
 
+int thingset_import_record(struct thingset_context *ts, const uint8_t *data, size_t len,
+                           struct thingset_endpoint *endpoint, enum thingset_data_format format)
+{
+    int err;
+
+    if (k_sem_take(&ts->lock, K_MSEC(THINGSET_CONTEXT_LOCK_TIMEOUT_MS)) != 0) {
+        LOG_ERR("ThingSet context lock timed out");
+        return -THINGSET_ERR_INTERNAL_SERVER_ERR;
+    }
+
+    ts->msg = data;
+    ts->msg_len = len;
+    ts->msg_pos = 0;
+    ts->rsp = NULL;
+    ts->rsp_size = 0;
+    ts->rsp_pos = 0;
+
+    ts->endpoint = *endpoint;
+
+    switch (format) {
+        case THINGSET_TXT_NAMES_VALUES:
+            thingset_txt_setup(ts);
+            ts->msg_payload = data;
+            ts->api->deserialize_payload_reset(ts);
+            break;
+        case THINGSET_BIN_IDS_VALUES:
+            ts->endpoint.use_ids = true;
+            thingset_bin_setup(ts, 0);
+            ts->msg_payload = data;
+            ts->api->deserialize_payload_reset(ts);
+            break;
+        default:
+            err = -THINGSET_ERR_NOT_IMPLEMENTED;
+            goto out;
+    }
+
+    err = ts->api->deserialize_map_start(ts);
+    if (err != 0) {
+        goto out;
+    }
+
+    const struct thingset_data_object *object;
+    while ((err = ts->api->deserialize_child(ts, &object))
+           != -THINGSET_ERR_DESERIALIZATION_FINISHED)
+    {
+        if (err != 0) {
+            goto out;
+        }
+
+        struct thingset_records *records = ts->endpoint.object->data.records;
+        uint8_t *data = (uint8_t *)records->records + ts->endpoint.index * records->record_size
+                        + object->data.offset;
+        struct thingset_data_object dummy_object = {
+            0, 0, "Dummy", { .u8 = data }, object->type, object->detail
+        };
+
+        err = ts->api->deserialize_value(ts, &dummy_object, false);
+        if (err != 0) {
+            goto out;
+        }
+    }
+
+    err = ts->api->deserialize_finish(ts);
+
+out:
+    k_sem_give(&ts->lock);
+
+    return err;
+}
+
 int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size, const char *path,
                          enum thingset_data_format format)
 {

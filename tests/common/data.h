@@ -58,4 +58,31 @@ extern int callback_post_read_count;
 extern int callback_pre_write_count;
 extern int callback_post_write_count;
 
+/*
+ * Records
+ */
+struct test_struct
+{
+    uint32_t timestamp;
+    uint8_t unused_element;
+    bool b;
+    uint8_t u8;
+    int8_t i8;
+    uint16_t u16;
+    int16_t i16;
+    uint32_t u32;
+    int32_t i32;
+#if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
+    uint64_t u64;
+    int64_t i64;
+#endif
+    float f32;
+#if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
+    int32_t decfrac;
+#endif
+    char strbuf[300];
+};
+
+extern struct test_struct records[5];
+
 #endif /* TESTS_COMMON_DATA_H_ */

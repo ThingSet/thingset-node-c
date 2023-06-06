@@ -516,6 +516,26 @@ ZTEST(thingset_txt, test_auth)
     thingset_set_authentication(&ts, THINGSET_USR_MASK);
 }
 
+ZTEST(thingset_txt, test_import_record)
+{
+    struct thingset_endpoint endpoint;
+    int err;
+
+    char *data = "{\"wBool\":false}";
+
+    err = thingset_endpoint_by_path(&ts, &endpoint, "Records/1", strlen("Records/1"));
+    zassert_equal(err, 0);
+
+    zassert_equal(records[1].b, true);
+
+    err = thingset_import_record(&ts, data, strlen(data), &endpoint, THINGSET_TXT_NAMES_VALUES);
+    zassert_equal(err, 0, "act: 0x%X", -err);
+
+    zassert_equal(records[1].b, false);
+
+    records[1].b = true;
+}
+
 static void *thingset_setup(void)
 {
     thingset_init_global(&ts);

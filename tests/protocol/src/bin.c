@@ -665,14 +665,14 @@ ZTEST(thingset_bin, test_iterate_subsets)
     zassert_equal(obj, NULL);
 }
 
-ZTEST(thingset_bin, test_import)
+ZTEST(thingset_bin, test_import_data)
 {
-    const char rsp_exp_hex[] =
+    const char data_hex[] =
         "A2 "
         "10 19 03E9 "  /* t_s */
         "19 02 01 F4"; /* Types/wBool */
 
-    THINGSET_ASSERT_IMPORT_HEX_IDS(rsp_exp_hex, 0, THINGSET_WRITE_MASK);
+    THINGSET_ASSERT_IMPORT_HEX_IDS(data_hex, 0, THINGSET_WRITE_MASK);
 
     zassert_equal(timestamp, 1001);
     zassert_equal(b, false);
@@ -680,6 +680,30 @@ ZTEST(thingset_bin, test_import)
     /* reset to default values */
     timestamp = 1000;
     b = true;
+}
+
+ZTEST(thingset_bin, test_import_record)
+{
+    struct thingset_endpoint endpoint;
+    uint8_t data[THINGSET_TEST_BUF_SIZE];
+    int err;
+
+    const char data_hex[] =
+        "A1 "
+        "19 06 02 F4"; /* Records/wBool */
+    int data_len = hex2bin_spaced(data_hex, data, sizeof(data));
+
+    err = thingset_endpoint_by_path(&ts, &endpoint, "Records/1", strlen("Records/1"));
+    zassert_equal(err, 0);
+
+    zassert_equal(records[1].b, true);
+
+    err = thingset_import_record(&ts, data, data_len, &endpoint, THINGSET_BIN_IDS_VALUES);
+    zassert_equal(err, 0, "act: 0x%X", -err);
+
+    zassert_equal(records[1].b, false);
+
+    records[1].b = true;
 }
 
 static void *thingset_setup(void)

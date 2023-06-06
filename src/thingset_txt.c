@@ -561,7 +561,9 @@ static int txt_serialize_report_header(struct thingset_context *ts, const char *
 
 static void txt_deserialize_payload_reset(struct thingset_context *ts)
 {
-    ts->tok_pos = 0;
+    ts->msg_pos = ts->msg_payload - ts->msg;
+
+    txt_parse_payload(ts);
 }
 
 static int txt_deserialize_string(struct thingset_context *ts, const char **str_start,

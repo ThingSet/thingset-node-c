@@ -1488,6 +1488,20 @@ int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_
                          uint8_t auth_flags, enum thingset_data_format format);
 
 /**
+ * Import data into a record.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param data Buffer containing ID/value map that should be written to the record
+ * @param len Length of the data in the buffer
+ * @param endpoint Records endpoint (including index) to be used
+ * @param format Protocol data format to be used (text, binary with IDs or binary with names)
+ *
+ * @returns 0 for success or negative ThingSet response code in case of error
+ */
+int thingset_import_record(struct thingset_context *ts, const uint8_t *data, size_t len,
+                           struct thingset_endpoint *endpoint, enum thingset_data_format format);
+
+/**
  * Generate a report for a given path.
  *
  * @note Searching the object database to find the path and items to be published based on the
@@ -1528,6 +1542,31 @@ void thingset_set_authentication(struct thingset_context *ts, uint8_t flags);
  */
 void thingset_set_update_callback(struct thingset_context *ts, const uint16_t subsets,
                                   void (*update_cb)(void));
+
+/**
+ * Get the endpoint from a provided path.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param endpoint Pointer to the struct thingset_endpoint to store the result.
+ * @param path Relative path with multiple object names separated by forward slash.
+ * @param len Length of the entire path.
+ *
+ * @return 0 if successful or negative ThingSet error code to be reported
+ */
+int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpoint *endpoint,
+                              const char *path, size_t len);
+
+/**
+ * Get the endpoint from a provided ID.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param endpoint Pointer to the struct thingset_endpoint to store the result.
+ * @param id Numeric ID of the ThingSet object.
+ *
+ * @return 0 if successful or negative ThingSet error code to be reported
+ */
+int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoint *endpoint,
+                            uint16_t id);
 
 #ifdef __cplusplus
 } /* extern "C" */
