@@ -9,7 +9,7 @@ zephyr_library_named("thingset")
 zephyr_include_directories(include)
 zephyr_include_directories(lib)
 
-add_subdirectory(src)
+add_subdirectory_ifdef(CONFIG_THINGSET src)
 
 # linker files required for auto-generation of ts_data_objects array
 if(DEFINED CONFIG_THINGSET_IMMUTABLE_OBJECTS)
