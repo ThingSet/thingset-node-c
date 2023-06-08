@@ -1,5 +1,7 @@
 # ThingSet node library in C
 
+![build badge](https://github.com/ThingSet/thingset-node-c/actions/workflows/build.yml/badge.svg)
+
 [ThingSet](https://thingset.io) is a transport-agnostic and self-explanatory remote API for embedded devices and humans.
 
 This library implements the node side in C for **v0.6 of the specification**. It was re-implemented almost from scratch to overcome shortcomings of the previous [ThingSet device library](https://github.com/ThingSet/thingset-device-library).
