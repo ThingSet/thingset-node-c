@@ -1,12 +1,16 @@
 # ThingSet node library in C
 
-**IMPORTANT:** This library is still **work-in-progress** and **NOT useable**, yet. It is published already to keep everyone interested updated.
-
 [ThingSet](https://thingset.io) is a transport-agnostic and self-explanatory remote API for embedded devices and humans.
 
-This library implements the node side in C for v0.6 of the specification. It was re-implemented almost from scratch to overcome shortcomings of the previous [ThingSet device library](https://github.com/ThingSet/thingset-device-library).
+This library implements the node side in C for **v0.6 of the specification**. It was re-implemented almost from scratch to overcome shortcomings of the previous [ThingSet device library](https://github.com/ThingSet/thingset-device-library).
 
 The main goal is to provide a full-featured ThingSet module for Zephyr RTOS. The Zephyr environment is currently required, but the library can also be used in other embedded C environments with minor changes.
+
+## Documentation
+
+Full library API documentation: [thingset.io/thingset-node-c](http://thingset.io/thingset-node-c/)
+
+See [github.com/ThingSet/thingset-zephyr-sdk](https://github.com/ThingSet/thingset-zephyr-sdk) for more examples how the library can be used.
 
 ## Features
 
