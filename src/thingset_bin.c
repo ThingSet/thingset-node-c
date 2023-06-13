@@ -26,7 +26,7 @@ int bin_serialize_response(struct thingset_context *ts, uint8_t code, const char
     zcbor_update_state(ts->encoder, ts->rsp + 1, ts->rsp_size - 1);
     zcbor_nil_put(ts->encoder, NULL);
 
-    if (THINGET_ERROR(code)) {
+    if (THINGSET_ERROR(code)) {
         if (msg != NULL) {
             /* zcbor uses memmove internally, so we can use the encoder buffer with an
              * offset for the string header for temporary storage of the message

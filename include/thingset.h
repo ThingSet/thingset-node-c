@@ -83,8 +83,8 @@ extern "C" {
 /* Internal status codes */
 #define THINGSET_ERR_DESERIALIZATION_FINISHED 0xF0 /**< Internal indication: Parsing finished. */
 
-#define THINGET_ERROR(code) (code >= 0xA0) /**< Check if provided code indicates an error. */
-#define THINGET_SUCCESS(code) \
+#define THINGSET_ERROR(code) (code >= 0xA0) /**< Check if provided code indicates an error. */
+#define THINGSET_SUCCESS(code) \
     (code >= 0x80 && code < 0xA0) /**< Check if provided code indicates success. */
 
 /* Reserved data object IDs */
