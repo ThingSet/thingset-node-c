@@ -4,8 +4,6 @@
 # This CMake file is picked by the Zephyr build system because it is defined
 # as the module CMake entry point (see zephyr/module.yml).
 
-zephyr_library_named("thingset")
-
 zephyr_include_directories(include)
 zephyr_include_directories(lib)
 
