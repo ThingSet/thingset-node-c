@@ -97,28 +97,31 @@ static int32_t fn_i32_params()
 
 /* Access */
 static float access_item;
-int callback_pre_read_count;
-int callback_post_read_count;
-int callback_pre_write_count;
-int callback_post_write_count;
+
+/* Callback for groups */
+int group_callback_pre_read_count;
+int group_callback_post_read_count;
+int group_callback_pre_write_count;
+int group_callback_post_write_count;
 static void group_callback(enum thingset_callback_reason reason)
 {
     switch (reason) {
         case THINGSET_CALLBACK_PRE_READ:
-            callback_pre_read_count++;
+            group_callback_pre_read_count++;
             break;
         case THINGSET_CALLBACK_POST_READ:
-            callback_post_read_count++;
+            group_callback_post_read_count++;
             break;
         case THINGSET_CALLBACK_PRE_WRITE:
-            callback_pre_write_count++;
+            group_callback_pre_write_count++;
             break;
         case THINGSET_CALLBACK_POST_WRITE:
-            callback_post_write_count++;
+            group_callback_post_write_count++;
             break;
     }
 }
 
+/* Records */
 struct test_struct records[5] = {
     {
         .timestamp = 1,
@@ -142,6 +145,38 @@ struct test_struct records[5] = {
 };
 
 THINGSET_DEFINE_RECORDS(records_obj, records, 2);
+
+/* Dynamic record */
+static struct test_dyn_struct dyn_records = {
+    .index = 0,
+};
+
+/* Callback for dynamic records */
+int dyn_records_callback_pre_read_count;
+int dyn_records_callback_post_read_count;
+int dyn_records_callback_index;
+static void dyn_records_callback(enum thingset_callback_reason reason, int index)
+{
+    switch (reason) {
+        case THINGSET_CALLBACK_PRE_READ:
+            /* assign the variable in the record dynamically (here just using the index itself) */
+            dyn_records.index = index;
+
+            dyn_records_callback_pre_read_count++;
+            break;
+        case THINGSET_CALLBACK_POST_READ:
+            /* reset variable again (for testing purposes) */
+            dyn_records.index = 0;
+
+            dyn_records_callback_post_read_count++;
+            break;
+        default:
+            return;
+    }
+    dyn_records_callback_index = index;
+}
+
+THINGSET_DEFINE_DYN_RECORDS(dyn_records_obj, &dyn_records, 10, dyn_records_callback);
 
 /* Nested */
 static int32_t nested_beginning = 1;
@@ -237,6 +272,11 @@ THINGSET_ADD_RECORD_ITEM_DECFRAC(0x600, 0x60C, "wDecFrac", struct test_struct, d
 #endif
 THINGSET_ADD_RECORD_ITEM_STRING(0x600, 0x60D, "wString", struct test_struct, strbuf,
                                 sizeof(records[0].strbuf));
+
+/* Dynamic Records */
+THINGSET_ADD_DYN_RECORDS(THINGSET_ID_ROOT, 0x680, "DynRecords", &dyn_records_obj, THINGSET_ANY_R,
+                         0);
+THINGSET_ADD_RECORD_ITEM_UINT32(0x680, 0x681, "rIndex", struct test_dyn_struct, index);
 
 /* Nested */
 THINGSET_ADD_GROUP(THINGSET_ID_ROOT, 0x700, "Nested", THINGSET_NO_CALLBACK);
@@ -341,6 +381,11 @@ struct thingset_data_object data_objects[] = {
 #endif
     THINGSET_RECORD_ITEM_STRING(0x600, 0x60D, "wString", struct test_struct, strbuf,
                                 sizeof(records[0].strbuf)),
+
+    /* Dynamic Records */
+    THINGSET_DYN_RECORDS(THINGSET_ID_ROOT, 0x680, "DynRecords", &dyn_records_obj, THINGSET_ANY_R,
+                         0),
+    THINGSET_RECORD_ITEM_UINT32(0x680, 0x681, "rIndex", struct test_dyn_struct, index),
 
     /* Nested */
     THINGSET_GROUP(THINGSET_ID_ROOT, 0x700, "Nested", THINGSET_NO_CALLBACK),

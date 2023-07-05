@@ -52,6 +52,7 @@ int thingset_common_serialize_record(struct thingset_context *ts,
                                      const struct thingset_data_object *object, int record_index)
 {
     struct thingset_records *records = object->data.records;
+    size_t record_offset;
     int err;
 
     err = ts->api->serialize_map_start(ts);
@@ -59,12 +60,22 @@ int thingset_common_serialize_record(struct thingset_context *ts,
         return err;
     }
 
+    if (object->detail == THINGSET_DETAIL_DYN_RECORDS) {
+        record_offset = 0;
+    }
+    else {
+        record_offset = record_index * records->record_size;
+    }
+
+    if (records->callback != NULL) {
+        records->callback(THINGSET_CALLBACK_PRE_READ, record_index);
+    }
+
     /* record item definitions are expected to start behind record data object */
     const struct thingset_data_object *item = object + 1;
     while (item < &ts->data_objects[ts->num_objects] && item->parent_id == object->id) {
         /* create new object with data pointer including offset */
-        uint8_t *data_ptr =
-            (uint8_t *)records->records + record_index * records->record_size + item->data.offset;
+        uint8_t *data_ptr = (uint8_t *)records->records + record_offset + item->data.offset;
         struct thingset_data_object obj = {
             item->parent_id, item->id, item->name, { .u8 = data_ptr }, item->type, item->detail,
         };
@@ -75,6 +86,10 @@ int thingset_common_serialize_record(struct thingset_context *ts,
         }
 
         item++;
+    }
+
+    if (records->callback != NULL) {
+        records->callback(THINGSET_CALLBACK_POST_READ, record_index);
     }
 
     return ts->api->serialize_map_end(ts);

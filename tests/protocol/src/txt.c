@@ -34,6 +34,7 @@ ZTEST(thingset_txt, test_get_root)
         "\"Exec\":null,"
         "\"Access\":null,"
         "\"Records\":2,"
+        "\"DynRecords\":10,"
         "\"Nested\":null,"
         "\"mLive\":[\"t_s\",\"Types/wBool\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]"
         "}";
@@ -101,6 +102,22 @@ ZTEST(thingset_txt, test_get_record)
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
 }
 
+ZTEST(thingset_txt, test_get_dyn_record)
+{
+    const char req[] = "?DynRecords/7";
+    const char rsp_exp[] = ":85 {\"rIndex\":7}";
+
+    dyn_records_callback_pre_read_count = 0;
+    dyn_records_callback_post_read_count = 0;
+    dyn_records_callback_index = 0;
+
+    THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
+
+    zassert_equal(dyn_records_callback_pre_read_count, 1);
+    zassert_equal(dyn_records_callback_post_read_count, 1);
+    zassert_equal(dyn_records_callback_index, 7);
+}
+
 ZTEST(thingset_txt, test_fetch_root_names)
 {
     const char req[] = "? null";
@@ -113,6 +130,7 @@ ZTEST(thingset_txt, test_fetch_root_names)
         "\"Exec\","
         "\"Access\","
         "\"Records\","
+        "\"DynRecords\","
         "\"Nested\","
         "\"mLive\""
         "]";
@@ -275,31 +293,31 @@ ZTEST(thingset_txt, test_update_unknown_object)
 
 ZTEST(thingset_txt, test_update_group_callback)
 {
-    callback_pre_read_count = 0;
-    callback_post_read_count = 0;
-    callback_pre_write_count = 0;
-    callback_post_write_count = 0;
+    group_callback_pre_read_count = 0;
+    group_callback_post_read_count = 0;
+    group_callback_pre_write_count = 0;
+    group_callback_post_write_count = 0;
 
     THINGSET_ASSERT_REQUEST_TXT("=Access {\"wItem\":1}", ":84");
 
-    zassert_equal(callback_pre_read_count, 0);
-    zassert_equal(callback_post_read_count, 0);
-    zassert_equal(callback_pre_write_count, 1);
-    zassert_equal(callback_post_write_count, 1);
+    zassert_equal(group_callback_pre_read_count, 0);
+    zassert_equal(group_callback_post_read_count, 0);
+    zassert_equal(group_callback_pre_write_count, 1);
+    zassert_equal(group_callback_post_write_count, 1);
 
     THINGSET_ASSERT_REQUEST_TXT("?Access", ":85 {\"rItem\":1.00,\"wItem\":1.00,\"wMfrOnly\":1.00}");
 
-    zassert_equal(callback_pre_read_count, 1);
-    zassert_equal(callback_post_read_count, 1);
-    zassert_equal(callback_pre_write_count, 1);
-    zassert_equal(callback_post_write_count, 1);
+    zassert_equal(group_callback_pre_read_count, 1);
+    zassert_equal(group_callback_post_read_count, 1);
+    zassert_equal(group_callback_pre_write_count, 1);
+    zassert_equal(group_callback_post_write_count, 1);
 
     THINGSET_ASSERT_REQUEST_TXT("?Access [\"wItem\"]", ":85 [1.00]");
 
-    zassert_equal(callback_pre_read_count, 2);
-    zassert_equal(callback_post_read_count, 2);
-    zassert_equal(callback_pre_write_count, 1);
-    zassert_equal(callback_post_write_count, 1);
+    zassert_equal(group_callback_pre_read_count, 2);
+    zassert_equal(group_callback_post_read_count, 2);
+    zassert_equal(group_callback_pre_write_count, 1);
+    zassert_equal(group_callback_post_write_count, 1);
 }
 
 ZTEST(thingset_txt, test_exec_fn_void)
@@ -470,6 +488,21 @@ ZTEST(thingset_txt, test_report_record)
         "}";
 
     THINGSET_ASSERT_REPORT_TXT("Records/1", rpt_exp, strlen(rpt_exp));
+}
+
+ZTEST(thingset_txt, test_report_dyn_record)
+{
+    const char rpt_exp[] = "#DynRecords/3 {\"rIndex\":3}";
+
+    dyn_records_callback_pre_read_count = 0;
+    dyn_records_callback_post_read_count = 0;
+    dyn_records_callback_index = 0;
+
+    THINGSET_ASSERT_REPORT_TXT("DynRecords/3", rpt_exp, strlen(rpt_exp));
+
+    zassert_equal(dyn_records_callback_pre_read_count, 1);
+    zassert_equal(dyn_records_callback_post_read_count, 1);
+    zassert_equal(dyn_records_callback_index, 3);
 }
 
 ZTEST(thingset_txt, test_export_subset)

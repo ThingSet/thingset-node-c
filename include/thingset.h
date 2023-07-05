@@ -373,6 +373,27 @@ extern "C" {
     }
 
 /**
+ * Initialize struct thingset_data_object to expose dynamic records of similar data via ThingSet.
+ *
+ * In contrast to normal records, dynamic records don't keep the data for all records in memory.
+ * Instead, the data must be retrieved dynamically in the THINGSET_CALLBACK_PRE_READ callback and
+ * stored in the referenced struct object. This type of records can be used to store large amounts
+ * of data in an external flash or EEPROM and only read the data on demand.
+ *
+ * @param parent_id ID of the parent data object of type `GROUP`
+ * @param id ID of this data object
+ * @param name String literal with the data object name
+ * @param records_ptr Pointer to the struct thingset_records object
+ * @param access Flags to define read/write access for this data object
+ * @param subsets Subset(s) this data object belongs to
+ */
+#define THINGSET_DYN_RECORDS(parent_id, id, name, records_ptr, access, subsets) \
+    { \
+        parent_id, id, name, { .records = records_ptr }, THINGSET_TYPE_RECORDS, \
+            THINGSET_DETAIL_DYN_RECORDS, access, subsets \
+    }
+
+/**
  * Initialize struct thingset_data_object to expose a subset item via ThingSet.
  *
  * @param parent_id ID of the parent data object of type `GROUP`
@@ -751,6 +772,14 @@ extern "C" {
     _THINGSET_ADD_ITERABLE_SECTION(RECORDS, parent_id, id, __VA_ARGS__)
 
 /**
+ * Add dynamic records object to global iterable section.
+ *
+ * See #THINGSET_DYN_RECORDS for parameter description.
+ */
+#define THINGSET_ADD_DYN_RECORDS(parent_id, id, ...) \
+    _THINGSET_ADD_ITERABLE_SECTION(DYN_RECORDS, parent_id, id, __VA_ARGS__)
+
+/**
  * Add record member of type `bool` to global iterable section.
  *
  * See #THINGSET_RECORD_ITEM_BOOL for parameter description.
@@ -993,18 +1022,35 @@ extern "C" {
 /**
  * Define a struct thingset_records to be used with #THINGSET_RECORDS
  *
- * @param var_name Name of the created struct thingset_array variable
+ * @param var_name Name of the created struct thingset_records variable
  * @param records Existing fixed-size array of custom struct containing the records
  * @param used_records Number of currently used records
  */
 #define THINGSET_DEFINE_RECORDS(var_name, records, used_records) \
     struct thingset_records var_name = { records, sizeof(__typeof__(*records)), \
-                                         ARRAY_SIZE(records), used_records };
+                                         ARRAY_SIZE(records), used_records, \
+                                         THINGSET_NO_CALLBACK };
+
+/**
+ * Define a struct thingset_records to be used with #THINGSET_DYN_RECORDS
+ *
+ * @param var_name Name of the created struct thingset_records variable
+ * @param record Pointer to existing struct object containing the dynamically created data
+ * @param available_records Number of available records
+ * @param callback Pointer to a function to be called before/after read/write operations.
+ */
+#define THINGSET_DEFINE_DYN_RECORDS(var_name, record, available_records, callback) \
+    struct thingset_records var_name = { record, sizeof(__typeof__(*record)), 1, \
+                                         available_records, callback };
 
 /*
  * Defines to make data object definitions more explicit
  */
 #define THINGSET_NO_CALLBACK NULL /**< No callback assigned to group */
+
+/** @cond INTERNAL_HIDDEN */
+#define THINGSET_DETAIL_DYN_RECORDS -1
+/** @endcond */
 
 /*
  * Access right macros for data objects
@@ -1073,6 +1119,12 @@ enum thingset_callback_reason
     THINGSET_CALLBACK_POST_WRITE, /**< Function was called after deserializing data of the group */
 };
 
+/** Function to be called before/after read/write operations to groups. */
+typedef void (*thingset_group_callback_t)(enum thingset_callback_reason cb_reason);
+
+/** Function to be called before/after read/write operations to records. */
+typedef void (*thingset_records_callback_t)(enum thingset_callback_reason cb_reason, int index);
+
 /** @cond INTERNAL_HIDDEN */
 
 /**
@@ -1136,7 +1188,7 @@ union thingset_data_pointer {
     void (*void_fn)();                /**< Pointer to function with void return value */
     int32_t (*i32_fn)();              /**< Pointer to function with int32_t return value */
     /** Pointer to group callback function */
-    void (*group_callback)(enum thingset_callback_reason cb_reason);
+    thingset_group_callback_t group_callback;
 };
 
 /** @endcond */
@@ -1186,6 +1238,7 @@ struct thingset_records
     const size_t record_size;   /**< Size of one record in bytes */
     const uint16_t max_records; /**< Maximum number of records in the array */
     uint16_t num_records;       /**< Actual number of records in the array */
+    thingset_records_callback_t callback;
 };
 
 /**

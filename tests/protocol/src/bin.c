@@ -19,7 +19,7 @@ ZTEST(thingset_bin, test_get_root_ids)
 {
     const char req_hex[] = "01 00";
     const char rsp_exp_hex[] =
-        "85 F6 A9 "
+        "85 F6 AA "
         "10 19 03 E8 "                      /* t_s */
         "18 1D 68 41 42 43 44 31 32 33 34 " /* cNodeID */
         "19 02 00 F6 "                      /* Types */
@@ -27,6 +27,7 @@ ZTEST(thingset_bin, test_get_root_ids)
         "19 04 00 F6 "                      /* Exec */
         "19 05 00 F6 "                      /* Access */
         "19 06 00 02 "                      /* Records */
+        "19 06 80 0A "                      /* DynRecords */
         "19 07 00 F6 "                      /* Nested */
         "19 08 00 84 "                      /* mLive (array) */
         "10 "                               /* t_s */
@@ -41,7 +42,7 @@ ZTEST(thingset_bin, test_get_root_names)
 {
     const char req_hex[] = "01 60";
     const char rsp_exp_hex[] =
-        "85 F6 A9 "
+        "85 F6 AA "
         "63 745F73 19 03E8 "                           /* t_s */
         "67 634E6F64654944 "                           /* cNodeID */
         "68 41 42 43 44 31 32 33 34 "                  /* ABCD1234 */
@@ -50,6 +51,7 @@ ZTEST(thingset_bin, test_get_root_names)
         "64 45786563 F6 "                              /* Exec */
         "66 416363657373 F6 "                          /* Access */
         "67 5265636F726473 02 "                        /* Records */
+        "6A 44796E5265636F726473 0A "                  /* DynRecords */
         "66 4E6573746564 F6 "                          /* Nested */
         "65 6D4C697665 84 "                            /* mLive (array) */
         "63 745F73 "                                   /* t_s */
@@ -182,7 +184,7 @@ ZTEST(thingset_bin, test_fetch_root_ids)
 {
     const char req_hex[] = "05 00 F6";
     const char rsp_exp_hex[] =
-        "85 f6 89 10 18 1d 19 02 00 19 03 00 19 04 00 19 05 00 19 06 00 19 07 00 19 08 00";
+        "85 f6 8A 10 18 1d 19 02 00 19 03 00 19 04 00 19 05 00 19 06 00 19 06 80 19 07 00 19 08 00";
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
@@ -191,7 +193,7 @@ ZTEST(thingset_bin, test_fetch_root_names)
 {
     const char req_hex[] = "05 60 F6";
     const char rsp_exp_hex[] =
-        "85 f6 89 "
+        "85 f6 8A "
         "63 74 5f 73 "             /* t_s */
         "67 63 4e 6f 64 65 49 44"  /* cNodeID */
         "65 54 79 70 65 73 "       /* Types */
@@ -199,6 +201,7 @@ ZTEST(thingset_bin, test_fetch_root_names)
         "64 45 78 65 63 "          /* Exec */
         "66 41 63 63 65 73 73 "    /* Access */
         "67 52 65 63 6f 72 64 73 " /* Records */
+        "6A 44796E5265636F726473 " /* DynRecords */
         "66 4e 65 73 74 65 64 "    /* Nested */
         "65 6d 4c 69 76 65";       /* mLive */
 
@@ -406,36 +409,36 @@ ZTEST(thingset_bin, test_update_unknown_object)
 
 ZTEST(thingset_bin, test_update_group_callback)
 {
-    callback_pre_read_count = 0;
-    callback_post_read_count = 0;
-    callback_pre_write_count = 0;
-    callback_post_write_count = 0;
+    group_callback_pre_read_count = 0;
+    group_callback_post_read_count = 0;
+    group_callback_pre_write_count = 0;
+    group_callback_post_write_count = 0;
 
     /* =Access {"wItem":1} */
     THINGSET_ASSERT_REQUEST_HEX("07 19 0500 A1 19 0502 01", "84 F6 F6");
 
-    zassert_equal(callback_pre_read_count, 0);
-    zassert_equal(callback_post_read_count, 0);
-    zassert_equal(callback_pre_write_count, 1);
-    zassert_equal(callback_post_write_count, 1);
+    zassert_equal(group_callback_pre_read_count, 0);
+    zassert_equal(group_callback_post_read_count, 0);
+    zassert_equal(group_callback_pre_write_count, 1);
+    zassert_equal(group_callback_post_write_count, 1);
 
     /* ?Access */
     THINGSET_ASSERT_REQUEST_HEX(
         "01 19 0500",
         "85 f6 a3 19 05 01 fa 3f 80 00 00 19 05 02 fa 3f 80 00 00 19 05 03 fa 3f 80 00 00");
 
-    zassert_equal(callback_pre_read_count, 1);
-    zassert_equal(callback_post_read_count, 1);
-    zassert_equal(callback_pre_write_count, 1);
-    zassert_equal(callback_post_write_count, 1);
+    zassert_equal(group_callback_pre_read_count, 1);
+    zassert_equal(group_callback_post_read_count, 1);
+    zassert_equal(group_callback_pre_write_count, 1);
+    zassert_equal(group_callback_post_write_count, 1);
 
     /* ?Access ["wItem"] */
     THINGSET_ASSERT_REQUEST_HEX("05 19 0500 81 19 0502", "85 F6 81 fa 3f 80 00 00");
 
-    zassert_equal(callback_pre_read_count, 2);
-    zassert_equal(callback_post_read_count, 2);
-    zassert_equal(callback_pre_write_count, 1);
-    zassert_equal(callback_post_write_count, 1);
+    zassert_equal(group_callback_pre_read_count, 2);
+    zassert_equal(group_callback_post_read_count, 2);
+    zassert_equal(group_callback_pre_write_count, 1);
+    zassert_equal(group_callback_post_write_count, 1);
 }
 
 ZTEST(thingset_bin, test_exec_fn_void_id)
