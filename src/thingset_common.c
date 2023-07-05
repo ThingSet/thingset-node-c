@@ -55,6 +55,10 @@ int thingset_common_serialize_record(struct thingset_context *ts,
     size_t record_offset;
     int err;
 
+    if (record_index >= records->num_records) {
+        return -THINGSET_ERR_NOT_FOUND;
+    }
+
     err = ts->api->serialize_map_start(ts);
     if (err != 0) {
         return err;
