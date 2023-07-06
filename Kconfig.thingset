@@ -58,6 +58,14 @@ config THINGSET_BYTES_TYPE_SUPPORT
 	  Switch on support for CBOR byte strings, which can store any sort of binary data and
 	  can be used e.g. for firmware upgrades. JSON uses base64-encoded data.
 
+config THINGSET_JSON_STRING_ESCAPING
+	bool "Escape/unescape C strings when serializing/deserializing them to JSON"
+	default n
+	help
+	  This is only required if arbitrary strings may end up in data objects of type String,
+	  containing characters like the quotation mark that have to be escaped in JSON. This may
+	  be the case if if ThingSet is used for logging.
+
 module = THINGSET
 module-str = thingset
 source "subsys/logging/Kconfig.template.log_config"

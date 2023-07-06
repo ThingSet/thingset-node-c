@@ -23,6 +23,10 @@
 #include <zephyr/sys/base64.h>
 #endif
 
+#if CONFIG_THINGSET_JSON_STRING_ESCAPING
+#include <zephyr/sys/util.h>
+#endif
+
 static int txt_serialize_response(struct thingset_context *ts, uint8_t code, const char *msg, ...)
 {
     va_list vargs;
@@ -102,7 +106,59 @@ static int json_serialize_simple_value(char *buf, size_t size, union thingset_da
             pos = snprintf(buf, size, "%s,", *data.b == true ? "true" : "false");
             break;
         case THINGSET_TYPE_STRING:
+#if CONFIG_THINGSET_JSON_STRING_ESCAPING
+            buf[0] = '"';
+            pos = 1;
+            for (int data_pos = 0; data_pos < detail; data_pos++) {
+                int remaining_chars = detail - data_pos;
+                if (pos + remaining_chars + 2 >= size) {
+                    /* indicate that the buffer is too small (similar to snprintf) and stop */
+                    pos += remaining_chars + 2;
+                    break;
+                }
+
+                if (data.str[data_pos] == '\0') {
+                    break;
+                }
+
+                switch (data.str[data_pos]) {
+                    case '\\':
+                        buf[pos++] = '\\';
+                        buf[pos++] = '\\';
+                        break;
+                    case '\"':
+                        buf[pos++] = '\\';
+                        buf[pos++] = '"';
+                        break;
+                    case '\b':
+                        buf[pos++] = '\\';
+                        buf[pos++] = 'b';
+                        break;
+                    case '\f':
+                        buf[pos++] = '\\';
+                        buf[pos++] = 'f';
+                        break;
+                    case '\n':
+                        buf[pos++] = '\\';
+                        buf[pos++] = 'n';
+                        break;
+                    case '\r':
+                        buf[pos++] = '\\';
+                        buf[pos++] = 'r';
+                        break;
+                    case '\t':
+                        buf[pos++] = '\\';
+                        buf[pos++] = 't';
+                        break;
+                    default:
+                        buf[pos++] = data.str[data_pos];
+                }
+            }
+            buf[pos++] = '"';
+            buf[pos++] = ',';
+#else
             pos = snprintf(buf, size, "\"%s\",", data.str);
+#endif
             break;
 #if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
         case THINGSET_TYPE_BYTES: {
@@ -436,8 +492,48 @@ static int txt_deserialize_value(struct thingset_context *ts,
                 return -THINGSET_ERR_REQUEST_TOO_LARGE;
             }
             if (!check_only) {
+#if CONFIG_THINGSET_JSON_STRING_ESCAPING
+                size_t data_pos = 0;
+                for (int pos = 0; pos < len; pos++) {
+                    if (buf[pos] == '\\') {
+                        pos++;
+                        switch (buf[pos]) {
+                            case '"':
+                            case '/':
+                            case '\\':
+                                object->data.str[data_pos++] = buf[pos];
+                                break;
+                            case 'b':
+                                object->data.str[data_pos++] = '\b';
+                                break;
+                            case 'f':
+                                object->data.str[data_pos++] = '\f';
+                                break;
+                            case 'n':
+                                object->data.str[data_pos++] = '\n';
+                                break;
+                            case 'r':
+                                object->data.str[data_pos++] = '\r';
+                                break;
+                            case 't':
+                                object->data.str[data_pos++] = '\t';
+                                break;
+                            case 'u':
+                                hex2bin(&buf[pos], 4, &object->data.str[data_pos++], 2);
+                                break;
+                            default:
+                                /* this would be invalid JSON */
+                                return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+                        }
+                    }
+                    else {
+                        object->data.str[data_pos++] = buf[pos];
+                    }
+                }
+#else
                 strncpy(object->data.str, buf, len);
                 object->data.str[len] = '\0';
+#endif
             }
             break;
 #if CONFIG_THINGSET_BYTES_TYPE_SUPPORT

@@ -233,6 +233,34 @@ ZTEST(thingset_txt, test_fetch_float_array)
     THINGSET_ASSERT_REQUEST_TXT("?Arrays [\"wF32\"]", ":85 [[-1.1,-2.2,-3.3]]");
 }
 
+#if CONFIG_THINGSET_JSON_STRING_ESCAPING
+
+ZTEST(thingset_txt, test_fetch_escaped_string)
+{
+    strcpy(strbuf, "\n\"\\");
+
+    THINGSET_ASSERT_REQUEST_TXT("?Types/wString", ":85 \"\\n\\\"\\\\\"");
+
+    /* reset to default again */
+    strcpy(strbuf, "string");
+}
+
+ZTEST(thingset_txt, test_update_escaped_string)
+{
+    const char str_exp[] = "\n\"\\";
+
+    memset(strbuf, 0, 10);
+
+    THINGSET_ASSERT_REQUEST_TXT("=Types {\"wString\":\"\\n\\\"\\\\\"}", ":84");
+
+    zassert_mem_equal(strbuf, str_exp, sizeof(str_exp));
+
+    /* reset to default again */
+    strcpy(strbuf, "string");
+}
+
+#endif /* CONFIG_THINGSET_JSON_STRING_ESCAPING */
+
 ZTEST(thingset_txt, test_update_timestamp_zero)
 {
     THINGSET_ASSERT_REQUEST_TXT("= {\"t_s\":0}", ":84");
