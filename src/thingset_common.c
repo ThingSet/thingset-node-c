@@ -156,6 +156,11 @@ int thingset_common_fetch(struct thingset_context *ts)
         }
     }
     else if (ts->api->deserialize_list_start(ts) == 0) {
+        if (ts->endpoint.object->type != THINGSET_TYPE_GROUP) {
+            return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST, "%s is not a group",
+                                               ts->endpoint.object->name);
+        }
+
         /* fetch values */
         if (ts->endpoint.object->data.group_callback != NULL) {
             ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_PRE_READ);
