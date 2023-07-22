@@ -3,6 +3,7 @@
 
 config THINGSET
 	bool "ThingSet Node Library"
+	select REQUIRES_FULL_LIBC
 	select ZCBOR
 	select ZCBOR_CANONICAL
 	select ZCBOR_STOP_ON_ERROR
