@@ -77,7 +77,12 @@ int thingset_common_serialize_record(struct thingset_context *ts,
 
     /* record item definitions are expected to start behind record data object */
     const struct thingset_data_object *item = object + 1;
-    while (item < &ts->data_objects[ts->num_objects] && item->parent_id == object->id) {
+    while (item < &ts->data_objects[ts->num_objects]) {
+        if (item->parent_id != object->id) {
+            item++;
+            continue;
+        }
+
         /* create new object with data pointer including offset */
         uint8_t *data_ptr = (uint8_t *)records->records + record_offset + item->data.offset;
         struct thingset_data_object obj = {
