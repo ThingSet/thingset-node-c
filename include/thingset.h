@@ -597,6 +597,19 @@ extern "C" {
             THINGSET_TYPE_STRING, buf_size \
     }
 
+/**
+ * Initialize struct thingset_data_object to expose an array record item.
+ *
+ * @param parent_id ID of the parent data object of type `RECORDS`
+ * @param id ID of this data object (same for all records of this kind)
+ * @param name String literal with the data object name
+ * @param array_ptr Pointer to the struct thingset_array object
+ */
+#define THINGSET_RECORD_ITEM_ARRAY(parent_id, id, name, array_ptr) \
+    { \
+        parent_id, id, name, { .array = array_ptr }, THINGSET_TYPE_ARRAY, 0 \
+    }
+
 /*
  * Macros for defining data objects using Zephyr iterable sections.
  *
@@ -876,6 +889,14 @@ extern "C" {
     _THINGSET_ADD_ITERABLE_SECTION(RECORD_ITEM_STRING, parent_id, id, __VA_ARGS__)
 
 /**
+ * Add record member of type array to global iterable section.
+ *
+ * See #THINGSET_RECORD_ITEM_ARRAY for parameter description.
+ */
+#define THINGSET_ADD_RECORD_ITEM_ARRAY(parent_id, id, ...) \
+    _THINGSET_ADD_ITERABLE_SECTION(RECORD_ITEM_ARRAY, parent_id, id, __VA_ARGS__)
+
+/**
  * Define a struct thingset_bytes to be used with #THINGSET_ITEM_BYTES
  *
  * @param var_name Name of the created variable of struct thingset_bytes
@@ -1017,6 +1038,184 @@ extern "C" {
 #define THINGSET_DEFINE_DECFRAC_ARRAY(var_name, decimals, array, used_elements) \
     struct thingset_array var_name = { \
         { .decfrac = array }, THINGSET_TYPE_DECFRAC, decimals, _ARRAY_SIZE(array), used_elements, \
+    };
+
+/**
+ * Define a struct thingset_array to expose `bool` arrays with #THINGSET_RECORD_ITEM_ARRAY
+ *
+ * @param var_name Name of the created struct thingset_array variable
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member of type `bool` array used for this item
+ */
+#define THINGSET_DEFINE_RECORD_BOOL_ARRAY(var_name, struct_type, struct_member) \
+    struct thingset_array var_name = { \
+        { .offset = offsetof(struct_type, struct_member) }, \
+        THINGSET_TYPE_BOOL, \
+        0, \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+    };
+
+/**
+ * Define a struct thingset_array to expose `uint8_t` arrays with #THINGSET_RECORD_ITEM_ARRAY
+ *
+ * @param var_name Name of the created struct thingset_array variable
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member of type `uint8_t` array used for this item
+ */
+#define THINGSET_DEFINE_RECORD_UINT8_ARRAY(var_name, struct_type, struct_member) \
+    struct thingset_array var_name = { \
+        { .offset = offsetof(struct_type, struct_member) }, \
+        THINGSET_TYPE_U8, \
+        0, \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+    };
+
+/**
+ * Define a struct thingset_array to expose `int8_t` arrays with #THINGSET_RECORD_ITEM_ARRAY
+ *
+ * @param var_name Name of the created struct thingset_array variable
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member of type `int8_t` array used for this item
+ */
+#define THINGSET_DEFINE_RECORD_INT8_ARRAY(var_name, struct_type, struct_member) \
+    struct thingset_array var_name = { \
+        { .offset = offsetof(struct_type, struct_member) }, \
+        THINGSET_TYPE_I8, \
+        0, \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+    };
+
+/**
+ * Define a struct thingset_array to expose `uint16_t` arrays with #THINGSET_RECORD_ITEM_ARRAY
+ *
+ * @param var_name Name of the created struct thingset_array variable
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member of type `uint16_t` array used for this item
+ */
+#define THINGSET_DEFINE_RECORD_UINT16_ARRAY(var_name, struct_type, struct_member) \
+    struct thingset_array var_name = { \
+        { .offset = offsetof(struct_type, struct_member) }, \
+        THINGSET_TYPE_U16, \
+        0, \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+    };
+
+/**
+ * Define a struct thingset_array to expose `int16_t` arrays with #THINGSET_RECORD_ITEM_ARRAY
+ *
+ * @param var_name Name of the created struct thingset_array variable
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member of type `int16_t` array used for this item
+ */
+#define THINGSET_DEFINE_RECORD_INT16_ARRAY(var_name, struct_type, struct_member) \
+    struct thingset_array var_name = { \
+        { .offset = offsetof(struct_type, struct_member) }, \
+        THINGSET_TYPE_I16, \
+        0, \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+    };
+
+/**
+ * Define a struct thingset_array to expose `uint32_t` arrays with #THINGSET_RECORD_ITEM_ARRAY
+ *
+ * @param var_name Name of the created struct thingset_array variable
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member of type `uint32_t` array used for this item
+ */
+#define THINGSET_DEFINE_RECORD_UINT32_ARRAY(var_name, struct_type, struct_member) \
+    struct thingset_array var_name = { \
+        { .offset = offsetof(struct_type, struct_member) }, \
+        THINGSET_TYPE_U32, \
+        0, \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+    };
+
+/**
+ * Define a struct thingset_array to expose `int32_t` arrays with #THINGSET_RECORD_ITEM_ARRAY
+ *
+ * @param var_name Name of the created struct thingset_array variable
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member of type `int32_t` array used for this item
+ */
+#define THINGSET_DEFINE_RECORD_INT32_ARRAY(var_name, struct_type, struct_member) \
+    struct thingset_array var_name = { \
+        { .offset = offsetof(struct_type, struct_member) }, \
+        THINGSET_TYPE_I32, \
+        0, \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+    };
+
+/**
+ * Define a struct thingset_array to expose `uint64_t` arrays with #THINGSET_RECORD_ITEM_ARRAY
+ *
+ * @param var_name Name of the created struct thingset_array variable
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member of type `uint64_t` array used for this item
+ */
+#define THINGSET_DEFINE_RECORD_UINT64_ARRAY(var_name, struct_type, struct_member) \
+    struct thingset_array var_name = { \
+        { .offset = offsetof(struct_type, struct_member) }, \
+        THINGSET_TYPE_U64, \
+        0, \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+    };
+
+/**
+ * Define a struct thingset_array to expose `int64_t` arrays with #THINGSET_RECORD_ITEM_ARRAY
+ *
+ * @param var_name Name of the created struct thingset_array variable
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member of type `int64_t` array used for this item
+ */
+#define THINGSET_DEFINE_RECORD_INT64_ARRAY(var_name, struct_type, struct_member) \
+    struct thingset_array var_name = { \
+        { .offset = offsetof(struct_type, struct_member) }, \
+        THINGSET_TYPE_I64, \
+        0, \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+    };
+
+/**
+ * Define a struct thingset_array to expose `float` arrays with #THINGSET_RECORD_ITEM_ARRAY
+ *
+ * @param var_name Name of the created struct thingset_array variable
+ * @param decimals Number of decimal digits to be serialized in text mode
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member of type `float` array used for this item
+ */
+#define THINGSET_DEFINE_RECORD_FLOAT_ARRAY(var_name, decimals, struct_type, struct_member) \
+    struct thingset_array var_name = { \
+        { .offset = offsetof(struct_type, struct_member) }, \
+        THINGSET_TYPE_F32, \
+        decimals, \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+    };
+
+/**
+ * Define a struct thingset_array to expose decimal fraction arrays with #THINGSET_RECORD_ITEM_ARRAY
+ *
+ * @param var_name Name of the created struct thingset_array variable
+ * @param decimals Number of decimal digits to be serialized in text mode
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member of type `int32_t` array used for this item
+ */
+#define THINGSET_DEFINE_RECORD_DECFRAC_ARRAY(var_name, decfrac, struct_type, struct_member) \
+    struct thingset_array var_name = { \
+        { .offset = offsetof(struct_type, struct_member) }, \
+        THINGSET_TYPE_F32, \
+        decimals, \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+        _ARRAY_SIZE(((struct_type *)0)->struct_member), \
     };
 
 /**

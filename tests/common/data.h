@@ -85,6 +85,7 @@ struct test_struct
     int32_t decfrac;
 #endif
     char strbuf[300];
+    float f32_arr[3];
 };
 
 extern struct test_struct records[5];

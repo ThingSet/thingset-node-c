@@ -725,21 +725,31 @@ ZTEST(thingset_bin, test_import_record)
     int err;
 
     const char data_hex[] =
-        "A1 "
-        "19 06 02 F4"; /* Records/wBool */
+        "A2 "
+        "19 06 02 F4"           /* Records/wBool */
+        "19 06 0F 83 01 02 03"; /* Records/wF32Array */
     int data_len = hex2bin_spaced(data_hex, data, sizeof(data));
 
     err = thingset_endpoint_by_path(&ts, &endpoint, "Records/1", strlen("Records/1"));
     zassert_equal(err, 0);
 
     zassert_equal(records[1].b, true);
+    zassert_equal(records[1].f32_arr[0], (float)1.23F);
+    zassert_equal(records[1].f32_arr[1], (float)4.56F);
+    zassert_equal(records[1].f32_arr[2], (float)7.89F);
 
     err = thingset_import_record(&ts, data, data_len, &endpoint, THINGSET_BIN_IDS_VALUES);
     zassert_equal(err, 0, "act: 0x%X", -err);
 
     zassert_equal(records[1].b, false);
+    zassert_equal(records[1].f32_arr[0], (float)1.0F);
+    zassert_equal(records[1].f32_arr[1], (float)2.0F);
+    zassert_equal(records[1].f32_arr[2], (float)3.0F);
 
     records[1].b = true;
+    records[1].f32_arr[0] = 1.23F;
+    records[1].f32_arr[1] = 4.56F;
+    records[1].f32_arr[2] = 7.89F;
 }
 
 static void *thingset_setup(void)

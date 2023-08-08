@@ -276,22 +276,40 @@ int thingset_import_record(struct thingset_context *ts, const uint8_t *data, siz
         goto out;
     }
 
-    const struct thingset_data_object *object;
-    while ((err = ts->api->deserialize_child(ts, &object))
-           != -THINGSET_ERR_DESERIALIZATION_FINISHED)
+    const struct thingset_data_object *item;
+    while ((err = ts->api->deserialize_child(ts, &item)) != -THINGSET_ERR_DESERIALIZATION_FINISHED)
     {
         if (err != 0) {
             goto out;
         }
 
         struct thingset_records *records = ts->endpoint.object->data.records;
-        uint8_t *data = (uint8_t *)records->records + ts->endpoint.index * records->record_size
-                        + object->data.offset;
-        struct thingset_data_object dummy_object = {
-            0, 0, "Dummy", { .u8 = data }, object->type, object->detail
-        };
+        uint8_t *record_ptr =
+            (uint8_t *)records->records + ts->endpoint.index * records->record_size;
 
-        err = ts->api->deserialize_value(ts, &dummy_object, false);
+        if (item->type == THINGSET_TYPE_ARRAY) {
+            struct thingset_array *arr = item->data.array;
+            struct thingset_array arr_offset = {
+                { .u8 = record_ptr + arr->elements.offset },
+                arr->element_type,
+                arr->decimals,
+                arr->max_elements,
+                arr->num_elements,
+            };
+            struct thingset_data_object item_offset = {
+                item->parent_id,          item->id,   item->name,
+                { .array = &arr_offset }, item->type, item->detail,
+            };
+            err = ts->api->deserialize_value(ts, &item_offset, false);
+        }
+        else {
+            struct thingset_data_object item_offset = {
+                item->parent_id, item->id,     item->name, { .u8 = record_ptr + item->data.offset },
+                item->type,      item->detail,
+            };
+            err = ts->api->deserialize_value(ts, &item_offset, false);
+        }
+
         if (err != 0) {
             goto out;
         }

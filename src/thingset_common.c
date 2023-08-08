@@ -84,12 +84,30 @@ int thingset_common_serialize_record(struct thingset_context *ts,
         }
 
         /* create new object with data pointer including offset */
-        uint8_t *data_ptr = (uint8_t *)records->records + record_offset + item->data.offset;
-        struct thingset_data_object obj = {
-            item->parent_id, item->id, item->name, { .u8 = data_ptr }, item->type, item->detail,
-        };
+        uint8_t *record_ptr = (uint8_t *)records->records + record_offset;
+        if (item->type == THINGSET_TYPE_ARRAY) {
+            struct thingset_array *arr = item->data.array;
+            struct thingset_array arr_offset = {
+                { .u8 = record_ptr + arr->elements.offset },
+                arr->element_type,
+                arr->decimals,
+                arr->max_elements,
+                arr->num_elements,
+            };
+            struct thingset_data_object item_offset = {
+                item->parent_id,          item->id,   item->name,
+                { .array = &arr_offset }, item->type, item->detail,
+            };
+            err = ts->api->serialize_key_value(ts, &item_offset);
+        }
+        else {
+            struct thingset_data_object item_offset = {
+                item->parent_id, item->id,     item->name, { .u8 = record_ptr + item->data.offset },
+                item->type,      item->detail,
+            };
+            err = ts->api->serialize_key_value(ts, &item_offset);
+        }
 
-        err = ts->api->serialize_key_value(ts, &obj);
         if (err != 0) {
             return err;
         }

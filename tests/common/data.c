@@ -141,10 +141,13 @@ struct test_struct records[5] = {
         .f32 = -3.2F,
         .decfrac = -32,
         .strbuf = "string",
+        .f32_arr = { 1.23F, 4.56F, 7.89F },
     },
 };
 
 THINGSET_DEFINE_RECORDS(records_obj, records, 2);
+
+THINGSET_DEFINE_RECORD_FLOAT_ARRAY(f32_array_record, 1, struct test_struct, f32_arr)
 
 /* Dynamic record */
 static struct test_dyn_struct dyn_records = {
@@ -272,6 +275,7 @@ THINGSET_ADD_RECORD_ITEM_DECFRAC(0x600, 0x60C, "wDecFrac", struct test_struct, d
 #endif
 THINGSET_ADD_RECORD_ITEM_STRING(0x600, 0x60D, "wString", struct test_struct, strbuf,
                                 sizeof(records[0].strbuf));
+THINGSET_ADD_RECORD_ITEM_ARRAY(0x600, 0x60F, "wF32Array", &f32_array_record);
 
 /* Dynamic Records */
 THINGSET_ADD_DYN_RECORDS(THINGSET_ID_ROOT, 0x680, "DynRecords", &dyn_records_obj, THINGSET_ANY_R,
@@ -381,6 +385,7 @@ struct thingset_data_object data_objects[] = {
 #endif
     THINGSET_RECORD_ITEM_STRING(0x600, 0x60D, "wString", struct test_struct, strbuf,
                                 sizeof(records[0].strbuf)),
+    THINGSET_RECORD_ITEM_ARRAY(0x600, 0x60F, "wF32Array", &f32_array_record),
 
     /* Dynamic Records */
     THINGSET_DYN_RECORDS(THINGSET_ID_ROOT, 0x680, "DynRecords", &dyn_records_obj, THINGSET_ANY_R,
