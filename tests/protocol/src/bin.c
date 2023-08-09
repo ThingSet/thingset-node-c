@@ -441,6 +441,39 @@ ZTEST(thingset_bin, test_update_group_callback)
     zassert_equal(group_callback_post_write_count, 1);
 }
 
+ZTEST(thingset_bin, test_update_int32_array)
+{
+    const char req_hex[] = "07 19 0300 A1 19 0307 83 01 02 03"; /* =Arrays {"wI32":[1,2,3]} */
+    const char rsp_exp_hex[] = "84 F6 F6";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+
+    zassert_equal(i32_arr[0], 1);
+    zassert_equal(i32_arr[1], 2);
+    zassert_equal(i32_arr[2], 3);
+
+    i32_arr[0] = -1;
+    i32_arr[1] = -2;
+    i32_arr[2] = -3;
+}
+
+ZTEST(thingset_bin, test_update_float_array)
+{
+    /* =Arrays {"wF32":[1.1,2.2,3.3]} */
+    const char req_hex[] = "07 19 0300 A1 19 030A 83 FA 3f8ccccd FA 400ccccd FA 40533333";
+    const char rsp_exp_hex[] = "84 F6 F6";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+
+    zassert_equal(f32_arr[0], (float)1.1);
+    zassert_equal(f32_arr[1], (float)2.2);
+    zassert_equal(f32_arr[2], (float)3.3);
+
+    f32_arr[0] = -1.1;
+    f32_arr[1] = -2.2;
+    f32_arr[2] = -3.3;
+}
+
 ZTEST(thingset_bin, test_exec_fn_void_id)
 {
     fn_void_called = false;
