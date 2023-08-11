@@ -267,17 +267,17 @@ struct thingset_data_object *thingset_get_child_by_name(struct thingset_context 
 struct thingset_data_object *thingset_get_object_by_id(struct thingset_context *ts, uint16_t id);
 
 /**
- * Serialize the relative path of an object into the provided buffer
+ * Get the relative path of an object
  *
  * @param ts Pointer to ThingSet context.
- * @param buf Pointer to the buffer.
+ * @param buf Pointer to the buffer to store the path.
  * @param size Size of the buffer.
  * @param obj Pointer to the object to get the path of.
  *
  * @return Length of the path or negative ThingSet response code in case of error
  */
-int thingset_serialize_path(struct thingset_context *ts, char *buf, size_t size,
-                            const struct thingset_data_object *obj);
+int thingset_get_path(struct thingset_context *ts, char *buf, size_t size,
+                      const struct thingset_data_object *obj);
 
 /**
  * Process text mode desire.

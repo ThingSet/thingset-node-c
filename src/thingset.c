@@ -533,8 +533,8 @@ int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoin
     return -THINGSET_ERR_NOT_FOUND;
 }
 
-int thingset_serialize_path(struct thingset_context *ts, char *buf, size_t size,
-                            const struct thingset_data_object *obj)
+int thingset_get_path(struct thingset_context *ts, char *buf, size_t size,
+                      const struct thingset_data_object *obj)
 {
     int pos = 0;
     if (obj->parent_id != 0) {
@@ -547,7 +547,7 @@ int thingset_serialize_path(struct thingset_context *ts, char *buf, size_t size,
          * Recursive implementation acceptable because the depth is automatically limited by actual
          * data structure nesting depth.
          */
-        pos = thingset_serialize_path(ts, buf, size, parent_obj);
+        pos = thingset_get_path(ts, buf, size, parent_obj);
         if (pos < 0) {
             /* propagate errors back */
             return pos;

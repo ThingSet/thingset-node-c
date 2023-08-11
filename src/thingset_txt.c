@@ -223,7 +223,7 @@ static int txt_serialize_value(struct thingset_context *ts,
             for (unsigned int i = 0; i < ts->num_objects; i++) {
                 if (ts->data_objects[i].subsets & object->data.subset) {
                     buf[pos++] = '"';
-                    pos += thingset_serialize_path(ts, buf + pos, size - pos, &ts->data_objects[i]);
+                    pos += thingset_get_path(ts, buf + pos, size - pos, &ts->data_objects[i]);
                     buf[pos++] = '"';
                     buf[pos++] = ',';
                 }

@@ -162,8 +162,8 @@ static int bin_serialize_value(struct thingset_context *ts,
                      */
                     uint8_t *buf_path_start = ts->encoder->payload_mut + 2;
                     size_t buf_path_size = ts->encoder->payload_end - buf_path_start;
-                    int path_len = thingset_serialize_path(ts, (char *)buf_path_start,
-                                                           buf_path_size, &ts->data_objects[i]);
+                    int path_len = thingset_get_path(ts, (char *)buf_path_start, buf_path_size,
+                                                     &ts->data_objects[i]);
                     success =
                         success && zcbor_tstr_encode_ptr(ts->encoder, buf_path_start, path_len);
                 }
