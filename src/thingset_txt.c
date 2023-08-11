@@ -264,6 +264,14 @@ static int txt_serialize_value(struct thingset_context *ts,
     }
 }
 
+static int txt_serialize_path(struct thingset_context *ts,
+                              const struct thingset_data_object *object)
+{
+    /* not used for text mode */
+
+    return -THINGSET_ERR_INTERNAL_SERVER_ERR;
+}
+
 static int txt_serialize_name(struct thingset_context *ts,
                               const struct thingset_data_object *object)
 {
@@ -766,6 +774,7 @@ static struct thingset_api txt_api = {
     .serialize_key = txt_serialize_name,
     .serialize_value = txt_serialize_value,
     .serialize_key_value = txt_serialize_name_value,
+    .serialize_path = txt_serialize_path,
     .serialize_map_start = txt_serialize_map_start,
     .serialize_map_end = txt_serialize_map_end,
     .serialize_list_start = txt_serialize_list_start,

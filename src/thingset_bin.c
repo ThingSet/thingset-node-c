@@ -122,6 +122,25 @@ static int bin_serialize_simple_value(zcbor_state_t *encoder, union thingset_dat
     }
 }
 
+static int bin_serialize_path(struct thingset_context *ts,
+                              const struct thingset_data_object *object)
+{
+    /* zcbor uses memmove internally, so we can use the encoder buffer with an
+     * offset for the string header for temporary storage of the path
+     */
+    uint8_t *buf_path_start = ts->encoder->payload_mut + 2;
+    size_t buf_path_size = ts->encoder->payload_end - buf_path_start;
+
+    int path_len = thingset_get_path(ts, (char *)buf_path_start, buf_path_size, object);
+    if (path_len < 0) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    return zcbor_tstr_encode_ptr(ts->encoder, buf_path_start, path_len)
+               ? 0
+               : -THINGSET_ERR_RESPONSE_TOO_LARGE;
+}
+
 static int bin_serialize_value(struct thingset_context *ts,
                                const struct thingset_data_object *object)
 {
@@ -157,15 +176,7 @@ static int bin_serialize_value(struct thingset_context *ts,
                     success = success && zcbor_uint32_put(ts->encoder, ts->data_objects[i].id);
                 }
                 else {
-                    /* zcbor uses memmove internally, so we can use the encoder buffer with an
-                     * offset for the string header for temporary storage of the path
-                     */
-                    uint8_t *buf_path_start = ts->encoder->payload_mut + 2;
-                    size_t buf_path_size = ts->encoder->payload_end - buf_path_start;
-                    int path_len = thingset_get_path(ts, (char *)buf_path_start, buf_path_size,
-                                                     &ts->data_objects[i]);
-                    success =
-                        success && zcbor_tstr_encode_ptr(ts->encoder, buf_path_start, path_len);
+                    success = success && (bin_serialize_path(ts, &ts->data_objects[i]) == 0);
                 }
             }
         }
@@ -586,6 +597,7 @@ static struct thingset_api bin_api = {
     .serialize_key = bin_serialize_key,
     .serialize_value = bin_serialize_value,
     .serialize_key_value = bin_serialize_key_value,
+    .serialize_path = bin_serialize_path,
     .serialize_map_start = bin_serialize_map_start,
     .serialize_map_end = bin_serialize_map_end,
     .serialize_list_start = bin_serialize_list_start,
