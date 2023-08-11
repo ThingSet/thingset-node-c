@@ -433,7 +433,7 @@ extern "C" {
 #define THINGSET_RECORD_ITEM_BOOL(parent_id, id, name, struct_type, struct_member) \
     { \
         parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, \
-            THINGSET_TYPE_BOOL \
+            THINGSET_TYPE_BOOL, 0, THINGSET_READ_MASK \
     }
 
 /**
@@ -447,7 +447,8 @@ extern "C" {
  */
 #define THINGSET_RECORD_ITEM_UINT64(parent_id, id, name, struct_type, struct_member) \
     { \
-        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, THINGSET_TYPE_U64 \
+        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, \
+            THINGSET_TYPE_U64, 0, THINGSET_READ_MASK \
     }
 
 /**
@@ -461,7 +462,8 @@ extern "C" {
  */
 #define THINGSET_RECORD_ITEM_INT64(parent_id, id, name, struct_type, struct_member) \
     { \
-        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, THINGSET_TYPE_I64 \
+        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, \
+            THINGSET_TYPE_I64, 0, THINGSET_READ_MASK \
     }
 
 /**
@@ -475,7 +477,8 @@ extern "C" {
  */
 #define THINGSET_RECORD_ITEM_UINT32(parent_id, id, name, struct_type, struct_member) \
     { \
-        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, THINGSET_TYPE_U32 \
+        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, \
+            THINGSET_TYPE_U32, 0, THINGSET_READ_MASK \
     }
 
 /**
@@ -489,7 +492,8 @@ extern "C" {
  */
 #define THINGSET_RECORD_ITEM_INT32(parent_id, id, name, struct_type, struct_member) \
     { \
-        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, THINGSET_TYPE_I32 \
+        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, \
+            THINGSET_TYPE_I32, 0, THINGSET_READ_MASK \
     }
 
 /**
@@ -503,7 +507,8 @@ extern "C" {
  */
 #define THINGSET_RECORD_ITEM_UINT16(parent_id, id, name, struct_type, struct_member) \
     { \
-        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, THINGSET_TYPE_U16 \
+        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, \
+            THINGSET_TYPE_U16, 0, THINGSET_READ_MASK \
     }
 
 /**
@@ -517,7 +522,8 @@ extern "C" {
  */
 #define THINGSET_RECORD_ITEM_INT16(parent_id, id, name, struct_type, struct_member) \
     { \
-        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, THINGSET_TYPE_I16 \
+        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, \
+            THINGSET_TYPE_I16, 0, THINGSET_READ_MASK \
     }
 
 /**
@@ -531,7 +537,8 @@ extern "C" {
  */
 #define THINGSET_RECORD_ITEM_UINT8(parent_id, id, name, struct_type, struct_member) \
     { \
-        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, THINGSET_TYPE_U8 \
+        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, THINGSET_TYPE_U8, \
+            0, THINGSET_READ_MASK \
     }
 
 /**
@@ -545,7 +552,8 @@ extern "C" {
  */
 #define THINGSET_RECORD_ITEM_INT8(parent_id, id, name, struct_type, struct_member) \
     { \
-        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, THINGSET_TYPE_I8 \
+        parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, THINGSET_TYPE_I8, \
+            0, THINGSET_READ_MASK \
     }
 
 /**
@@ -561,7 +569,7 @@ extern "C" {
 #define THINGSET_RECORD_ITEM_FLOAT(parent_id, id, name, struct_type, struct_member, decimals) \
     { \
         parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, \
-            THINGSET_TYPE_F32, decimals \
+            THINGSET_TYPE_F32, decimals, THINGSET_READ_MASK \
     }
 
 /**
@@ -577,7 +585,7 @@ extern "C" {
 #define THINGSET_RECORD_ITEM_DECFRAC(parent_id, id, name, struct_type, struct_member, decimals) \
     { \
         parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, \
-            THINGSET_TYPE_DECFRAC, decimals \
+            THINGSET_TYPE_DECFRAC, decimals, THINGSET_READ_MASK \
     }
 
 /**
@@ -594,7 +602,7 @@ extern "C" {
 #define THINGSET_RECORD_ITEM_STRING(parent_id, id, name, struct_type, struct_member, buf_size) \
     { \
         parent_id, id, name, { .offset = offsetof(struct_type, struct_member) }, \
-            THINGSET_TYPE_STRING, buf_size \
+            THINGSET_TYPE_STRING, buf_size, THINGSET_READ_MASK \
     }
 
 /**
@@ -607,7 +615,7 @@ extern "C" {
  */
 #define THINGSET_RECORD_ITEM_ARRAY(parent_id, id, name, array_ptr) \
     { \
-        parent_id, id, name, { .array = array_ptr }, THINGSET_TYPE_ARRAY, 0 \
+        parent_id, id, name, { .array = array_ptr }, THINGSET_TYPE_ARRAY, 0, THINGSET_READ_MASK \
     }
 
 /*

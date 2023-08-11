@@ -27,8 +27,10 @@ extern struct thingset_data_object _thingset_data_object_list_end[];
 #define TYPE_SECTION_START(secname) _CONCAT(_##secname, _list_start)
 #endif /* STRUCT_SECTION_START_EXTERN */
 
-/* dummy object to avoid using NULL pointer for root object */
+/* dummy objects to avoid using NULL pointer for root object or _Paths overlay */
 static struct thingset_data_object root_object = THINGSET_GROUP(0, 0, "", NULL);
+static struct thingset_data_object paths_object =
+    THINGSET_GROUP(0, THINGSET_ID_PATHS, "_Paths", NULL);
 
 static void check_id_duplicates(const struct thingset_data_object *objects, size_t num)
 {
@@ -517,6 +519,10 @@ int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoin
 
     if (id == 0) {
         endpoint->object = &root_object;
+        return 0;
+    }
+    else if (id == THINGSET_ID_PATHS) {
+        endpoint->object = &paths_object;
         return 0;
     }
 

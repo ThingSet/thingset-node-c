@@ -385,7 +385,9 @@ static int bin_deserialize_child(struct thingset_context *ts,
         if (*object == NULL) {
             return -THINGSET_ERR_NOT_FOUND;
         }
-        else if ((*object)->parent_id != ts->endpoint.object->id) {
+        else if (ts->endpoint.object->id != THINGSET_ID_PATHS
+                 && (*object)->parent_id != ts->endpoint.object->id)
+        {
             return -THINGSET_ERR_BAD_REQUEST;
         }
     }
