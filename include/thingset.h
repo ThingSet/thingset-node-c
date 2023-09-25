@@ -1358,6 +1358,8 @@ enum thingset_type
     THINGSET_TYPE_SUBSET,  /**< Subset of data items */
     THINGSET_TYPE_FN_VOID, /**< Function with void return value */
     THINGSET_TYPE_FN_I32,  /**< Function with int32_t return value */
+    /**< Element of an array (used when transmitting over classical CAN) */
+    THINGSET_TYPE_ARRAY_ELEMENT,
 };
 
 /**
@@ -1394,6 +1396,8 @@ union thingset_data_pointer {
     uint32_t subset;                  /**< Subset flag(s) */
     void (*void_fn)();                /**< Pointer to function with void return value */
     int32_t (*i32_fn)();              /**< Pointer to function with int32_t return value */
+    /**< Pointer to thingset_array_element struct */
+    struct thingset_array_element *array_element;
     /** Pointer to group callback function */
     thingset_group_callback_t group_callback;
 };
@@ -1434,6 +1438,15 @@ struct thingset_array
     const int16_t decimals;                /**< See detail in struct thingset_data_object */
     const uint16_t max_elements;           /**< Maximum number of elements in the array */
     uint16_t num_elements;                 /**< Actual number of elements in the array */
+};
+
+/**
+ * Data structure used to specify an element in an array
+ */
+struct thingset_array_element
+{
+    struct thingset_array *array;
+    uint16_t index;
 };
 
 /**
@@ -1565,6 +1578,12 @@ struct thingset_context
      * Pointer to the start of the payload in the message buffer
      */
     const uint8_t *msg_payload;
+    
+    /**
+     * Payload may contain an update for a single element in an array,
+     * so any two-element arrays should be interpreted as such.
+     */
+    bool elementwise_array_updates;
 
     /**
      * Pointer to the response buffer (provided by process function)

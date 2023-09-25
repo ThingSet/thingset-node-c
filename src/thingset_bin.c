@@ -200,6 +200,26 @@ static int bin_serialize_value(struct thingset_context *ts,
 
         success = success && zcbor_list_end_encode(ts->encoder, array->num_elements);
     }
+    else if (object->type == THINGSET_TYPE_ARRAY_ELEMENT) {
+        /* should only end up here when serialising reports for transmission over CAN 
+         * Two element list containing:
+           - index position in source array
+           - element value
+         */
+
+        struct thingset_array_element *element = object->data.array_element;
+        
+        size_t type_size = thingset_type_size(element->array->element_type);
+        union thingset_data_pointer data = { .u8 = element->array->elements.u8 + element->index * type_size };
+        success = zcbor_list_start_encode(ts->encoder, 2);
+        success = success && zcbor_uint32_put(ts->encoder, element->index);
+        err =
+            bin_serialize_simple_value(ts->encoder, data, element->array->element_type, element->array->decimals);
+        if (err != 0) {
+            return err;
+        }
+        success = success && zcbor_list_end_encode(ts->encoder, 2);
+    }
     else {
         return -THINGSET_ERR_UNSUPPORTED_FORMAT;
     }
@@ -556,7 +576,7 @@ static int bin_deserialize_value(struct thingset_context *ts,
     if (err == -THINGSET_ERR_UNSUPPORTED_FORMAT && object->type == THINGSET_TYPE_ARRAY) {
         struct thingset_array *array = object->data.array;
         bool success;
-
+        
         success = zcbor_list_start_decode(ts->decoder);
         if (!success) {
             return -THINGSET_ERR_UNSUPPORTED_FORMAT;
@@ -564,23 +584,39 @@ static int bin_deserialize_value(struct thingset_context *ts,
 
         size_t type_size = thingset_type_size(array->element_type);
         int index = 0;
-        do {
-            /* using uint8_t pointer for byte-wise pointer arithmetics */
+        if (ts->decoder->elem_count == 2 && ts->elementwise_array_updates) {
+            /* update of one element in a larger array */
+            
+            /* index of updated element */
+            success = success & zcbor_uint32_decode(ts->decoder, &index);
+            if (index >= object->data.array->num_elements) {
+                return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+            }
             union thingset_data_pointer data = { .u8 = array->elements.u8 + index * type_size };
-
             err = bin_deserialize_simple_value(ts, data, array->element_type, array->decimals,
                                                check_only);
             if (err != 0) {
-                break;
+                return -THINGSET_ERR_UNSUPPORTED_FORMAT;
             }
-            index++;
-        } while (index < array->num_elements);
+        } else {
+            do {
+                /* using uint8_t pointer for byte-wise pointer arithmetics */
+                union thingset_data_pointer data = { .u8 = array->elements.u8 + index * type_size };
 
-        if (!check_only) {
-            array->num_elements = index;
+                err = bin_deserialize_simple_value(ts, data, array->element_type, array->decimals,
+                                                   check_only);
+                if (err != 0) {
+                    break;
+                }
+                index++;
+            } while (index < array->num_elements);
+
+            if (!check_only) {
+                array->num_elements = index;
+            }
         }
+        success = success && zcbor_list_end_decode(ts->decoder);
 
-        success = zcbor_list_end_decode(ts->decoder);
         if (success) {
             err = 0;
         }
