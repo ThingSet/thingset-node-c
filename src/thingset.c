@@ -185,6 +185,42 @@ out:
     return ret;
 }
 
+int thingset_for_object_in_subsets(struct thingset_context *ts, uint16_t subset, thingset_iterate_subsets_callback_t callback, void *callback_context)
+{
+    struct thingset_data_object *obj = NULL;
+    int err = 0;
+    while ((obj = thingset_iterate_subsets(ts, subset, obj)) != NULL) {
+        if (ts->elementwise_array_updates && obj->type == THINGSET_TYPE_ARRAY) {
+            struct thingset_array_element array_element;
+            for (uint16_t i = 0; i < obj->data.array->num_elements; i++) {
+                array_element.array = obj->data.array;
+                array_element.index = i;
+                union thingset_data_pointer data = { .array_element = &array_element };
+                struct thingset_data_object element_obj = {
+                    .access = obj->access,
+                    .name = obj->name,
+                    .parent_id = obj->parent_id,
+                    .id = obj->id,
+                    .type = THINGSET_TYPE_ARRAY_ELEMENT,
+                    .data = data,
+                };
+                err = callback(&element_obj, callback_context);
+                if (err < 0) {
+                    return err;
+                }
+            }
+        } else {
+            err = callback(obj, callback_context);
+            if (err < 0) {
+                return err;
+            }
+        }
+        obj++; /* move to next object */
+    }
+
+    return err;
+}
+
 struct thingset_data_object *thingset_iterate_subsets(struct thingset_context *ts, uint16_t subset,
                                                       struct thingset_data_object *start_obj)
 {
