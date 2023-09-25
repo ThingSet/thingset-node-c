@@ -9,6 +9,7 @@
 
 #define SUBSET_LIVE (1U << 0)
 #define SUBSET_NVM  (2U << 0)
+#define SUBSET_ELEM_ARRAY_LIVE (4U << 0) /* separate group for element array tests */
 
 extern uint32_t timestamp;
 

@@ -69,6 +69,9 @@ static THINGSET_DEFINE_INT64_ARRAY(i64_arr_item, i64_arr, 3);
 float f32_arr[100] = { -1.1, -2.2, -3.3 };
 static THINGSET_DEFINE_FLOAT_ARRAY(f32_arr_item, 1, f32_arr, 3);
 
+float f32_live_arr[100] = { -1.1, -2.2, -3.3 };
+static THINGSET_DEFINE_FLOAT_ARRAY(f32_live_arr_item, 1, f32_live_arr, 3);
+
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
 int32_t decfrac_arr[100] = { -32 };
 static THINGSET_DEFINE_DECFRAC_ARRAY(decfrac_arr_item, 2, decfrac_arr, 1);
@@ -236,6 +239,7 @@ THINGSET_ADD_ITEM_ARRAY(0x300, 0x30A, "wF32", &f32_arr_item, THINGSET_ANY_RW, 0)
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
 THINGSET_ADD_ITEM_ARRAY(0x300, 0x30B, "wDecFrac", &decfrac_arr_item, THINGSET_ANY_RW, 0);
 #endif
+THINGSET_ADD_ITEM_ARRAY(0x300, 0x30C, "wF32Live", &f32_live_arr_item, THINGSET_ANY_RW, SUBSET_ELEM_ARRAY_LIVE);
 
 /* Exec */
 THINGSET_ADD_GROUP(THINGSET_ID_ROOT, 0x400, "Exec", THINGSET_NO_CALLBACK);
@@ -346,6 +350,7 @@ struct thingset_data_object data_objects[] = {
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
     THINGSET_ITEM_ARRAY(0x300, 0x30B, "wDecFrac", &decfrac_arr_item, THINGSET_ANY_RW, 0),
 #endif
+    THINGSET_ITEM_ARRAY(0x300, 0x30C, "wF32Live", &f32_live_arr_item, THINGSET_ANY_RW, SUBSET_ELEM_ARRAY_LIVE),
 
     /* Exec */
     THINGSET_GROUP(THINGSET_ID_ROOT, 0x400, "Exec", THINGSET_NO_CALLBACK),
