@@ -1396,7 +1396,7 @@ union thingset_data_pointer {
     uint32_t subset;                  /**< Subset flag(s) */
     void (*void_fn)();                /**< Pointer to function with void return value */
     int32_t (*i32_fn)();              /**< Pointer to function with int32_t return value */
-    /**< Pointer to thingset_array_element struct */
+    /** Pointer to thingset_array_element struct */
     struct thingset_array_element *array_element;
     /** Pointer to group callback function */
     thingset_group_callback_t group_callback;
@@ -1445,8 +1445,8 @@ struct thingset_array
  */
 struct thingset_array_element
 {
-    struct thingset_array *array;
-    uint16_t index;
+    struct thingset_array *array; /**< Pointer to array */
+    uint16_t index;               /**< Index of element in array */
 };
 
 /**
@@ -1580,12 +1580,6 @@ struct thingset_context
     const uint8_t *msg_payload;
 
     /**
-     * Payload may contain an update for a single element in an array,
-     * so any two-element arrays should be interpreted as such.
-     */
-    bool elementwise_array_updates;
-
-    /**
      * Pointer to the response buffer (provided by process function)
      */
     uint8_t *rsp;
@@ -1638,6 +1632,12 @@ struct thingset_context
      * Stores current authentication status (authentication as "normal" user as default)
      */
     uint8_t auth_flags;
+
+    /**
+     * Payload may contain an update for a single element in an array,
+     * so any two-element arrays should be interpreted as such.
+     */
+    bool elementwise_array_updates;
 
     /**
      * Stores current authentication status (authentication as "normal" user as default)
