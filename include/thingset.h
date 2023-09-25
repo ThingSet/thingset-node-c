@@ -1578,7 +1578,7 @@ struct thingset_context
      * Pointer to the start of the payload in the message buffer
      */
     const uint8_t *msg_payload;
-    
+
     /**
      * Payload may contain an update for a single element in an array,
      * so any two-element arrays should be interpreted as such.
