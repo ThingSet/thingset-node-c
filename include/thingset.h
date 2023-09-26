@@ -1747,12 +1747,12 @@ typedef int (*thingset_iterate_subsets_callback_t)(struct thingset_data_object *
  * Iterate over all objects of given subset(s), invoking the supplied callback for each object.
  * If elementwise_array_updates is set to true on the ThingSet context, the callback will be
  * invoked for each element of any arrays.
- * 
+ *
  * @param ts Pointer to ThingSet context.
  * @param subsets Flags to select which subset(s) of data items should be iterated over
  * @param callback The callback to be invoked for each object and, optionally, array element.
  * @param callback_context Pointer to data to be passed to the callback.
- * 
+ *
  * @return 0 on success; a negative ThingSet response code in case of error.
  */
 int thingset_for_object_in_subsets(struct thingset_context *ts, uint16_t subset, thingset_iterate_subsets_callback_t callback, void *callback_context);
