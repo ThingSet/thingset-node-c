@@ -61,6 +61,40 @@ ZTEST(thingset_elemental_array_reports, test_serialize_float_array)
     zassert_equal(3, data.num_messages, "Expected %d; was %d", 3, data.num_messages);
 }
 
+ZTEST(thingset_elemental_array_reports, test_deserialize_float_array_into_record)
+{
+    struct thingset_endpoint endpoint;
+    uint8_t buffer[THINGSET_TEST_BUF_SIZE];
+    int err;
+
+    char* report_hex[3];
+    report_hex[0] = "A1 19 06 0F 82 00 FA 3F 8C CC CD";
+    report_hex[1] = "A1 19 06 0F 82 01 FA 40 0C CC CD";
+    report_hex[2] = "A1 19 06 0F 82 02 FA 40 53 33 33";
+
+    float original_float[3] = { 1.23F, 4.56F, 7.89F };
+    float expected_float[3] = { 1.1F, 2.2F, 3.3F };
+
+    err = thingset_endpoint_by_path(&ts, &endpoint, "Records/1", strlen("Records/1"));
+    zassert_equal(err, 0);
+
+    for (int i = 0; i < 3; i++)
+    {
+        zassert_equal(records[1].f32_arr[i], original_float[i]);
+        hex2bin_spaced(report_hex[i], buffer, 11);
+        ts.elementwise_array_updates = true;
+        err = thingset_import_record(&ts, buffer, 11, &endpoint, THINGSET_BIN_IDS_VALUES);
+        ts.elementwise_array_updates = false;
+        zassert_equal(records[1].f32_arr[i], expected_float[i]);
+        zassert_equal(err, 0);
+    }
+
+    for (int i = 0; i < 3; i++)
+    {
+        records[1].f32_arr[i] = original_float[i];
+    }
+}
+
 static void *thingset_setup(void)
 {
     thingset_init_global(&ts);
