@@ -262,7 +262,7 @@ static int bin_serialize_list_end(struct thingset_context *ts)
 static void bin_serialize_finish(struct thingset_context *ts)
 {
     ts->rsp_pos = ts->encoder->payload - ts->rsp;
-    if (ts->rsp_pos == 2) {
+    if (ts->rsp_pos == 2 && ts->rsp[1] == 0xF6) {
         /* message with empty payload */
         ts->rsp[ts->rsp_pos++] = 0xF6;
     }

@@ -688,6 +688,27 @@ ZTEST(thingset_bin, test_export_subset_ids)
     THINGSET_ASSERT_EXPORT_HEX_IDS(SUBSET_LIVE, rsp_exp_hex, 21);
 }
 
+ZTEST(thingset_bin, test_export_item)
+{
+    struct thingset_endpoint endpoint;
+    uint8_t buf_act[10];
+    uint8_t buf_exp[10];
+    int ret;
+
+    /*
+     * This value caused issues with previous implementations because it is serialized to 2 bytes
+     * and serialize_finish erroneously added 0xF6.
+     */
+    ret = thingset_endpoint_by_path(&ts, &endpoint, "Types/wU32", strlen("Types/wU32"));
+    zassert_equal(ret, 0);
+
+    ret = thingset_export_item(&ts, buf_act, sizeof(buf_act), endpoint.object,
+                               THINGSET_BIN_VALUES_ONLY);
+    zassert_equal(ret, 2);
+    hex2bin_spaced("18 20", buf_exp, sizeof(buf_exp));
+    zassert_mem_equal(buf_exp, buf_act, 2);
+}
+
 ZTEST(thingset_bin, test_iterate_subsets)
 {
     struct thingset_data_object *obj = NULL;
