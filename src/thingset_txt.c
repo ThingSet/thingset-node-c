@@ -195,6 +195,7 @@ static int txt_serialize_value(struct thingset_context *ts,
 {
     char *buf = ts->rsp + ts->rsp_pos;
     size_t size = ts->rsp_size - ts->rsp_pos;
+    int ret;
 
     int pos = json_serialize_simple_value(buf, size, object->data, object->type, object->detail);
 
@@ -223,7 +224,12 @@ static int txt_serialize_value(struct thingset_context *ts,
             for (unsigned int i = 0; i < ts->num_objects; i++) {
                 if (ts->data_objects[i].subsets & object->data.subset) {
                     buf[pos++] = '"';
-                    pos += thingset_get_path(ts, buf + pos, size - pos, &ts->data_objects[i]);
+                    ret = thingset_get_path(ts, buf + pos, size - pos, &ts->data_objects[i]);
+                    if (ret <= 0) {
+                        ts->rsp_pos = 0;
+                        return ret;
+                    }
+                    pos += ret;
                     buf[pos++] = '"';
                     buf[pos++] = ',';
                 }
