@@ -278,6 +278,14 @@ static int txt_serialize_path(struct thingset_context *ts,
     return -THINGSET_ERR_INTERNAL_SERVER_ERR;
 }
 
+static int txt_serialize_metadata(struct thingset_context *ts,
+                                  const struct thingset_data_object *object)
+{
+    /* not used for text mode */
+
+    return -THINGSET_ERR_INTERNAL_SERVER_ERR;
+}
+
 static int txt_serialize_name(struct thingset_context *ts,
                               const struct thingset_data_object *object)
 {
@@ -781,6 +789,7 @@ static struct thingset_api txt_api = {
     .serialize_value = txt_serialize_value,
     .serialize_key_value = txt_serialize_name_value,
     .serialize_path = txt_serialize_path,
+    .serialize_metadata = txt_serialize_metadata,
     .serialize_map_start = txt_serialize_map_start,
     .serialize_map_end = txt_serialize_map_end,
     .serialize_list_start = txt_serialize_list_start,
@@ -810,7 +819,7 @@ int thingset_txt_process(struct thingset_context *ts)
     thingset_txt_setup(ts);
 
     /* requests ordered with expected highest probability first */
-    int (*request_fn)(struct thingset_context * ts);
+    int (*request_fn)(struct thingset_context *ts);
     switch (ts->msg[0]) {
         case THINGSET_TXT_GET_FETCH:
             request_fn = thingset_txt_get_fetch;

@@ -69,6 +69,17 @@ struct thingset_api
     int (*serialize_path)(struct thingset_context *ts, const struct thingset_data_object *object);
 
     /**
+     * Serialize the type for the specified data object.
+     *
+     * @param ts Pointer to ThingSet context
+     * @param object Pointer to data object
+     *
+     * @returns 0 for success or negative ThingSet response code in case of error
+     */
+    int (*serialize_metadata)(struct thingset_context *ts,
+                              const struct thingset_data_object *object);
+
+    /**
      * Serialize the key and value of the specified data object.
      *
      * @param ts Pointer to ThingSet context
@@ -288,6 +299,17 @@ struct thingset_data_object *thingset_get_object_by_id(struct thingset_context *
  */
 int thingset_get_path(struct thingset_context *ts, char *buf, size_t size,
                       const struct thingset_data_object *obj);
+
+/**
+ * Gets the type of a given object as a string.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param obj Pointer to the object to get the path of.
+ * @param buf Pointer to the buffer to store the path.
+ * @param size Size of the buffer.
+ */
+int thingset_get_type_name(struct thingset_context *ts, const struct thingset_data_object *obj,
+                           char *buf, size_t size);
 
 /**
  * Process text mode desire.

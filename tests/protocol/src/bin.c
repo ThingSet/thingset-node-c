@@ -360,6 +360,82 @@ ZTEST(thingset_bin, test_fetch_paths)
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
 
+ZTEST(thingset_bin, test_fetch_metadata)
+{
+    const char req_hex[] =
+        "05 "       /* FETCH */
+        "18 19 "    /* _Metadata */
+        "84 "       /* array with 6 elements */
+        "19 0207 "  /* uint 0x207 */
+        "19 0601 "  /* uint 0x601 */
+        "10 "       /* uint 0x10 */
+        "19 0702 "; /* uint 0x702 */
+
+    const char rsp_exp_hex[] =
+        "85 F6 "
+        "84 "                                                          /* array with 4 elements */
+        "a2 64 6e 61 6d 65 64 77 49 33 32 64 74 79 70 65 63 69 33 32 " /* name: wI32, type: i32
+                                                                        */
+        "a2 64 6e 61 6d 65 63 74 5f 73 64 74 79 70 65 63 75 33 32 "    /* name: t_s, type: u32 */
+        "a2 64 6e 61 6d 65 63 74 5f 73 64 74 79 70 65 63 75 33 32 "    /* name: t_s, type: u32 */
+        "a2 64 6e 61 6d 65 64 4f 62 6a 31 64 74 79 70 65 65 67 72 6f 75 70"; /* name: Obj1,
+                                                                               type: group */
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_metadata_array)
+{
+    const char req_hex[] =
+        "05 "       /* FETCH */
+        "18 19 "    /* _Metadata */
+        "81 "       /* array with 1 element */
+        "19 0304 "; /* uint 0x304 */
+
+    const char rsp_exp_hex[] =
+        "85 F6 "
+        "81 " /* array with 1 element */
+        /* name: wU16, type: u16[] */
+        "a2 64 6e 61 6d 65 64 77 55 31 36 64 74 79 70 65 65 75 31 36 5b 5d";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_metadata_void_func)
+{
+    const char req_hex[] =
+        "05 "       /* FETCH */
+        "18 19 "    /* _Metadata */
+        "81 "       /* array with 1 element */
+        "19 0401 "; /* uint 0x401 */
+
+    const char rsp_exp_hex[] =
+        "85 F6 "
+        "81 " /* array with 1 element */
+        /* name: xVoid, type: ()->() */
+        "a2 64 6e 61 6d 65 65 78 56 6f 69 64 64 74 79 70 65 66 28 29 2d 3e 28 29 ";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
+ZTEST(thingset_bin, test_fetch_metadata_parameterised_func)
+{
+    const char req_hex[] =
+        "05 "       /* FETCH */
+        "18 19 "    /* _Metadata */
+        "81 "       /* array with 1 element */
+        "19 0404 "; /* uint 0x404 */
+
+    const char rsp_exp_hex[] =
+        "85 F6 "
+        "81 " /* array with 1 element */
+        /* name: xVoid, type: ()->() */
+        "a2 64 6e 61 6d 65 6a 78 49 33 32 50 61 72 61 6d 73 64 74 79 70 65 74 28 73 74 72 69 6e 67 "
+        "2c 20 69 33 32 29 2d 3e 28 69 33 32 29"; /* name: xI32Params, type: (string, i32)->(i32) */
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
 ZTEST(thingset_bin, test_update_timestamp_zero_id)
 {
     const char req_hex[] = "07 00 A1 10 00";

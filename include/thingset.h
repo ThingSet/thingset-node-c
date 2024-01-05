@@ -93,6 +93,7 @@ extern "C" {
 #define THINGSET_ID_IDS         0x16 /**< `_Ids` overlay */
 #define THINGSET_ID_PATHS       0x17 /**< `_Paths` overlay */
 #define THINGSET_ID_METADATAURL 0x18 /**< URL for extended metadata information: `cMetadataURL` */
+#define THINGSET_ID_METADATA    0x19 /**< `_Types` overlay */
 #define THINGSET_ID_NODEID      0x1D /**< String containing the node ID: `cNodeID` */
 
 /*
@@ -1278,7 +1279,7 @@ extern "C" {
 #define THINGSET_EXP_MASK (THINGSET_ROLE_EXP << 4 | THINGSET_ROLE_EXP)
 #define THINGSET_MFR_MASK (THINGSET_ROLE_MFR << 4 | THINGSET_ROLE_MFR)
 
-#define THINGSET_READ(roles)       ((roles)&THINGSET_READ_MASK)
+#define THINGSET_READ(roles)       ((roles) & THINGSET_READ_MASK)
 #define THINGSET_WRITE(roles)      (((roles) << 4) & THINGSET_WRITE_MASK)
 #define THINGSET_READ_WRITE(roles) (THINGSET_READ(roles) | THINGSET_WRITE(roles))
 
