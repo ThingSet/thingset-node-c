@@ -265,7 +265,8 @@ ZTEST(thingset_bin, test_fetch_not_found)
 ZTEST(thingset_bin, test_fetch_group)
 {
     const char req_hex[] = "05 00 81 66 4E6573746564"; /* ? ["foo"] */
-    const char rsp_exp_hex[] = "A0 F6 F6";
+    const char rsp_exp_hex[] =
+        "A0 F6 71 4e 65 73 74 65 64 20 69 73 20 61 20 67 72 6f 75 70"; /* Nested is a group */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
@@ -414,13 +415,17 @@ ZTEST(thingset_bin, test_update_bytes_buffer)
 ZTEST(thingset_bin, test_update_readonly)
 {
     /* =Access {"rItem":52} */
-    THINGSET_ASSERT_REQUEST_HEX("07 19 0500 A1 19 0501 18 34", "A3 F6 F6");
+    THINGSET_ASSERT_REQUEST_HEX("07 19 0500 A1 19 0501 18 34",
+                                "A3 F6 77 49 74 65 6D 20 72 49 74 65 6D 20 69 73 20 72 65 61 64 2D "
+                                "6F 6E 6C 79"); /* Item rItem is read-only */
 }
 
 ZTEST(thingset_bin, test_update_wrong_path)
 {
     /* =Type {"wI32":52} */
-    THINGSET_ASSERT_REQUEST_HEX("07 64 54797065 A1 64 77493332 18 34", "A4 F6 F6");
+    THINGSET_ASSERT_REQUEST_HEX(
+        "07 64 54797065 A1 64 77493332 18 34",
+        "A4 F6 70 49 6E 76 61 6C 69 64 20 65 6E 64 70 6F 69 6E 74"); /* Invalid endpoint */
 }
 
 ZTEST(thingset_bin, test_update_unknown_object)
@@ -519,13 +524,17 @@ ZTEST(thingset_bin, test_exec_fn_void_name)
 ZTEST(thingset_bin, test_exec_fn_void_mfr_only_id)
 {
     /* !Exec/xVoidMfrOnly */
-    THINGSET_ASSERT_REQUEST_HEX("02 19 0407", "A1 F6 F6");
+    THINGSET_ASSERT_REQUEST_HEX("02 19 0407",
+                                "A1 F6 77 41 75 74 68 65 6E 74 69 63 61 74 69 6F 6E 20 72 65 71 75 "
+                                "69 72 65 64"); /* Authentication required */
 }
 
 ZTEST(thingset_bin, test_exec_fn_void_mfr_only_name)
 {
     /* !Exec/xVoidMfrOnly */
-    THINGSET_ASSERT_REQUEST_HEX("02 71 457865632F78566F69644D66724F6E6C79 80", "A1 F6 F6");
+    THINGSET_ASSERT_REQUEST_HEX("02 71 457865632F78566F69644D66724F6E6C79 80",
+                                "A1 F6 77 41 75 74 68 65 6E 74 69 63 61 74 69 6F 6E 20 72 65 71 75 "
+                                "69 72 65 64"); /* Authentication required */
 }
 
 ZTEST(thingset_bin, test_exec_fn_void_params_id)
@@ -554,17 +563,25 @@ ZTEST(thingset_bin, test_exec_fn_void_params_name)
 
 ZTEST(thingset_bin, test_exec_fn_void_invalid_params)
 {
-    THINGSET_ASSERT_REQUEST_HEX("02 19 0402 F5", "A0 F6 F6");
+    THINGSET_ASSERT_REQUEST_HEX(
+        "02 19 0402 F5",
+        "A0 F6 72 49 6E 76 61 6C 69 64 20 70 61 72 61 6D 65 74 65 72 73"); /* Invalid parameters */
 }
 
 ZTEST(thingset_bin, test_exec_fn_void_too_many_params)
 {
-    THINGSET_ASSERT_REQUEST_HEX("02 19 0402 82 F5 18 7B", "A0 F6 F6");
+    THINGSET_ASSERT_REQUEST_HEX(
+        "02 19 0402 82 F5 18 7B",
+        "A0 F6 73 54 6F 6F 20 6D 61 6E 79 20 70 61 72 61 6D 65 74 65 72 73"); /* Too many parameters
+                                                                               */
 }
 
 ZTEST(thingset_bin, test_exec_fn_void_not_enough_params)
 {
-    THINGSET_ASSERT_REQUEST_HEX("02 19 0402 80", "A0 F6 F6");
+    THINGSET_ASSERT_REQUEST_HEX(
+        "02 19 0402 80",
+        "A0 F6 75 4E 6f 74 20 65 6E 6F 75 67 68 20 70 61 72 61 6D 65 74 65 72 73"); /* Not enough
+                                                                                       parameters */
 }
 
 ZTEST(thingset_bin, test_exec_fn_void_wrong_params)
@@ -575,7 +592,9 @@ ZTEST(thingset_bin, test_exec_fn_void_wrong_params)
 ZTEST(thingset_bin, test_exec_fn_not_executable)
 {
     /* !Access/rItem */
-    THINGSET_ASSERT_REQUEST_HEX("02 6C 4163636573732F724974656D 80", "A3 F6 F6");
+    THINGSET_ASSERT_REQUEST_HEX("02 6C 4163636573732F724974656D 80",
+                                "A3 F6 77 72 49 74 65 6D 20 69 73 20 6E 6F 74 20 65 78 65 63 75 74 "
+                                "61 62 6C 65"); /* rItem is not executable */
 }
 
 ZTEST(thingset_bin, test_exec_fn_int32_id)
