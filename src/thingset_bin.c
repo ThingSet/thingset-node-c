@@ -39,7 +39,7 @@ int bin_serialize_response(struct thingset_context *ts, uint8_t code, const char
             va_end(vargs);
 
             if (ret >= 0 && ret < msg_buf_size) {
-                zcbor_tstr_encode_ptr(ts->encoder, msg_buf_start, msg_buf_size);
+                zcbor_tstr_encode_ptr(ts->encoder, msg_buf_start, ret);
             }
         }
     }
