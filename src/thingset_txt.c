@@ -27,6 +27,54 @@
 #include <zephyr/sys/util.h>
 #endif
 
+static inline int txt_serialize_start(struct thingset_context *ts, char c)
+{
+    if (ts->rsp_size > ts->rsp_pos + 2) {
+        ts->rsp[ts->rsp_pos++] = c;
+        return 0;
+    }
+    else {
+        ts->rsp_pos = 0;
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+}
+
+static inline int txt_serialize_end(struct thingset_context *ts, char c)
+{
+    if (ts->rsp_size > ts->rsp_pos + 3) {
+        if (ts->rsp[ts->rsp_pos - 1] == ',') {
+            ts->rsp_pos--;
+        }
+        ts->rsp[ts->rsp_pos++] = c;
+        ts->rsp[ts->rsp_pos++] = ',';
+        return 0;
+    }
+    else {
+        ts->rsp_pos = 0;
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+}
+
+static int txt_serialize_map_start(struct thingset_context *ts)
+{
+    return txt_serialize_start(ts, '{');
+}
+
+static int txt_serialize_map_end(struct thingset_context *ts)
+{
+    return txt_serialize_end(ts, '}');
+}
+
+static int txt_serialize_list_start(struct thingset_context *ts)
+{
+    return txt_serialize_start(ts, '[');
+}
+
+static int txt_serialize_list_end(struct thingset_context *ts)
+{
+    return txt_serialize_end(ts, ']');
+}
+
 static int txt_serialize_response(struct thingset_context *ts, uint8_t code, const char *msg, ...)
 {
     va_list vargs;
@@ -278,18 +326,10 @@ static int txt_serialize_path(struct thingset_context *ts,
     return -THINGSET_ERR_INTERNAL_SERVER_ERR;
 }
 
-static int txt_serialize_metadata(struct thingset_context *ts,
-                                  const struct thingset_data_object *object)
+static int txt_serialize_string(struct thingset_context *ts, const char *buf, bool is_key)
 {
-    /* not used for text mode */
-
-    return -THINGSET_ERR_INTERNAL_SERVER_ERR;
-}
-
-static int txt_serialize_name(struct thingset_context *ts,
-                              const struct thingset_data_object *object)
-{
-    int len = snprintf(ts->rsp + ts->rsp_pos, ts->rsp_size - ts->rsp_pos, "\"%s\",", object->name);
+    int len = snprintf(ts->rsp + ts->rsp_pos, ts->rsp_size - ts->rsp_pos, "\"%s\"%s", buf,
+                       is_key ? ":" : ",");
     if (len >= 0 && len < ts->rsp_size - ts->rsp_pos) {
         ts->rsp_pos += len;
         return 0;
@@ -300,67 +340,60 @@ static int txt_serialize_name(struct thingset_context *ts,
     }
 }
 
+static int txt_serialize_name(struct thingset_context *ts,
+                              const struct thingset_data_object *object)
+{
+    return txt_serialize_string(ts, object->name, false);
+}
+
+static int txt_serialize_metadata(struct thingset_context *ts,
+                                  const struct thingset_data_object *object)
+{
+    int err = txt_serialize_map_start(ts);
+    if (err) {
+        return err;
+    }
+
+    if ((err = txt_serialize_string(ts, "name", true))) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    if ((err = txt_serialize_name(ts, object))) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    if ((err = txt_serialize_string(ts, "type", true))) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    char buf[128];
+    int len = thingset_get_type_name(ts, object, (char *)&buf, sizeof(buf));
+    if (len < 0) {
+        return THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    if ((err = txt_serialize_string(ts, buf, false))) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    if ((err = txt_serialize_map_end(ts))) {
+        return err;
+    }
+
+    return 0;
+}
+
 static int txt_serialize_name_value(struct thingset_context *ts,
                                     const struct thingset_data_object *object)
 {
     int err;
 
-    err = txt_serialize_name(ts, object);
+    err = txt_serialize_string(ts, object->name, true);
     if (err != 0) {
         return err;
     }
 
-    ts->rsp[ts->rsp_pos - 1] = ':'; /* replace comma with colon */
-
     return ts->api->serialize_value(ts, object);
-}
-
-static inline int txt_serialize_start(struct thingset_context *ts, char c)
-{
-    if (ts->rsp_size > ts->rsp_pos + 2) {
-        ts->rsp[ts->rsp_pos++] = c;
-        return 0;
-    }
-    else {
-        ts->rsp_pos = 0;
-        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
-    }
-}
-
-static inline int txt_serialize_end(struct thingset_context *ts, char c)
-{
-    if (ts->rsp_size > ts->rsp_pos + 3) {
-        if (ts->rsp[ts->rsp_pos - 1] == ',') {
-            ts->rsp_pos--;
-        }
-        ts->rsp[ts->rsp_pos++] = c;
-        ts->rsp[ts->rsp_pos++] = ',';
-        return 0;
-    }
-    else {
-        ts->rsp_pos = 0;
-        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
-    }
-}
-
-static int txt_serialize_map_start(struct thingset_context *ts)
-{
-    return txt_serialize_start(ts, '{');
-}
-
-static int txt_serialize_map_end(struct thingset_context *ts)
-{
-    return txt_serialize_end(ts, '}');
-}
-
-static int txt_serialize_list_start(struct thingset_context *ts)
-{
-    return txt_serialize_start(ts, '[');
-}
-
-static int txt_serialize_list_end(struct thingset_context *ts)
-{
-    return txt_serialize_end(ts, ']');
 }
 
 static void txt_serialize_finish(struct thingset_context *ts)
@@ -717,7 +750,13 @@ static int txt_deserialize_child(struct thingset_context *ts,
     const char *name = (char *)ts->msg_payload + ts->tokens[ts->tok_pos].start;
     size_t name_len = ts->tokens[ts->tok_pos].end - ts->tokens[ts->tok_pos].start;
 
-    *object = thingset_get_child_by_name(ts, ts->endpoint.object->id, name, name_len);
+    if (ts->endpoint.object->id == THINGSET_ID_METADATA) {
+        int index;
+        *object = thingset_get_object_by_path(ts, name, name_len, &index);
+    }
+    else {
+        *object = thingset_get_child_by_name(ts, ts->endpoint.object->id, name, name_len);
+    }
 
     if (*object == NULL) {
         return -THINGSET_ERR_NOT_FOUND;

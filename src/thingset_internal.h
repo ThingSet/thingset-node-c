@@ -69,7 +69,7 @@ struct thingset_api
     int (*serialize_path)(struct thingset_context *ts, const struct thingset_data_object *object);
 
     /**
-     * Serialize the type for the specified data object.
+     * Serialize the metadata (including the type) for the specified data object.
      *
      * @param ts Pointer to ThingSet context
      * @param object Pointer to data object
@@ -286,6 +286,18 @@ struct thingset_data_object *thingset_get_child_by_name(struct thingset_context 
  * @return Pointer to the data object or NULL in case of error
  */
 struct thingset_data_object *thingset_get_object_by_id(struct thingset_context *ts, uint16_t id);
+
+/**
+ * Get an object by its path.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param path Path to the object
+ * @param path_len Length of path
+ * @param index Pointer to an index which may be decoded as part of the path
+ */
+struct thingset_data_object *thingset_get_object_by_path(struct thingset_context *ts,
+                                                         const char *path, size_t path_len,
+                                                         int *index);
 
 /**
  * Get the relative path of an object

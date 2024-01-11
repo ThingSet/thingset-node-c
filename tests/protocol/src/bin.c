@@ -365,7 +365,7 @@ ZTEST(thingset_bin, test_fetch_metadata)
     const char req_hex[] =
         "05 "       /* FETCH */
         "18 19 "    /* _Metadata */
-        "84 "       /* array with 6 elements */
+        "84 "       /* array with 4 elements */
         "19 0207 "  /* uint 0x207 */
         "19 0601 "  /* uint 0x601 */
         "10 "       /* uint 0x10 */
@@ -430,8 +430,8 @@ ZTEST(thingset_bin, test_fetch_metadata_parameterised_func)
         "85 F6 "
         "81 " /* array with 1 element */
         /* name: xVoid, type: ()->() */
-        "a2 64 6e 61 6d 65 6a 78 49 33 32 50 61 72 61 6d 73 64 74 79 70 65 74 28 73 74 72 69 6e 67 "
-        "2c 20 69 33 32 29 2d 3e 28 69 33 32 29"; /* name: xI32Params, type: (string, i32)->(i32) */
+        "a2 64 6e 61 6d 65 6a 78 49 33 32 50 61 72 61 6d 73 64 74 79 70 65 73 28 73 74 72 69 6e 67 "
+        "2c 69 33 32 29 2d 3e 28 69 33 32 29"; /* name: xI32Params, type: (string,i32)->(i32) */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }

@@ -93,7 +93,7 @@ extern "C" {
 #define THINGSET_ID_IDS         0x16 /**< `_Ids` overlay */
 #define THINGSET_ID_PATHS       0x17 /**< `_Paths` overlay */
 #define THINGSET_ID_METADATAURL 0x18 /**< URL for extended metadata information: `cMetadataURL` */
-#define THINGSET_ID_METADATA    0x19 /**< `_Types` overlay */
+#define THINGSET_ID_METADATA    0x19 /**< `_Metadata` overlay */
 #define THINGSET_ID_NODEID      0x1D /**< String containing the node ID: `cNodeID` */
 
 /*
