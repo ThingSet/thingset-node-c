@@ -4,4 +4,5 @@ tests:
   thingset.protocol:
     integration_platforms:
       - native_posix
+      - native_posix_64
     extra_args: EXTRA_CFLAGS=-Wno-error

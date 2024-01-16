@@ -67,6 +67,14 @@ config THINGSET_JSON_STRING_ESCAPING
 	  containing characters like the quotation mark that have to be escaped in JSON. This may
 	  be the case if if ThingSet is used for logging.
 
+config THINGSET_METADATA_ENDPOINT
+	bool "Enable _Metadata endpoint"
+	help
+	  The _Metadata endpoint exposes a limited set of metadata like the variable name and type.
+
+	  The endpoint is disabled by default in order to reduce memory footprint for constrained
+	  devices.
+
 module = THINGSET
 module-str = thingset
 source "subsys/logging/Kconfig.template.log_config"

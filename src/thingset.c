@@ -27,10 +27,20 @@ extern struct thingset_data_object _thingset_data_object_list_end[];
 #define TYPE_SECTION_START(secname) _CONCAT(_##secname, _list_start)
 #endif /* STRUCT_SECTION_START_EXTERN */
 
-/* dummy objects to avoid using NULL pointer for root object or _Paths overlay */
+/* dummy objects to avoid using NULL pointer for root object or _Paths/_Metadata overlays */
 static struct thingset_data_object root_object = THINGSET_GROUP(0, 0, "", NULL);
 static struct thingset_data_object paths_object =
     THINGSET_GROUP(0, THINGSET_ID_PATHS, "_Paths", NULL);
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
+static struct thingset_data_object metadata_object =
+    THINGSET_GROUP(0, THINGSET_ID_METADATA, "_Metadata", NULL);
+#endif
+
+static char *type_name_lookup[THINGSET_TYPE_FN_I32 + 1] = {
+    "bool",   "u8",    "i8",     "u16",     "i16",      "u32",    "i32",
+    "u64",    "i64",   "f32",    "decimal", "string",   "buffer", "array",
+    "record", "group", "subset", "()->()",  "()->(i32)"
+};
 
 static void check_id_duplicates(const struct thingset_data_object *objects, size_t num)
 {
@@ -427,6 +437,12 @@ struct thingset_data_object *thingset_get_child_by_name(struct thingset_context 
         }
     }
 
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
+    if (len == strlen(metadata_object.name) && strncmp(name, metadata_object.name, len) == 0) {
+        return &metadata_object;
+    }
+#endif
+
     return NULL;
 }
 
@@ -441,25 +457,16 @@ struct thingset_data_object *thingset_get_object_by_id(struct thingset_context *
     return NULL;
 }
 
-int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpoint *endpoint,
-                              const char *path, size_t path_len)
+struct thingset_data_object *thingset_get_object_by_path(struct thingset_context *ts,
+                                                         const char *path, size_t path_len,
+                                                         int *index)
 {
+    *index = THINGSET_ENDPOINT_INDEX_NONE;
+
     struct thingset_data_object *object = NULL;
     const char *start = path;
     const char *end;
     uint16_t parent = 0;
-
-    endpoint->index = THINGSET_ENDPOINT_INDEX_NONE;
-    endpoint->use_ids = false;
-
-    if (path_len == 0) {
-        endpoint->object = &root_object;
-        return 0;
-    }
-
-    if (start[0] == '/') {
-        return -THINGSET_ERR_NOT_A_GATEWAY;
-    }
 
     /* maximum depth of 10 assumed */
     for (int i = 0; i < 10; i++) {
@@ -470,13 +477,11 @@ int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpo
                 && start[0] <= '9')
             {
                 /* numeric ID to select index in an array of records */
-                endpoint->index = strtoul(start, NULL, 0);
-                endpoint->object = object;
+                *index = strtoul(start, NULL, 0);
             }
             else if (start[0] == '-') {
                 /* non-existent element behind the last array element */
-                endpoint->index = THINGSET_ENDPOINT_INDEX_NEW;
-                endpoint->object = object;
+                *index = THINGSET_ENDPOINT_INDEX_NEW;
             }
             else {
                 object = thingset_get_child_by_name(ts, parent, start, path + path_len - start);
@@ -500,6 +505,27 @@ int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpo
             }
         }
     }
+
+    return object;
+}
+
+int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpoint *endpoint,
+                              const char *path, size_t path_len)
+{
+    endpoint->index = THINGSET_ENDPOINT_INDEX_NONE;
+    endpoint->use_ids = false;
+
+    if (path_len == 0) {
+        endpoint->object = &root_object;
+        return 0;
+    }
+
+    if (path[0] == '/') {
+        return -THINGSET_ERR_NOT_A_GATEWAY;
+    }
+
+    struct thingset_data_object *object =
+        thingset_get_object_by_path(ts, path, path_len, &endpoint->index);
 
     endpoint->object = object;
 
@@ -525,6 +551,12 @@ int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoin
         endpoint->object = &paths_object;
         return 0;
     }
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
+    else if (id == THINGSET_ID_METADATA) {
+        endpoint->object = &metadata_object;
+        return 0;
+    }
+#endif
 
     object = thingset_get_object_by_id(ts, id);
     if (object != NULL) {
@@ -568,5 +600,75 @@ int thingset_get_path(struct thingset_context *ts, char *buf, size_t size,
     }
     else {
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+}
+
+static inline char *type_to_type_name(const enum thingset_type type)
+{
+    return type_name_lookup[type];
+}
+
+static int get_function_arg_types(struct thingset_context *ts, uint16_t parent_id, char *buf,
+                                  size_t size)
+{
+    int len = 0;
+    for (unsigned int i = 0; i < ts->num_objects; i++) {
+        if (ts->data_objects[i].parent_id == parent_id) {
+            if (len > 0) {
+                if (size < 2) {
+                    return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+                }
+                len += sprintf(buf, ",");
+                size -= 1;
+                buf += 1;
+            }
+            char *elementType = type_to_type_name(ts->data_objects[i].type);
+            if (len > size) {
+                return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+            }
+            len += sprintf(buf, "%s", elementType);
+            buf += len;
+            size -= len;
+        }
+    }
+    return len;
+}
+
+int thingset_get_type_name(struct thingset_context *ts, const struct thingset_data_object *obj,
+                           char *buf, size_t size)
+{
+    switch (obj->type) {
+        case THINGSET_TYPE_ARRAY:
+            char *elementType = type_to_type_name(obj->data.array->element_type);
+            if (sizeof(elementType) > size) {
+                return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+            }
+            return sprintf(buf, "%s[]", elementType);
+        case THINGSET_TYPE_FN_VOID:
+        case THINGSET_TYPE_FN_I32:
+            sprintf(buf, "(");
+            int len = 1 + get_function_arg_types(ts, obj->id, buf + 1, size - 1);
+            if (len < 0) {
+                return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+            }
+            if (size - len < 8) { /* enough space to finish? */
+                return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+            }
+            buf += len;
+            size -= len;
+            switch (obj->type) {
+                case THINGSET_TYPE_FN_VOID:
+                    len += sprintf(buf, ")->()");
+                    break;
+                case THINGSET_TYPE_FN_I32:
+                    len += sprintf(buf, ")->(i32)");
+                    break;
+                default:
+                    break;
+            }
+            return len;
+        default:
+            char *type = type_to_type_name(obj->type);
+            return sprintf(buf, "%s", type);
     }
 }

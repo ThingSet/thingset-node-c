@@ -234,6 +234,16 @@ ZTEST(thingset_txt, test_fetch_float_array)
     THINGSET_ASSERT_REQUEST_TXT("?Arrays [\"wF32\"]", ":85 [[-1.1,-2.2,-3.3]]");
 }
 
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
+
+ZTEST(thingset_txt, test_fetch_metadata)
+{
+    THINGSET_ASSERT_REQUEST_TXT("?_Metadata [\"Arrays/wF32\"]",
+                                ":85 [{\"name\":\"wF32\",\"type\":\"f32[]\"}]");
+}
+
+#endif /* CONFIG_THINGSET_METADATA_ENDPOINT */
+
 #if CONFIG_THINGSET_JSON_STRING_ESCAPING
 
 ZTEST(thingset_txt, test_fetch_escaped_string)
