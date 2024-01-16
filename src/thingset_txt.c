@@ -349,6 +349,7 @@ static int txt_serialize_name(struct thingset_context *ts,
 static int txt_serialize_metadata(struct thingset_context *ts,
                                   const struct thingset_data_object *object)
 {
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
     int err = txt_serialize_map_start(ts);
     if (err) {
         return err;
@@ -381,6 +382,9 @@ static int txt_serialize_metadata(struct thingset_context *ts,
     }
 
     return 0;
+#else
+    return -THINGSET_ERR_NOT_IMPLEMENTED;
+#endif
 }
 
 static int txt_serialize_name_value(struct thingset_context *ts,

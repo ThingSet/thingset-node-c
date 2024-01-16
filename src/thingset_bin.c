@@ -164,6 +164,7 @@ static int bin_serialize_path(struct thingset_context *ts,
 static int bin_serialize_metadata(struct thingset_context *ts,
                                   const struct thingset_data_object *object)
 {
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
     int err = bin_serialize_map_start(ts);
     if (err) {
         return err;
@@ -197,6 +198,9 @@ static int bin_serialize_metadata(struct thingset_context *ts,
     }
 
     return 0;
+#else
+    return -THINGSET_ERR_NOT_IMPLEMENTED;
+#endif
 }
 
 static int bin_serialize_value(struct thingset_context *ts,
