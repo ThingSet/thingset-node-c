@@ -219,9 +219,11 @@ int thingset_common_fetch(struct thingset_context *ts)
             if (ts->endpoint.object->id == THINGSET_ID_PATHS) {
                 err = ts->api->serialize_path(ts, object);
             }
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
             else if (ts->endpoint.object->id == THINGSET_ID_METADATA) {
                 err = ts->api->serialize_metadata(ts, object);
             }
+#endif
             else {
                 err = ts->api->serialize_value(ts, object);
             }

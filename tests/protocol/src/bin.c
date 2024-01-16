@@ -360,6 +360,8 @@ ZTEST(thingset_bin, test_fetch_paths)
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
 
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
+
 ZTEST(thingset_bin, test_fetch_metadata)
 {
     const char req_hex[] =
@@ -435,6 +437,8 @@ ZTEST(thingset_bin, test_fetch_metadata_parameterised_func)
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
+
+#endif /* CONFIG_THINGSET_METADATA_ENDPOINT */
 
 ZTEST(thingset_bin, test_update_timestamp_zero_id)
 {

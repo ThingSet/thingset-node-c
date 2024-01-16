@@ -346,10 +346,10 @@ static int txt_serialize_name(struct thingset_context *ts,
     return txt_serialize_string(ts, object->name, false);
 }
 
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
 static int txt_serialize_metadata(struct thingset_context *ts,
                                   const struct thingset_data_object *object)
 {
-#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
     int err = txt_serialize_map_start(ts);
     if (err) {
         return err;
@@ -382,10 +382,8 @@ static int txt_serialize_metadata(struct thingset_context *ts,
     }
 
     return 0;
-#else
-    return -THINGSET_ERR_NOT_IMPLEMENTED;
-#endif
 }
+#endif /* CONFIG_THINGSET_METADATA_ENDPOINT */
 
 static int txt_serialize_name_value(struct thingset_context *ts,
                                     const struct thingset_data_object *object)
@@ -832,7 +830,9 @@ static struct thingset_api txt_api = {
     .serialize_value = txt_serialize_value,
     .serialize_key_value = txt_serialize_name_value,
     .serialize_path = txt_serialize_path,
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
     .serialize_metadata = txt_serialize_metadata,
+#endif
     .serialize_map_start = txt_serialize_map_start,
     .serialize_map_end = txt_serialize_map_end,
     .serialize_list_start = txt_serialize_list_start,

@@ -68,11 +68,13 @@ config THINGSET_JSON_STRING_ESCAPING
 	  be the case if if ThingSet is used for logging.
 
 config THINGSET_METADATA_ENDPOINT
-	bool "Enable the metadata endpoint which exposes a limited set of metadata via a fixed endpoint"
-	default y
+	bool "Enable _Metadata endpoint"
 	help
-		It may be useful to disable this for devices with very limited memory as a request for metadata
-		for a significant number of endpoints could consume a significant amount of memory.
+	  The _Metadata endpoint exposes a limited set of metadata like the variable name and type.
+
+	  The endpoint is disabled by default in order to reduce memory footprint for constrained
+	  devices.
+
 module = THINGSET
 module-str = thingset
 source "subsys/logging/Kconfig.template.log_config"

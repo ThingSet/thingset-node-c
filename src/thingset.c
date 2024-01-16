@@ -31,8 +31,10 @@ extern struct thingset_data_object _thingset_data_object_list_end[];
 static struct thingset_data_object root_object = THINGSET_GROUP(0, 0, "", NULL);
 static struct thingset_data_object paths_object =
     THINGSET_GROUP(0, THINGSET_ID_PATHS, "_Paths", NULL);
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
 static struct thingset_data_object metadata_object =
     THINGSET_GROUP(0, THINGSET_ID_METADATA, "_Metadata", NULL);
+#endif
 
 static char *type_name_lookup[THINGSET_TYPE_FN_I32 + 1] = {
     "bool",   "u8",    "i8",     "u16",     "i16",      "u32",    "i32",
@@ -435,9 +437,11 @@ struct thingset_data_object *thingset_get_child_by_name(struct thingset_context 
         }
     }
 
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
     if (len == strlen(metadata_object.name) && strncmp(name, metadata_object.name, len) == 0) {
         return &metadata_object;
     }
+#endif
 
     return NULL;
 }
@@ -547,10 +551,12 @@ int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoin
         endpoint->object = &paths_object;
         return 0;
     }
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
     else if (id == THINGSET_ID_METADATA) {
         endpoint->object = &metadata_object;
         return 0;
     }
+#endif
 
     object = thingset_get_object_by_id(ts, id);
     if (object != NULL) {

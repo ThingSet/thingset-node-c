@@ -68,6 +68,7 @@ struct thingset_api
      */
     int (*serialize_path)(struct thingset_context *ts, const struct thingset_data_object *object);
 
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
     /**
      * Serialize the metadata (including the type) for the specified data object.
      *
@@ -78,6 +79,7 @@ struct thingset_api
      */
     int (*serialize_metadata)(struct thingset_context *ts,
                               const struct thingset_data_object *object);
+#endif /* CONFIG_THINGSET_METADATA_ENDPOINT */
 
     /**
      * Serialize the key and value of the specified data object.

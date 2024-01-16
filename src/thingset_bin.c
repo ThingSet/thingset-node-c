@@ -161,10 +161,10 @@ static int bin_serialize_path(struct thingset_context *ts,
                : -THINGSET_ERR_RESPONSE_TOO_LARGE;
 }
 
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
 static int bin_serialize_metadata(struct thingset_context *ts,
                                   const struct thingset_data_object *object)
 {
-#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
     int err = bin_serialize_map_start(ts);
     if (err) {
         return err;
@@ -198,10 +198,8 @@ static int bin_serialize_metadata(struct thingset_context *ts,
     }
 
     return 0;
-#else
-    return -THINGSET_ERR_NOT_IMPLEMENTED;
-#endif
 }
+#endif /* CONFIG_THINGSET_METADATA_ENDPOINT */
 
 static int bin_serialize_value(struct thingset_context *ts,
                                const struct thingset_data_object *object)
@@ -643,7 +641,9 @@ static struct thingset_api bin_api = {
     .serialize_value = bin_serialize_value,
     .serialize_key_value = bin_serialize_key_value,
     .serialize_path = bin_serialize_path,
+#ifdef CONFIG_THINGSET_METADATA_ENDPOINT
     .serialize_metadata = bin_serialize_metadata,
+#endif
     .serialize_map_start = bin_serialize_map_start,
     .serialize_map_end = bin_serialize_map_end,
     .serialize_list_start = bin_serialize_list_start,
