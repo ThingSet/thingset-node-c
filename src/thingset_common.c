@@ -124,6 +124,7 @@ int thingset_common_serialize_record(struct thingset_context *ts,
 
 int thingset_common_get(struct thingset_context *ts)
 {
+    struct thingset_data_object *parent;
     int err;
 
     ts->api->serialize_response(ts, THINGSET_STATUS_CONTENT, NULL);
@@ -142,9 +143,20 @@ int thingset_common_get(struct thingset_context *ts)
                 err = thingset_common_serialize_record(ts, ts->endpoint.object, ts->endpoint.index);
                 break;
             }
-            /* fallthrough */
-        default:
             err = ts->api->serialize_value(ts, ts->endpoint.object);
+            break;
+        default:
+            parent = thingset_get_object_by_id(ts, ts->endpoint.object->parent_id);
+
+            if (parent != NULL && parent->data.group_callback != NULL) {
+                parent->data.group_callback(THINGSET_CALLBACK_PRE_READ);
+            }
+
+            err = ts->api->serialize_value(ts, ts->endpoint.object);
+
+            if (parent != NULL && parent->data.group_callback != NULL) {
+                parent->data.group_callback(THINGSET_CALLBACK_POST_READ);
+            }
             break;
     }
 

@@ -330,7 +330,7 @@ ZTEST(thingset_txt, test_update_unknown_object)
     THINGSET_ASSERT_REQUEST_TXT("=Types {\"wI3\" : 52}", ":A4");
 }
 
-ZTEST(thingset_txt, test_update_group_callback)
+ZTEST(thingset_txt, test_group_callback)
 {
     group_callback_pre_read_count = 0;
     group_callback_post_read_count = 0;
@@ -355,6 +355,13 @@ ZTEST(thingset_txt, test_update_group_callback)
 
     zassert_equal(group_callback_pre_read_count, 2);
     zassert_equal(group_callback_post_read_count, 2);
+    zassert_equal(group_callback_pre_write_count, 1);
+    zassert_equal(group_callback_post_write_count, 1);
+
+    THINGSET_ASSERT_REQUEST_TXT("?Access/wItem", ":85 1.00");
+
+    zassert_equal(group_callback_pre_read_count, 3);
+    zassert_equal(group_callback_post_read_count, 3);
     zassert_equal(group_callback_pre_write_count, 1);
     zassert_equal(group_callback_post_write_count, 1);
 }
