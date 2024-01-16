@@ -184,7 +184,7 @@ static int bin_serialize_metadata(struct thingset_context *ts,
     }
 
     char buf[128];
-    int len = thingset_get_type_name(ts, object, (char *)&buf, sizeof(buf));
+    int len = thingset_get_type_name(ts, object, buf, sizeof(buf));
     if (len < 0) {
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
