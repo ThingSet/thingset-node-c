@@ -470,8 +470,9 @@ int thingset_txt_get_fetch(struct thingset_context *ts)
     }
 }
 
-static int txt_deserialize_value(struct thingset_context *ts,
-                                 const struct thingset_data_object *object, bool check_only)
+static int txt_deserialize_simple_value(struct thingset_context *ts,
+                                        union thingset_data_pointer data, int type, int detail,
+                                        bool check_only)
 {
     if (ts->tok_pos >= ts->tok_count) {
         return -THINGSET_ERR_DESERIALIZATION_FINISHED;
@@ -487,65 +488,64 @@ static int txt_deserialize_value(struct thingset_context *ts,
     }
 
     errno = 0;
-    switch (object->type) {
+    switch (type) {
         case THINGSET_TYPE_F32:
-            *object->data.f32 = strtod(buf, NULL);
+            *data.f32 = strtod(buf, NULL);
             break;
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT
         case THINGSET_TYPE_DECFRAC: {
             float tmp = strtod(buf, NULL);
             /* negative decimals and positive exponent */
-            for (int16_t i = 0; i < -object->detail; i++) {
+            for (int16_t i = 0; i < -detail; i++) {
                 tmp /= 10.0F;
             }
             /* positive decimals and negative exponent */
-            for (int16_t i = 0; i > -object->detail; i--) {
+            for (int16_t i = 0; i > -detail; i--) {
                 tmp *= 10.0F;
             }
-            *object->data.decfrac = (int32_t)tmp;
+            *data.decfrac = (int32_t)tmp;
             break;
         }
 #endif
 #if CONFIG_THINGSET_64BIT_TYPES_SUPPORT
         case THINGSET_TYPE_U64:
-            *object->data.u64 = strtoull(buf, NULL, 0);
+            *data.u64 = strtoull(buf, NULL, 0);
             break;
         case THINGSET_TYPE_I64:
-            *object->data.i64 = strtoll(buf, NULL, 0);
+            *data.i64 = strtoll(buf, NULL, 0);
             break;
 #endif
         case THINGSET_TYPE_U32:
-            *object->data.u32 = strtoul(buf, NULL, 0);
+            *data.u32 = strtoul(buf, NULL, 0);
             break;
         case THINGSET_TYPE_I32:
-            *object->data.i32 = strtol(buf, NULL, 0);
+            *data.i32 = strtol(buf, NULL, 0);
             break;
         case THINGSET_TYPE_U16:
-            *object->data.u16 = strtoul(buf, NULL, 0);
+            *data.u16 = strtoul(buf, NULL, 0);
             break;
         case THINGSET_TYPE_I16:
-            *object->data.i16 = strtol(buf, NULL, 0);
+            *data.i16 = strtol(buf, NULL, 0);
             break;
         case THINGSET_TYPE_U8:
-            *object->data.u8 = strtoul(buf, NULL, 0);
+            *data.u8 = strtoul(buf, NULL, 0);
             break;
         case THINGSET_TYPE_I8:
-            *object->data.i8 = strtol(buf, NULL, 0);
+            *data.i8 = strtol(buf, NULL, 0);
             break;
         case THINGSET_TYPE_BOOL:
             if (buf[0] == 't' || buf[0] == '1') {
-                *object->data.b = true;
+                *data.b = true;
             }
             else if (buf[0] == 'f' || buf[0] == '0') {
-                *object->data.b = false;
+                *data.b = false;
             }
             else {
                 return -THINGSET_ERR_UNSUPPORTED_FORMAT;
             }
             break;
         case THINGSET_TYPE_STRING:
-            if (ts->tokens[ts->tok_pos].type != JSMN_STRING || (unsigned int)object->detail <= len)
-            {
+            if (ts->tokens[ts->tok_pos].type != JSMN_STRING || (unsigned int)detail <= len) {
                 return -THINGSET_ERR_REQUEST_TOO_LARGE;
             }
             if (!check_only) {
@@ -558,25 +558,25 @@ static int txt_deserialize_value(struct thingset_context *ts,
                             case '"':
                             case '/':
                             case '\\':
-                                object->data.str[data_pos++] = buf[pos];
+                                data.str[data_pos++] = buf[pos];
                                 break;
                             case 'b':
-                                object->data.str[data_pos++] = '\b';
+                                data.str[data_pos++] = '\b';
                                 break;
                             case 'f':
-                                object->data.str[data_pos++] = '\f';
+                                data.str[data_pos++] = '\f';
                                 break;
                             case 'n':
-                                object->data.str[data_pos++] = '\n';
+                                data.str[data_pos++] = '\n';
                                 break;
                             case 'r':
-                                object->data.str[data_pos++] = '\r';
+                                data.str[data_pos++] = '\r';
                                 break;
                             case 't':
-                                object->data.str[data_pos++] = '\t';
+                                data.str[data_pos++] = '\t';
                                 break;
                             case 'u':
-                                hex2bin(&buf[pos], 4, &object->data.str[data_pos++], 2);
+                                hex2bin(&buf[pos], 4, &data.str[data_pos++], 2);
                                 break;
                             default:
                                 /* this would be invalid JSON */
@@ -584,24 +584,23 @@ static int txt_deserialize_value(struct thingset_context *ts,
                         }
                     }
                     else {
-                        object->data.str[data_pos++] = buf[pos];
+                        data.str[data_pos++] = buf[pos];
                     }
                 }
 #else
-                strncpy(object->data.str, buf, len);
-                object->data.str[len] = '\0';
+                strncpy(data.str, buf, len);
+                data.str[len] = '\0';
 #endif
             }
             break;
 #if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
         case THINGSET_TYPE_BYTES: {
-            if (ts->tokens[ts->tok_pos].type != JSMN_STRING
-                || object->data.bytes->max_bytes < len / 4 * 3)
+            if (ts->tokens[ts->tok_pos].type != JSMN_STRING || data.bytes->max_bytes < len / 4 * 3)
             {
                 return -THINGSET_ERR_REQUEST_TOO_LARGE;
             }
             if (!check_only) {
-                struct thingset_bytes *bytes_buf = object->data.bytes;
+                struct thingset_bytes *bytes_buf = data.bytes;
                 size_t byteslen;
                 int err = base64_decode(bytes_buf->bytes, bytes_buf->max_bytes, &byteslen,
                                         (uint8_t *)buf, len);
@@ -623,6 +622,42 @@ static int txt_deserialize_value(struct thingset_context *ts,
 
     ts->tok_pos++;
     return 0;
+}
+
+static int txt_deserialize_value(struct thingset_context *ts,
+                                 const struct thingset_data_object *object, bool check_only)
+{
+    int err =
+        txt_deserialize_simple_value(ts, object->data, object->type, object->detail, check_only);
+
+    if (err == -THINGSET_ERR_UNSUPPORTED_FORMAT && object->type == THINGSET_TYPE_ARRAY) {
+        struct thingset_array *array = object->data.array;
+
+        err = ts->api->deserialize_list_start(ts);
+        if (err != 0) {
+            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+        }
+
+        size_t type_size = thingset_type_size(array->element_type);
+        int index = 0;
+        do {
+            /* using uint8_t pointer for byte-wise pointer arithmetics */
+            union thingset_data_pointer data = { .u8 = array->elements.u8 + index * type_size };
+
+            err = txt_deserialize_simple_value(ts, data, array->element_type, array->decimals,
+                                               check_only);
+            if (err != 0) {
+                break;
+            }
+            index++;
+        } while (index < array->num_elements);
+
+        if (!check_only) {
+            array->num_elements = index;
+        }
+    }
+
+    return err;
 }
 
 int thingset_txt_desire(struct thingset_context *ts)
