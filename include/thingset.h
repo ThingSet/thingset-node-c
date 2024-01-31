@@ -1516,7 +1516,7 @@ struct thingset_endpoint
     /** Pointer to the data object in memory (must never be NULL) */
     struct thingset_data_object *object;
     /** Index number or THINGSET_ENDPOINT_INDEX_NONE or THINGSET_ENDPOINT_INDEX_NEW */
-    int index;
+    int32_t index;
     /** Use names or IDs (relevant for binary mode) */
     bool use_ids;
 };

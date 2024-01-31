@@ -155,6 +155,26 @@ ZTEST(thingset_bin, test_get_num_records_name)
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
 
+ZTEST(thingset_bin, test_get_record_ids)
+{
+    const char req_hex[] = "01 82 19 0600 01"; /* [0x600, 0x01] */
+    const char rsp_exp_hex[] =
+        "85 F6 AE "
+        "19 06 01 02 "                      /* 0x0601:2, */
+        "19 06 02 f5  "                     /* 0x0602:true, */
+        "19 06 03 08 19 06 04 27 "          /* 0x0603:8,0x0604:-8, */
+        "19 06 05 10 19 06 06 2f "          /* 0x0605:16,0x0606:-16, */
+        "19 06 07 18 20 19 06 08 38 1f "    /* 0x0607:32,0x0608:-32, */
+        "19 06 09 18 40 19 06 0a 38 3f "    /* 0x0609:64,0x060A:-64, */
+        "19 06 0b fa c0 4c cc cd "          /* 0x0601B:-3.2 */
+        "19 06 0c c4 82 21 38 1f "          /* 0x060C: 4([-2, -32])*/
+        "19 06 0d 66 73 74 72 69 6e 67 "    /* 0x060D:"string" */
+        "19 06 0f "                         /* 0x060E: */
+        "83 fa 3f 9d 70 a4 fa 40 91 eb 85 fa 40 fc 7a e1";  /* [1.23, 4.56, 7.89] */
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+}
+
 ZTEST(thingset_bin, test_get_record_names)
 {
     const char req_hex[] = "01 69 5265636F7264732F31"; /* Records/1 */

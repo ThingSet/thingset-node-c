@@ -325,6 +325,19 @@ static int bin_parse_endpoint(struct thingset_context *ts)
     else if (zcbor_uint32_decode(ts->decoder, &id) == true && id <= UINT16_MAX) {
         err = thingset_endpoint_by_id(ts, &ts->endpoint, id);
     }
+    else if (zcbor_list_start_decode(ts->decoder) == true) {
+        if (zcbor_uint32_decode(ts->decoder, &id) == true && id <= UINT16_MAX) {
+            err = thingset_endpoint_by_id(ts, &ts->endpoint, id);
+            if (err == 0) {
+                if (!zcbor_int32_decode(ts->decoder, &ts->endpoint.index) ||
+                    ts->endpoint.index < 0 || !zcbor_list_end_decode(ts->decoder))
+                {
+                    err = -THINGSET_ERR_BAD_REQUEST;
+                }
+                /* else: ID and index found, return 0 */
+            }
+        }
+    }
 
     if (err != 0) {
         ts->api->serialize_response(ts, -err, "Invalid endpoint");
