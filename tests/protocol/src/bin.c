@@ -155,15 +155,11 @@ ZTEST(thingset_bin, test_get_num_records_name)
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
 
-#if 0
-/*
- * For some reason below test fails because rsp_exp_hex is larger than 255 characters.
- */
 ZTEST(thingset_bin, test_get_record_names)
 {
     const char req_hex[] = "01 69 5265636F7264732F31"; /* Records/1 */
     const char rsp_exp_hex[] =
-        "85 AD "
+        "85 F6 AE "
         "63 74 5f 73 02 "                               /* "t_s":2, */
         "65 77 42 6f 6f 6c f5 "                         /* "wBool":true, */
         "63 77 55 38 08 63 77 49 38 27 "                /* "wU8":8,"wI8":-8, */
@@ -172,13 +168,12 @@ ZTEST(thingset_bin, test_get_record_names)
         "64 77 55 36 34 18 40 64 77 49 36 34 38 3f "    /* "wU64":64,"wI64":-64, */
         "64 77 46 33 32 fa c0 4c cc cd "                /* "wF32":-3.2 */
         "68 77 44 65 63 46 72 61 63 c4 82 21 38 1f "    /* "wDecFrac": 4([-2, -32])*/
-        "67 77 53 74 72 69 6e 67 66 73 74 72 69 6e 67"; /* "wString":"string" */
-
-    printf("strlen(rsp_exp_hex): %d\n", strlen(rsp_exp_hex));
+        "67 77 53 74 72 69 6e 67 66 73 74 72 69 6e 67 " /* "wString":"string" */
+        "69 77 46 33 32 41 72 72 61 79 "                /* "wF32Array": */
+        "83 fa 3f 9d 70 a4 fa 40 91 eb 85 fa 40 fc 7a e1"; /* [1.23, 4.56, 7.89] */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
-#endif
 
 ZTEST(thingset_bin, test_fetch_root_ids)
 {

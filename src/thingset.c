@@ -473,13 +473,26 @@ struct thingset_data_object *thingset_get_object_by_path(struct thingset_context
         end = strchr(start, '/');
         if (end == NULL || end >= path + path_len) {
             /* reached at the end of the path */
-            if (object != NULL && object->type == THINGSET_TYPE_RECORDS && start[0] >= '0'
-                && start[0] <= '9')
+            if (object != NULL && object->type == THINGSET_TYPE_RECORDS && *start >= '0'
+                && *start <= '9')
             {
                 /* numeric ID to select index in an array of records */
-                *index = strtoul(start, NULL, 0);
+                /*
+                 * Note: strtoul and atoi only work with null-terminated strings, so we have to use
+                 * an own implementation to be able to parse CBOR-encoded strings.
+                 */
+                *index = *start - '0';
+                while (start <= end) {
+                    if (*start >= '0' && *start <= '9') {
+                        *index = (*index)*10 + *start - '0';
+                        start++;
+                    }
+                    else {
+                        return NULL;
+                    }
+                }
             }
-            else if (start[0] == '-') {
+            else if (*start == '-') {
                 /* non-existent element behind the last array element */
                 *index = THINGSET_ENDPOINT_INDEX_NEW;
             }
