@@ -382,14 +382,26 @@ static int bin_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
 
 static int bin_serialize_report_header(struct thingset_context *ts, const char *path)
 {
+    bool success;
+
     ts->rsp[0] = THINGSET_BIN_REPORT;
 
-    if (zcbor_uint32_put(ts->encoder, ts->endpoint.object->id)) {
-        return 0;
+    if (ts->endpoint.use_ids) {
+        if (ts->endpoint.index == THINGSET_ENDPOINT_INDEX_NONE) {
+            success = zcbor_uint32_put(ts->encoder, ts->endpoint.object->id);
+        }
+        else {
+            success = zcbor_list_start_encode(ts->encoder, UINT8_MAX);
+            success |= zcbor_uint32_put(ts->encoder, ts->endpoint.object->id);
+            success |= zcbor_uint32_put(ts->encoder, ts->endpoint.index);
+            success |= zcbor_list_end_encode(ts->encoder, UINT8_MAX);
+        }
     }
     else {
-        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+        success = zcbor_tstr_encode_ptr(ts->encoder, path, strlen(path));
     }
+
+    return success ? 0 : -THINGSET_ERR_RESPONSE_TOO_LARGE;
 }
 
 static void bin_deserialize_payload_reset(struct thingset_context *ts)

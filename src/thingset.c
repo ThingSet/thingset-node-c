@@ -366,6 +366,10 @@ int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size
             ts->endpoint.use_ids = true;
             thingset_bin_setup(ts, 1);
             break;
+        case THINGSET_BIN_NAMES_VALUES:
+            ts->endpoint.use_ids = false;
+            thingset_bin_setup(ts, 1);
+            break;
         default:
             err = -THINGSET_ERR_NOT_IMPLEMENTED;
             goto out;
