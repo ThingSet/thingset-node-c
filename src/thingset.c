@@ -488,7 +488,7 @@ struct thingset_data_object *thingset_get_object_by_path(struct thingset_context
                 *index = *start - '0';
                 while (start <= end) {
                     if (*start >= '0' && *start <= '9') {
-                        *index = (*index)*10 + *start - '0';
+                        *index = (*index) * 10 + *start - '0';
                         start++;
                     }
                     else {
@@ -655,12 +655,13 @@ int thingset_get_type_name(struct thingset_context *ts, const struct thingset_da
                            char *buf, size_t size)
 {
     switch (obj->type) {
-        case THINGSET_TYPE_ARRAY:
+        case THINGSET_TYPE_ARRAY: {
             char *elementType = type_to_type_name(obj->data.array->element_type);
             if (sizeof(elementType) > size) {
                 return -THINGSET_ERR_RESPONSE_TOO_LARGE;
             }
             return sprintf(buf, "%s[]", elementType);
+        }
         case THINGSET_TYPE_FN_VOID:
         case THINGSET_TYPE_FN_I32:
             sprintf(buf, "(");
@@ -684,8 +685,9 @@ int thingset_get_type_name(struct thingset_context *ts, const struct thingset_da
                     break;
             }
             return len;
-        default:
+        default: {
             char *type = type_to_type_name(obj->type);
             return sprintf(buf, "%s", type);
+        }
     }
 }
