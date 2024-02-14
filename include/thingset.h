@@ -1737,6 +1737,8 @@ struct thingset_data_object *thingset_iterate_subsets(struct thingset_context *t
  * This function can be used to initialize data objects from previously exported data (using
  * thingset_export_subsets function) and stored in the EEPROM or other non-volatile memory.
  *
+ * Unknown data items are silently ignored.
+ *
  * @param ts Pointer to ThingSet context.
  * @param data Buffer containing ID/value map that should be written to the data objects
  * @param len Length of the data in the buffer
@@ -1750,6 +1752,8 @@ int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_
 
 /**
  * Import data into a record.
+ *
+ * Unknown data items are silently ignored.
  *
  * @param ts Pointer to ThingSet context.
  * @param data Buffer containing ID/value map that should be written to the record

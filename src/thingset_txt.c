@@ -854,6 +854,17 @@ static int txt_deserialize_map_start(struct thingset_context *ts)
     }
 }
 
+static int txt_deserialize_skip(struct thingset_context *ts)
+{
+    if (ts->tok_pos < ts->tok_count) {
+        ts->tok_pos++;
+        return 0;
+    }
+    else {
+        return -THINGSET_ERR_BAD_REQUEST;
+    }
+}
+
 static int txt_deserialize_finish(struct thingset_context *ts)
 {
     return ts->tok_count == ts->tok_pos ? 0 : -THINGSET_ERR_BAD_REQUEST;
@@ -882,6 +893,7 @@ static struct thingset_api txt_api = {
     .deserialize_map_start = txt_deserialize_map_start,
     .deserialize_child = txt_deserialize_child,
     .deserialize_value = txt_deserialize_value,
+    .deserialize_skip = txt_deserialize_skip,
     .deserialize_finish = txt_deserialize_finish,
 };
 

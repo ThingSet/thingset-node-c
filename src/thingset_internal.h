@@ -234,6 +234,15 @@ struct thingset_api
                              bool check_only);
 
     /**
+     * Deserialize the next object and skip it
+     *
+     * @param ts Pointer to ThingSet context
+     *
+     * @returns 0 for success or negative ThingSet response code in case of error
+     */
+    int (*deserialize_skip)(struct thingset_context *ts);
+
+    /**
      * Finalize deserialization
      *
      * @param ts Pointer to ThingSet context

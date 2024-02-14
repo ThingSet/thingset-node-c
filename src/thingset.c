@@ -291,7 +291,12 @@ int thingset_import_record(struct thingset_context *ts, const uint8_t *data, siz
     const struct thingset_data_object *item;
     while ((err = ts->api->deserialize_child(ts, &item)) != -THINGSET_ERR_DESERIALIZATION_FINISHED)
     {
-        if (err != 0) {
+        if (err == -THINGSET_ERR_NOT_FOUND) {
+            /* silently ignore non-existing record items and skip value */
+            ts->api->deserialize_skip(ts);
+            continue;
+        }
+        else if (err != 0) {
             goto out;
         }
 

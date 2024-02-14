@@ -655,6 +655,11 @@ static int bin_deserialize_value(struct thingset_context *ts,
     return err;
 }
 
+static int bin_deserialize_skip(struct thingset_context *ts)
+{
+    return zcbor_any_skip(ts->decoder, NULL) ? 0 : -THINGSET_ERR_BAD_REQUEST;
+}
+
 static int bin_deserialize_finish(struct thingset_context *ts)
 {
     return ts->decoder->payload_end == ts->decoder->payload ? 0 : -THINGSET_ERR_BAD_REQUEST;
@@ -683,6 +688,7 @@ static struct thingset_api bin_api = {
     .deserialize_list_start = bin_deserialize_list_start,
     .deserialize_map_start = bin_deserialize_map_start,
     .deserialize_value = bin_deserialize_value,
+    .deserialize_skip = bin_deserialize_skip,
     .deserialize_finish = bin_deserialize_finish,
 };
 
