@@ -217,7 +217,21 @@ static int bin_serialize_value(struct thingset_context *ts,
         success = zcbor_nil_put(ts->encoder, NULL);
     }
     else if (object->type == THINGSET_TYPE_RECORDS) {
-        success = zcbor_uint32_put(ts->encoder, object->data.records->num_records);
+#ifdef CONFIG_THINGSET_REPORT_RECORD_SERIALISATION
+        if (ts->rsp[0] == THINGSET_BIN_REPORT) {
+            /* serialise all records */
+            success = zcbor_list_start_encode(ts->encoder, UINT8_MAX);
+            for (unsigned int i = 0; i < object->data.records->num_records; i++) {
+                err = thingset_common_serialize_record(ts, object, i);
+            }
+            success = success && zcbor_list_end_encode(ts->encoder, UINT8_MAX);
+        }
+        else {
+#endif /* CONFIG_THINGSET_REPORT_RECORD_SERIALISATION */
+            success = zcbor_uint32_put(ts->encoder, object->data.records->num_records);
+#ifdef CONFIG_THINGSET_REPORT_RECORD_SERIALISATION
+        }
+#endif
     }
     else if (object->type == THINGSET_TYPE_FN_VOID || object->type == THINGSET_TYPE_FN_I32) {
         success = zcbor_list_start_encode(ts->encoder, UINT8_MAX);
@@ -329,8 +343,8 @@ static int bin_parse_endpoint(struct thingset_context *ts)
         if (zcbor_uint32_decode(ts->decoder, &id) == true && id <= UINT16_MAX) {
             err = thingset_endpoint_by_id(ts, &ts->endpoint, id);
             if (err == 0) {
-                if (!zcbor_int32_decode(ts->decoder, &ts->endpoint.index) ||
-                    ts->endpoint.index < 0 || !zcbor_list_end_decode(ts->decoder))
+                if (!zcbor_int32_decode(ts->decoder, &ts->endpoint.index) || ts->endpoint.index < 0
+                    || !zcbor_list_end_decode(ts->decoder))
                 {
                     err = -THINGSET_ERR_BAD_REQUEST;
                 }
