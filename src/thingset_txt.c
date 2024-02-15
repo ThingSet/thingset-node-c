@@ -706,8 +706,9 @@ static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
             }
 
             /* close object if previous object had different parent or grandparent */
-            if (depth > 0 && parent_id != ancestors[depth - 1]->id && parent != NULL
-                && parent->parent_id != ancestors[depth - 1]->id)
+            if (depth > 0 && parent_id != ancestors[depth - 1]->id
+                && ((parent != NULL && parent->parent_id != ancestors[depth - 1]->id)
+                    || parent_id == 0)) /* return to root */
             {
                 ts->rsp[ts->rsp_pos - 1] = '}'; /* overwrite comma */
                 ts->rsp[ts->rsp_pos++] = ',';

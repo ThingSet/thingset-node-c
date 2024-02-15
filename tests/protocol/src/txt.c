@@ -36,7 +36,8 @@ ZTEST(thingset_txt, test_get_root)
         "\"Records\":2,"
         "\"DynRecords\":10,"
         "\"Nested\":null,"
-        "\"mLive\":[\"t_s\",\"Types/wBool\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]"
+        "\"mLive\":[\"t_s\",\"Types/wBool\",\"Records\",\"Nested/rBeginning\",\"Nested/Obj2/"
+        "rItem2_V\"]"
         "}";
 
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
@@ -462,21 +463,23 @@ ZTEST(thingset_txt, test_create_delete_subset_item)
 {
     /* before change */
     THINGSET_ASSERT_REQUEST_TXT(
-        "?mLive", ":85 [\"t_s\",\"Types/wBool\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
+        "?mLive",
+        ":85 [\"t_s\",\"Types/wBool\",\"Records\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
 
     /* delete "Types/wBool" */
     THINGSET_ASSERT_REQUEST_TXT("-mLive \"Types/wBool\"", ":82");
 
     /* check if it was deleted */
-    THINGSET_ASSERT_REQUEST_TXT("?mLive",
-                                ":85 [\"t_s\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
+    THINGSET_ASSERT_REQUEST_TXT(
+        "?mLive", ":85 [\"t_s\",\"Records\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
 
     /* append "Types/wBool" again */
     THINGSET_ASSERT_REQUEST_TXT("+mLive \"Types/wBool\"", ":81");
 
     /* check if it was appended */
     THINGSET_ASSERT_REQUEST_TXT(
-        "?mLive", ":85 [\"t_s\",\"Types/wBool\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
+        "?mLive",
+        ":85 [\"t_s\",\"Types/wBool\",\"Records\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
 }
 
 ZTEST(thingset_txt, test_create_root_item)
@@ -528,6 +531,7 @@ ZTEST(thingset_txt, test_report_subset)
         "#mLive {"
         "\"t_s\":1000,"
         "\"Types\":{\"wBool\":true},"
+        "\"Records\":2,"
         "\"Nested\":{\"rBeginning\":1,\"Obj2\":{\"rItem2_V\":2.2}}"
         "}";
 
@@ -584,8 +588,12 @@ ZTEST(thingset_txt, test_export_subset)
         "{"
         "\"t_s\":1000,"
         "\"Types\":{\"wBool\":true},"
+        "\"Records\":2,"
         "\"Nested\":{\"rBeginning\":1,\"Obj2\":{\"rItem2_V\":2.2}}"
         "}";
+
+    // 0xfffff7d6e208
+    // "{\"t_s\":1000,{\"wBool\":true},\"Records\":2,{\"rBeginning\":1,{\"rItem2_V\":2.2},"
 
     THINGSET_ASSERT_EXPORT_TXT(SUBSET_LIVE, rsp_exp, strlen(rsp_exp));
 }
