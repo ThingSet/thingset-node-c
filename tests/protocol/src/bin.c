@@ -876,6 +876,42 @@ ZTEST(thingset_bin, test_export_item)
     zassert_mem_equal(buf_exp, buf_act, 2);
 }
 
+ZTEST(thingset_bin, test_export_subsets_progressively)
+{
+    uint8_t buf_large[128];
+    uint8_t buf_small[16];
+    size_t len;
+    int index;
+    int ret;
+
+    const char data_exp_hex[] =
+        "A5 "
+        "10 19 03 E8 "             /* t_s */
+        "19 02 01 F5 "             /* Types/wBool */
+        "19 06 00 02 "             /* Records: 2 */
+        "19 07 01 01 "             /* Nested/rBeginning */
+        "19 07 08 FA 40 0C CC CD"; /* Nested/Obj2/rItem2_V */
+    uint8_t data_exp[THINGSET_TEST_BUF_SIZE];
+    int data_exp_len = hex2bin_spaced(data_exp_hex, data_exp, sizeof(data_exp));
+
+    index = 0;
+    ret = thingset_export_subsets_progressively(&ts, buf_large, sizeof(buf_large), SUBSET_LIVE,
+                                                THINGSET_BIN_IDS_VALUES, &index, &len);
+    zassert_true(ret >= 0);
+    zassert_equal(len, data_exp_len);
+    zassert_mem_equal(data_exp, buf_large, data_exp_len);
+
+    index = 0;
+    size_t pos = 0;
+    do {
+        ret = thingset_export_subsets_progressively(&ts, buf_small, sizeof(buf_small), SUBSET_LIVE,
+                                                    THINGSET_BIN_IDS_VALUES, &index, &len);
+        zassert_true(ret >= 0);
+        zassert_mem_equal(data_exp + pos, buf_small, len);
+        pos += len;
+    } while (ret != 0);
+}
+
 ZTEST(thingset_bin, test_iterate_subsets)
 {
     struct thingset_data_object *obj = NULL;

@@ -370,6 +370,46 @@ int thingset_bin_desire(struct thingset_context *ts)
     return -THINGSET_ERR_NOT_IMPLEMENTED;
 }
 
+int thingset_bin_export_subsets_progressively(struct thingset_context *ts, uint16_t subsets,
+                                              unsigned int *index, size_t *len)
+{
+    if (*index == 0) {
+        size_t num_elements = 0;
+        for (int i = 0; i < ts->num_objects; i++) {
+            if (ts->data_objects[i].subsets & subsets) {
+                num_elements++;
+            }
+        }
+        zcbor_map_start_encode(ts->encoder, num_elements);
+    }
+
+    while (*index < ts->num_objects) {
+        if (ts->data_objects[*index].subsets & subsets) {
+            /* update last length in case next serialisation runs out of room */
+            *len = ts->rsp_pos;
+            int ret = bin_serialize_key_value(ts, &ts->data_objects[*index]);
+            if (ret < 0) {
+                /* buffer presumably full; reset pointer to position before
+                   we encoded this key-value pair and ask for more data */
+                ts->rsp_pos = 0;
+                ts->encoder->payload_mut = ts->rsp;
+                return 1;
+            }
+        }
+        (*index)++;
+        ts->rsp_pos = ts->encoder->payload - ts->rsp;
+        *len = ts->rsp_pos;
+    }
+
+    /* NB. there is no corresponding call to `zcbor_map_end_encode` because
+       we have already specified the exact number of elements in our call to
+       `zcbor_map_start_encode` above. */
+
+    ts->api->serialize_finish(ts);
+    *len = ts->rsp_pos;
+    return 0;
+}
+
 static int bin_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
 {
     bool success;
@@ -713,6 +753,61 @@ inline void thingset_bin_setup(struct thingset_context *ts, size_t rsp_buf_offse
 
     zcbor_new_encode_state(ts->encoder, ZCBOR_ARRAY_SIZE(ts->encoder), ts->rsp + rsp_buf_offset,
                            ts->rsp_size - rsp_buf_offset, 1);
+}
+
+int thingset_bin_import_data_progressively(struct thingset_context *ts, uint8_t auth_flags,
+                                           size_t size, uint32_t *last_id, size_t *consumed)
+{
+    if (*last_id == 0) {
+        int err = ts->api->deserialize_map_start(ts);
+        if (err) {
+            return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+        }
+    }
+
+    /* reset decoder state, but use current decoder payload position and element count
+     * (this handles both the first case, where we've decoded the two bytes of the map start,
+     * and subsequent cases, where we set the payload pointer back to the start of the buffer)
+     */
+    zcbor_new_decode_state(ts->decoder, ZCBOR_ARRAY_SIZE(ts->decoder), ts->decoder->payload_mut,
+                           size - (ts->decoder->payload - ts->msg), ts->decoder->elem_count);
+    uint32_t id;
+    while (zcbor_uint32_decode(ts->decoder, &id)) {
+        if (id <= UINT16_MAX) {
+            const struct thingset_data_object *object = thingset_get_object_by_id(ts, id);
+            if (object != NULL && (object->access & THINGSET_WRITE_MASK & auth_flags) != 0) {
+                if (ts->api->deserialize_value(ts, object, false)) {
+                    if (id == *last_id) {
+                        /* we got stuck here last time, so no point going back and asking
+                            for more data; just skip it and move on */
+                        zcbor_any_skip(ts->decoder, NULL);
+                    }
+                    else {
+                        /* reset decoder position to the beginning of the buffer */
+                        ts->decoder->payload = ts->msg;
+                        return 1; /* ask for more data */
+                    }
+                }
+            }
+            else {
+                zcbor_any_skip(ts->decoder, NULL);
+            }
+            *last_id = id;
+        }
+
+        *consumed = ts->decoder->payload - ts->msg;
+    }
+
+    *consumed = ts->decoder->payload - ts->msg;
+    if (*consumed == 0 && size > 0) {
+        /* if we didn't manage to consume anything at this point, the data must be completely
+         * invalid, because it means we didn't even parse an ID, so just bail out
+         */
+        return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    }
+    bool finished = ts->decoder->payload == ts->decoder->payload_end;
+    ts->decoder->payload = ts->msg; /* reset decoder position */
+    return finished ? 0 : 1;
 }
 
 int thingset_bin_import_data(struct thingset_context *ts, uint8_t auth_flags,

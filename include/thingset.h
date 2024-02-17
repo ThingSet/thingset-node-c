@@ -1714,6 +1714,27 @@ int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t bu
                             uint16_t subsets, enum thingset_data_format format);
 
 /**
+ * EXPERIMENTAL
+ *
+ * Exports object data for the given subset to the supplied buffer in the specified format starting
+ * at the given object index. At present, only binary formats are supported.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param buf Pointer to the buffer where the data should be stored
+ * @param buf_size Size of the buffer, i.e. maximum allowed length of the data
+ * @param subsets Flags to select which subset(s) of data items should be exported
+ * @param format Protocol data format to be used (text, binary with IDs or binary with names)
+ * @param index Pointer to an integer which tracks the current object being exported
+ * @param len Number of bytes written to the buffer
+ *
+ * @returns 1 if there are more objects to export, 0 when complete or negative if an error.
+ */
+int thingset_export_subsets_progressively(struct thingset_context *ts, uint8_t *buf,
+                                          size_t buf_size, uint16_t subsets,
+                                          enum thingset_data_format format, unsigned int *index,
+                                          size_t *len);
+
+/**
  * Export id, value and/or name of a single data item.
  *
  * This function is typically used together with thingset_iterate_subsets to export items of a
@@ -1763,6 +1784,43 @@ struct thingset_data_object *thingset_iterate_subsets(struct thingset_context *t
  */
 int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_t len,
                          uint8_t auth_flags, enum thingset_data_format format);
+
+/**
+ * EXPERIMENTAL
+ *
+ * Import data from a buffer into data objects.
+ *
+ * This function can be used to initialize data objects from previously exported data (using
+ * thingset_export_subsets function) and stored in the EEPROM or other non-volatile memory.
+ *
+ * Unknown data items are silently ignored.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param data Buffer containing ID/value map that should be written to the data objects
+ * @param len Length of the data in the buffer
+ * @param format Protocol data format to be used (text, binary with IDs or binary with names)
+ * @param auth_flags Authentication flags to be used in this function (to override auth_flags)
+ * @param last_id ID of last object successfully processed. This *must* be 0 for the first call.
+ * @param consumed When the method returns, contains the number of bytes consumed. This may be
+ * less than @ref size.
+ *
+ * @returns 0 for success, 1 if more data is required or negative ThingSet response code
+ * in case of error
+ */
+int thingset_import_data_progressively(struct thingset_context *ts, const uint8_t *data, size_t len,
+                                       enum thingset_data_format format, uint8_t auth_flags,
+                                       uint32_t *last_id, size_t *consumed);
+
+/**
+ * Completes the import of data from the buffer passed to @ref
+ * thingset_begin_import_data_progressively into data objects.
+ * Call this method if an import completes without errors.
+ *
+ * @param ts Pointer to ThingSet context.
+ *
+ * @returns 0 for success
+ */
+int thingset_import_data_progressively_end(struct thingset_context *ts);
 
 /**
  * Import data into a record.
