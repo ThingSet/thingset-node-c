@@ -44,8 +44,8 @@ config THINGSET_BINARY_MAX_DEPTH
 	  the binary serialiser. The default of 4 is usually suitable for most use
 	  cases, but you may wish to increase this in certain scenarios.
 
-config THINGSET_REPORT_RECORD_SERIALISATION
-	bool "Enable full record serialisation in reports."
+config THINGSET_REPORT_RECORD_SERIALIZATION
+	bool "Enable full record serialization in reports."
 	default n
 	help
 		Switch on support for record serialisation in reports. It may be necessary
