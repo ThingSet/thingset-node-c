@@ -592,9 +592,6 @@ ZTEST(thingset_txt, test_export_subset)
         "\"Nested\":{\"rBeginning\":1,\"Obj2\":{\"rItem2_V\":2.2}}"
         "}";
 
-    // 0xfffff7d6e208
-    // "{\"t_s\":1000,{\"wBool\":true},\"Records\":2,{\"rBeginning\":1,{\"rItem2_V\":2.2},"
-
     THINGSET_ASSERT_EXPORT_TXT(SUBSET_LIVE, rsp_exp, strlen(rsp_exp));
 }
 

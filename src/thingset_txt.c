@@ -253,8 +253,9 @@ static int txt_serialize_value(struct thingset_context *ts,
             pos = snprintf(buf, size, "null,");
         }
         else if (object->type == THINGSET_TYPE_RECORDS) {
-#ifdef CONFIG_THINGSET_REPORT_RECORD_SERIALISATION
-            if (ts->rsp[0] == THINGSET_TXT_REPORT) {
+            if (IS_ENABLED(CONFIG_THINGSET_REPORT_RECORD_SERIALISATION)
+                && ts->rsp[0] == THINGSET_TXT_REPORT)
+            {
                 pos = snprintf(buf, size, "[");
                 for (unsigned int i = 0; i < object->data.records->num_records; i++) {
                     ret = thingset_common_serialize_record(ts, object, i);
@@ -267,11 +268,8 @@ static int txt_serialize_value(struct thingset_context *ts,
                 pos += snprintf(buf + pos, size - pos, "],");
             }
             else {
-#endif
                 pos = snprintf(buf, size, "%d,", object->data.records->num_records);
-#ifdef CONFIG_THINGSET_REPORT_RECORD_SERIALISATION
             }
-#endif
         }
         else if (object->type == THINGSET_TYPE_FN_VOID || object->type == THINGSET_TYPE_FN_I32) {
             pos = snprintf(buf, size, "[");

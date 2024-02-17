@@ -48,8 +48,8 @@ config THINGSET_REPORT_RECORD_SERIALIZATION
 	bool "Enable full record serialization in reports."
 	default n
 	help
-		Switch on support for record serialisation in reports. It may be necessary
-		to increase THINGSET_BINARY_MAX_DEPTH when using this feature.
+	  Switch on support for record serialisation in reports. It may be necessary
+	  to increase THINGSET_BINARY_MAX_DEPTH when using this feature.
 
 config THINGSET_64BIT_TYPES_SUPPORT
 	bool "Enable support for 64 bit variable types."
