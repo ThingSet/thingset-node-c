@@ -36,6 +36,21 @@ config THINGSET_NUM_JSON_TOKENS
 	  Trying to parse a request with more than the maximum number of tokens will result in an
 	  error.
 
+config THINGSET_BINARY_MAX_DEPTH
+	int "Max depth of hierarchy serialisable by the binary serialiser."
+	default 4
+	help
+	  Configure the maximum depth of a node hierarchy that can be serialised by
+	  the binary serialiser. The default of 4 is usually suitable for most use
+	  cases, but you may wish to increase this in certain scenarios.
+
+config THINGSET_REPORT_RECORD_SERIALIZATION
+	bool "Enable full record serialization in reports."
+	default n
+	help
+	  Switch on support for record serialisation in reports. It may be necessary
+	  to increase THINGSET_BINARY_MAX_DEPTH when using this feature.
+
 config THINGSET_64BIT_TYPES_SUPPORT
 	bool "Enable support for 64 bit variable types."
 	default n

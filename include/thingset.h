@@ -1609,10 +1609,10 @@ struct thingset_context
         struct
         {
             /** CBOR encoder states for binary mode */
-            zcbor_state_t encoder[4];
+            zcbor_state_t encoder[CONFIG_THINGSET_BINARY_MAX_DEPTH];
 
             /** CBOR decoder states for binary mode */
-            zcbor_state_t decoder[4];
+            zcbor_state_t decoder[CONFIG_THINGSET_BINARY_MAX_DEPTH];
         };
     };
 

@@ -29,9 +29,10 @@ ZTEST(thingset_bin, test_get_root_ids)
         "19 06 00 02 "                      /* Records */
         "19 06 80 0A "                      /* DynRecords */
         "19 07 00 F6 "                      /* Nested */
-        "19 08 00 84 "                      /* mLive (array) */
+        "19 08 00 85 "                      /* mLive (array) */
         "10 "                               /* t_s */
         "19 02 01 "                         /* Types/wBool */
+        "19 06 00 "                         /* Records */
         "19 07 01 "                         /* Nested/rBeginning */
         "19 07 08";                         /* Nested/Obj2/rItem2_V */
 
@@ -53,9 +54,10 @@ ZTEST(thingset_bin, test_get_root_names)
         "67 5265636F726473 02 "                        /* Records */
         "6A 44796E5265636F726473 0A "                  /* DynRecords */
         "66 4E6573746564 F6 "                          /* Nested */
-        "65 6D4C697665 84 "                            /* mLive (array) */
+        "65 6D4C697665 85 "                            /* mLive (array) */
         "63 745F73 "                                   /* t_s */
         "6B 54797065732F77426F6F6C "                   /* Types/wBool */
+        "67 5265636f726473 "                           /* Records */
         "71 4E65737465642F72426567696E6E696E67 "       /* Nested/rBeginning */
         "74 4E65737465642F4F626A322F724974656D325F56"; /* Nested/Obj2/rItem2_V */
 
@@ -160,17 +162,17 @@ ZTEST(thingset_bin, test_get_record_ids)
     const char req_hex[] = "01 82 19 0600 01"; /* [0x600, 0x01] */
     const char rsp_exp_hex[] =
         "85 F6 AE "
-        "19 06 01 02 "                      /* 0x0601:2, */
-        "19 06 02 f5  "                     /* 0x0602:true, */
-        "19 06 03 08 19 06 04 27 "          /* 0x0603:8,0x0604:-8, */
-        "19 06 05 10 19 06 06 2f "          /* 0x0605:16,0x0606:-16, */
-        "19 06 07 18 20 19 06 08 38 1f "    /* 0x0607:32,0x0608:-32, */
-        "19 06 09 18 40 19 06 0a 38 3f "    /* 0x0609:64,0x060A:-64, */
-        "19 06 0b fa c0 4c cc cd "          /* 0x0601B:-3.2 */
-        "19 06 0c c4 82 21 38 1f "          /* 0x060C: 4([-2, -32])*/
-        "19 06 0d 66 73 74 72 69 6e 67 "    /* 0x060D:"string" */
-        "19 06 0f "                         /* 0x060E: */
-        "83 fa 3f 9d 70 a4 fa 40 91 eb 85 fa 40 fc 7a e1";  /* [1.23, 4.56, 7.89] */
+        "19 06 01 02 "                                     /* 0x0601:2, */
+        "19 06 02 f5  "                                    /* 0x0602:true, */
+        "19 06 03 08 19 06 04 27 "                         /* 0x0603:8,0x0604:-8, */
+        "19 06 05 10 19 06 06 2f "                         /* 0x0605:16,0x0606:-16, */
+        "19 06 07 18 20 19 06 08 38 1f "                   /* 0x0607:32,0x0608:-32, */
+        "19 06 09 18 40 19 06 0a 38 3f "                   /* 0x0609:64,0x060A:-64, */
+        "19 06 0b fa c0 4c cc cd "                         /* 0x0601B:-3.2 */
+        "19 06 0c c4 82 21 38 1f "                         /* 0x060C: 4([-2, -32])*/
+        "19 06 0d 66 73 74 72 69 6e 67 "                   /* 0x060D:"string" */
+        "19 06 0f "                                        /* 0x060E: */
+        "83 fa 3f 9d 70 a4 fa 40 91 eb 85 fa 40 fc 7a e1"; /* [1.23, 4.56, 7.89] */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
@@ -180,16 +182,16 @@ ZTEST(thingset_bin, test_get_record_names)
     const char req_hex[] = "01 69 5265636F7264732F31"; /* Records/1 */
     const char rsp_exp_hex[] =
         "85 F6 AE "
-        "63 74 5f 73 02 "                               /* "t_s":2, */
-        "65 77 42 6f 6f 6c f5 "                         /* "wBool":true, */
-        "63 77 55 38 08 63 77 49 38 27 "                /* "wU8":8,"wI8":-8, */
-        "64 77 55 31 36 10 64 77 49 31 36 2f "          /* "wU16":16,"wI16":-16, */
-        "64 77 55 33 32 18 20 64 77 49 33 32 38 1f "    /* "wU32":32,"wI32":-32, */
-        "64 77 55 36 34 18 40 64 77 49 36 34 38 3f "    /* "wU64":64,"wI64":-64, */
-        "64 77 46 33 32 fa c0 4c cc cd "                /* "wF32":-3.2 */
-        "68 77 44 65 63 46 72 61 63 c4 82 21 38 1f "    /* "wDecFrac": 4([-2, -32])*/
-        "67 77 53 74 72 69 6e 67 66 73 74 72 69 6e 67 " /* "wString":"string" */
-        "69 77 46 33 32 41 72 72 61 79 "                /* "wF32Array": */
+        "63 74 5f 73 02 "                                  /* "t_s":2, */
+        "65 77 42 6f 6f 6c f5 "                            /* "wBool":true, */
+        "63 77 55 38 08 63 77 49 38 27 "                   /* "wU8":8,"wI8":-8, */
+        "64 77 55 31 36 10 64 77 49 31 36 2f "             /* "wU16":16,"wI16":-16, */
+        "64 77 55 33 32 18 20 64 77 49 33 32 38 1f "       /* "wU32":32,"wI32":-32, */
+        "64 77 55 36 34 18 40 64 77 49 36 34 38 3f "       /* "wU64":64,"wI64":-64, */
+        "64 77 46 33 32 fa c0 4c cc cd "                   /* "wF32":-3.2 */
+        "68 77 44 65 63 46 72 61 63 c4 82 21 38 1f "       /* "wDecFrac": 4([-2, -32])*/
+        "67 77 53 74 72 69 6e 67 66 73 74 72 69 6e 67 "    /* "wString":"string" */
+        "69 77 46 33 32 41 72 72 61 79 "                   /* "wF32Array": */
         "83 fa 3f 9d 70 a4 fa 40 91 eb 85 fa 40 fc 7a e1"; /* [1.23, 4.56, 7.89] */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
@@ -729,9 +731,10 @@ ZTEST(thingset_bin, test_create_delete_subset_item)
     /* before change */
     THINGSET_ASSERT_REQUEST_HEX(
         "01 65 6D4C697665", /* GET mLive */
-        "85 F6 84 "
+        "85 F6 85 "
         "63 745F73 "                                  /* t_s */
         "6B 54797065732F77426F6F6C "                  /* Types/wBool */
+        "67 5265636f726473 "                          /* Records */
         "71 4E65737465642F72426567696E6E696E67 "      /* Nested/rBeginning */
         "74 4E65737465642F4F626A322F724974656D325F56" /* Nested/Obj2/rItem2_V */
     );
@@ -745,8 +748,9 @@ ZTEST(thingset_bin, test_create_delete_subset_item)
     /* check if it was deleted */
     THINGSET_ASSERT_REQUEST_HEX(
         "01 65 6D4C697665", /* GET mLive */
-        "85 F6 83 "
+        "85 F6 84 "
         "63 745F73 "                                  /* t_s */
+        "67 5265636f726473 "                          /* Records */
         "71 4E65737465642F72426567696E6E696E67 "      /* Nested/rBeginning */
         "74 4E65737465642F4F626A322F724974656D325F56" /* Nested/Obj2/rItem2_V */
     );
@@ -760,9 +764,10 @@ ZTEST(thingset_bin, test_create_delete_subset_item)
     /* check if it was appended */
     THINGSET_ASSERT_REQUEST_HEX(
         "01 65 6D4C697665", /* GET mLive */
-        "85 F6 84 "
+        "85 F6 85 "
         "63 745F73 "                                  /* t_s */
         "6B 54797065732F77426F6F6C "                  /* Types/wBool */
+        "67 5265636f726473 "                          /* Records */
         "71 4E65737465642F72426567696E6E696E67 "      /* Nested/rBeginning */
         "74 4E65737465642F4F626A322F724974656D325F56" /* Nested/Obj2/rItem2_V */
     );
@@ -779,13 +784,14 @@ ZTEST(thingset_bin, test_desire_timestamp_zero)
 ZTEST(thingset_bin, test_report_subset_ids)
 {
     const char rpt_exp_hex[] =
-        "1F 19 08 00 A4 "
-        "10 19 03E8 "           /* t_s */
-        "19 02 01 F5 "          /* Types/wBool */
-        "19 07 01 01"           /* Nested/rBeginning */
-        "19 07 08 FA 400CCCCD"; /* Nested/Obj2/rItem2_V */
+        "1F 19 08 00 A5 "
+        "10 19 03 E8 "             /* t_s */
+        "19 02 01 F5 "             /* Types/wBool */
+        "19 06 00 02 "             /* Records: 2 */
+        "19 07 01 01 "             /* Nested/rBeginning */
+        "19 07 08 FA 40 0C CC CD"; /* Nested/Obj2/rItem2_V */
 
-    THINGSET_ASSERT_REPORT_HEX_IDS("mLive", rpt_exp_hex, 25);
+    THINGSET_ASSERT_REPORT_HEX_IDS("mLive", rpt_exp_hex, sizeof(rpt_exp_hex) / 3);
 }
 
 ZTEST(thingset_bin, test_report_group_ids)
@@ -801,17 +807,17 @@ ZTEST(thingset_bin, test_report_group_ids)
 ZTEST(thingset_bin, test_report_record_names)
 {
     const char rpt_exp_hex[] =
-        "1F 69 5265636F7264732F31 AE "                  /* Records/1 */
-        "63 74 5f 73 02 "                               /* "t_s":2, */
-        "65 77 42 6f 6f 6c f5 "                         /* "wBool":true, */
-        "63 77 55 38 08 63 77 49 38 27 "                /* "wU8":8,"wI8":-8, */
-        "64 77 55 31 36 10 64 77 49 31 36 2f "          /* "wU16":16,"wI16":-16, */
-        "64 77 55 33 32 18 20 64 77 49 33 32 38 1f "    /* "wU32":32,"wI32":-32, */
-        "64 77 55 36 34 18 40 64 77 49 36 34 38 3f "    /* "wU64":64,"wI64":-64, */
-        "64 77 46 33 32 fa c0 4c cc cd "                /* "wF32":-3.2 */
-        "68 77 44 65 63 46 72 61 63 c4 82 21 38 1f "    /* "wDecFrac": 4([-2, -32])*/
-        "67 77 53 74 72 69 6e 67 66 73 74 72 69 6e 67 " /* "wString":"string" */
-        "69 77 46 33 32 41 72 72 61 79 "                /* "wF32Array": */
+        "1F 69 5265636F7264732F31 AE "                     /* Records/1 */
+        "63 74 5f 73 02 "                                  /* "t_s":2, */
+        "65 77 42 6f 6f 6c f5 "                            /* "wBool":true, */
+        "63 77 55 38 08 63 77 49 38 27 "                   /* "wU8":8,"wI8":-8, */
+        "64 77 55 31 36 10 64 77 49 31 36 2f "             /* "wU16":16,"wI16":-16, */
+        "64 77 55 33 32 18 20 64 77 49 33 32 38 1f "       /* "wU32":32,"wI32":-32, */
+        "64 77 55 36 34 18 40 64 77 49 36 34 38 3f "       /* "wU64":64,"wI64":-64, */
+        "64 77 46 33 32 fa c0 4c cc cd "                   /* "wF32":-3.2 */
+        "68 77 44 65 63 46 72 61 63 c4 82 21 38 1f "       /* "wDecFrac": 4([-2, -32])*/
+        "67 77 53 74 72 69 6e 67 66 73 74 72 69 6e 67 "    /* "wString":"string" */
+        "69 77 46 33 32 41 72 72 61 79 "                   /* "wF32Array": */
         "83 fa 3f 9d 70 a4 fa 40 91 eb 85 fa 40 fc 7a e1"; /* [1.23, 4.56, 7.89] */
 
     THINGSET_ASSERT_REPORT_HEX_NAMES("Records/1", rpt_exp_hex, 139);
@@ -820,18 +826,18 @@ ZTEST(thingset_bin, test_report_record_names)
 ZTEST(thingset_bin, test_report_record_ids)
 {
     const char rpt_exp_hex[] =
-        "1F 82 19 0600 01 AE "              /* [0x600, 0x01] */
-        "19 06 01 02 "                      /* 0x0601:2, */
-        "19 06 02 f5 "                      /* 0x0602:true, */
-        "19 06 03 08 19 06 04 27 "          /* 0x0603:8,0x0604:-8, */
-        "19 06 05 10 19 06 06 2f "          /* 0x0605:16,0x0606:-16, */
-        "19 06 07 18 20 19 06 08 38 1f "    /* 0x0607:32,0x0608:-32, */
-        "19 06 09 18 40 19 06 0a 38 3f "    /* 0x0609:64,0x060A:-64, */
-        "19 06 0b fa c0 4c cc cd "          /* 0x0601B:-3.2 */
-        "19 06 0c c4 82 21 38 1f "          /* 0x060C: 4([-2, -32])*/
-        "19 06 0d 66 73 74 72 69 6e 67 "    /* 0x060D:"string" */
-        "19 06 0f "                         /* 0x060E: */
-        "83 fa 3f 9d 70 a4 fa 40 91 eb 85 fa 40 fc 7a e1";  /* [1.23, 4.56, 7.89] */
+        "1F 82 19 0600 01 AE "                             /* [0x600, 0x01] */
+        "19 06 01 02 "                                     /* 0x0601:2, */
+        "19 06 02 f5 "                                     /* 0x0602:true, */
+        "19 06 03 08 19 06 04 27 "                         /* 0x0603:8,0x0604:-8, */
+        "19 06 05 10 19 06 06 2f "                         /* 0x0605:16,0x0606:-16, */
+        "19 06 07 18 20 19 06 08 38 1f "                   /* 0x0607:32,0x0608:-32, */
+        "19 06 09 18 40 19 06 0a 38 3f "                   /* 0x0609:64,0x060A:-64, */
+        "19 06 0b fa c0 4c cc cd "                         /* 0x0601B:-3.2 */
+        "19 06 0c c4 82 21 38 1f "                         /* 0x060C: 4([-2, -32])*/
+        "19 06 0d 66 73 74 72 69 6e 67 "                   /* 0x060D:"string" */
+        "19 06 0f "                                        /* 0x060E: */
+        "83 fa 3f 9d 70 a4 fa 40 91 eb 85 fa 40 fc 7a e1"; /* [1.23, 4.56, 7.89] */
 
     THINGSET_ASSERT_REPORT_HEX_IDS("Records/1", rpt_exp_hex, 96);
 }
@@ -839,13 +845,14 @@ ZTEST(thingset_bin, test_report_record_ids)
 ZTEST(thingset_bin, test_export_subset_ids)
 {
     const char rsp_exp_hex[] =
-        "A4 "
-        "10 19 03E8 "           /* t_s */
-        "19 02 01 F5 "          /* Types/wBool */
-        "19 07 01 01"           /* Nested/rBeginning */
-        "19 07 08 FA 400CCCCD"; /* Nested/Obj2/rItem2_V */
+        "A5 "
+        "10 19 03 E8 "             /* t_s */
+        "19 02 01 F5 "             /* Types/wBool */
+        "19 06 00 02 "             /* Records: 2 */
+        "19 07 01 01"              /* Nested/rBeginning */
+        "19 07 08 FA 40 0C CC CD"; /* Nested/Obj2/rItem2_V */
 
-    THINGSET_ASSERT_EXPORT_HEX_IDS(SUBSET_LIVE, rsp_exp_hex, 21);
+    THINGSET_ASSERT_EXPORT_HEX_IDS(SUBSET_LIVE, rsp_exp_hex, 25);
 }
 
 ZTEST(thingset_bin, test_export_item)
@@ -889,6 +896,12 @@ ZTEST(thingset_bin, test_iterate_subsets)
     obj = thingset_iterate_subsets(&ts, SUBSET_LIVE, ++obj);
     zassert_not_equal(obj, NULL);
     zassert_equal(obj->id, 0x201);
+
+    /* Records */
+    obj = thingset_iterate_subsets(&ts, SUBSET_LIVE, ++obj);
+    zassert_not_equal(obj, NULL);
+    zassert_equal(obj->id, 0x600);
+    zassert_equal(obj->data.records->num_records, 2);
 
     /* Nested/rBeginning */
     obj = thingset_iterate_subsets(&ts, SUBSET_LIVE, ++obj);

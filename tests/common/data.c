@@ -256,7 +256,7 @@ THINGSET_ADD_ITEM_FLOAT(0x500, 0x503, "wMfrOnly", &access_item, 2, THINGSET_ANY_
                         0);
 
 /* Records */
-THINGSET_ADD_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_R, 0);
+THINGSET_ADD_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_R, SUBSET_LIVE);
 THINGSET_ADD_RECORD_ITEM_UINT32(0x600, 0x601, "t_s", struct test_struct, timestamp);
 THINGSET_ADD_RECORD_ITEM_BOOL(0x600, 0x602, "wBool", struct test_struct, b);
 THINGSET_ADD_RECORD_ITEM_UINT8(0x600, 0x603, "wU8", struct test_struct, u8);
@@ -366,7 +366,7 @@ struct thingset_data_object data_objects[] = {
                         0),
 
     /* Records */
-    THINGSET_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_R, 0),
+    THINGSET_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_R, SUBSET_LIVE),
     THINGSET_RECORD_ITEM_UINT32(0x600, 0x601, "t_s", struct test_struct, timestamp),
     THINGSET_RECORD_ITEM_BOOL(0x600, 0x602, "wBool", struct test_struct, b),
     THINGSET_RECORD_ITEM_UINT8(0x600, 0x603, "wU8", struct test_struct, u8),

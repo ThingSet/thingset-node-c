@@ -253,7 +253,29 @@ static int txt_serialize_value(struct thingset_context *ts,
             pos = snprintf(buf, size, "null,");
         }
         else if (object->type == THINGSET_TYPE_RECORDS) {
-            pos = snprintf(buf, size, "%d,", object->data.records->num_records);
+            if (IS_ENABLED(CONFIG_THINGSET_REPORT_RECORD_SERIALIZATION)
+                && ts->rsp[0] == THINGSET_TXT_REPORT)
+            {
+                pos = snprintf(buf, size, "[");
+                ts->rsp_pos++;
+                for (unsigned int i = 0; i < object->data.records->num_records; i++) {
+                    ret = thingset_common_serialize_record(ts, object, i);
+                    pos = ts->rsp_pos;
+                    buf[pos++] = ',';
+                }
+                /* thingset_common_serialize_record has already incremeneted rsp_pos, so we reset
+                   the length of pos here, so that when we increment at the end, we are only
+                   incrementing the small delta below */
+                buf = ts->rsp + ts->rsp_pos;
+                pos = 0;
+                if (object->data.records->num_records > 0) {
+                    pos--; /* remove trailing comma */
+                }
+                pos += snprintf(buf + pos, size - pos, "],");
+            }
+            else {
+                pos = snprintf(buf, size, "%d,", object->data.records->num_records);
+            }
         }
         else if (object->type == THINGSET_TYPE_FN_VOID || object->type == THINGSET_TYPE_FN_I32) {
             pos = snprintf(buf, size, "[");
@@ -688,8 +710,9 @@ static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
             }
 
             /* close object if previous object had different parent or grandparent */
-            if (depth > 0 && parent_id != ancestors[depth - 1]->id && parent != NULL
-                && parent->parent_id != ancestors[depth - 1]->id)
+            if (depth > 0 && parent_id != ancestors[depth - 1]->id
+                && ((parent != NULL && parent->parent_id != ancestors[depth - 1]->id)
+                    || parent_id == 0)) /* return to root */
             {
                 ts->rsp[ts->rsp_pos - 1] = '}'; /* overwrite comma */
                 ts->rsp[ts->rsp_pos++] = ',';
