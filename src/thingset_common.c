@@ -328,12 +328,16 @@ int thingset_common_update(struct thingset_context *ts)
         }
     }
 
-    if (updated && ts->update_cb != NULL) {
-        ts->update_cb();
-    }
-
     if (ts->endpoint.object->data.group_callback != NULL) {
         ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_POST_WRITE);
+    }
+
+    /*
+     * The update callback should be invoked after the group callback. This allows to use the group
+     * callback for data processing and the update callback for finally storing the data in NVM.
+     */
+    if (updated && ts->update_cb != NULL) {
+        ts->update_cb();
     }
 
     return ts->api->serialize_response(ts, THINGSET_STATUS_CHANGED, NULL);
