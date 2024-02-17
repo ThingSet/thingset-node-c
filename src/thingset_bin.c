@@ -217,7 +217,7 @@ static int bin_serialize_value(struct thingset_context *ts,
         success = zcbor_nil_put(ts->encoder, NULL);
     }
     else if (object->type == THINGSET_TYPE_RECORDS) {
-        if (IS_ENABLED(CONFIG_THINGSET_REPORT_RECORD_SERIALISATION) &&
+        if (IS_ENABLED(CONFIG_THINGSET_REPORT_RECORD_SERIALIZATION) &&
             ts->rsp[0] == THINGSET_BIN_REPORT) {
             /* serialise all records */
             success = zcbor_list_start_encode(ts->encoder, UINT8_MAX);
