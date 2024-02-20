@@ -1,8 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 tests:
-  thingset.protocol:
+  thingset.protocol.default:
     integration_platforms:
       - native_posix
       - native_posix_64
     extra_args: EXTRA_CFLAGS=-Wno-error
+  thingset.protocol.objectlookup:
+    integration_platforms:
+      - native_posix
+      - native_posix_64
+    extra_args: EXTRA_CFLAGS=-Wno-error
+    extra_configs:
+      - CONFIG_THINGSET_OBJECT_LOOKUP_MAP=y
