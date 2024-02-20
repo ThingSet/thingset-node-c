@@ -1506,6 +1506,13 @@ struct thingset_data_object
      * Flags to assign data item to different data item subsets (e.g. for reports)
      */
     MAYBE_CONST uint32_t subsets : 7;
+
+#ifdef CONFIG_THINGSET_OBJECT_LOOKUP_MAP
+    /**
+     * Pointer to next node in list for map lookup
+     */
+    sys_snode_t node;
+#endif /* CONFIG_THINGSET_OBJECT_LOOKUP_MAP */
 };
 
 /**
@@ -1535,6 +1542,13 @@ struct thingset_context
      * Array of objects database provided during initialization
      */
     struct thingset_data_object *data_objects;
+
+#ifdef CONFIG_THINGSET_OBJECT_LOOKUP_MAP
+    /**
+     * Array of linked lists: map for object ID lookup
+     */
+    sys_slist_t data_objects_lookup[CONFIG_THINGSET_OBJECT_LOOKUP_BUCKETS];
+#endif
 
     /**
      * Number of objects in the data_objects array

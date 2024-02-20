@@ -53,6 +53,25 @@ static void check_id_duplicates(const struct thingset_data_object *objects, size
     }
 }
 
+static void thingset_init_common(struct thingset_context *ts)
+{
+#ifdef CONFIG_THINGSET_OBJECT_LOOKUP_MAP
+    for (unsigned int b = 0; b < CONFIG_THINGSET_OBJECT_LOOKUP_BUCKETS; b++) {
+        sys_slist_init(&ts->data_objects_lookup[b]);
+    }
+
+    for (unsigned int i = 0; i < ts->num_objects; i++) {
+        struct thingset_data_object *object = &ts->data_objects[i];
+        sys_slist_append(
+            &ts->data_objects_lookup[object->id % CONFIG_THINGSET_OBJECT_LOOKUP_BUCKETS],
+            &object->node);
+    }
+#endif
+    ts->auth_flags = THINGSET_USR_MASK;
+
+    k_sem_init(&ts->lock, 1, 1);
+}
+
 void thingset_init(struct thingset_context *ts, struct thingset_data_object *objects,
                    size_t num_objects)
 {
@@ -60,9 +79,7 @@ void thingset_init(struct thingset_context *ts, struct thingset_data_object *obj
 
     ts->data_objects = objects;
     ts->num_objects = num_objects;
-    ts->auth_flags = THINGSET_USR_MASK;
-
-    k_sem_init(&ts->lock, 1, 1);
+    thingset_init_common(ts);
 }
 
 void thingset_init_global(struct thingset_context *ts)
@@ -71,9 +88,7 @@ void thingset_init_global(struct thingset_context *ts)
 
     ts->data_objects = TYPE_SECTION_START(thingset_data_object);
     STRUCT_SECTION_COUNT(thingset_data_object, &ts->num_objects);
-    ts->auth_flags = THINGSET_USR_MASK;
-
-    k_sem_init(&ts->lock, 1, 1);
+    thingset_init_common(ts);
 }
 
 int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, size_t msg_len,
@@ -457,12 +472,25 @@ struct thingset_data_object *thingset_get_child_by_name(struct thingset_context 
 
 struct thingset_data_object *thingset_get_object_by_id(struct thingset_context *ts, uint16_t id)
 {
+#ifdef CONFIG_THINGSET_OBJECT_LOOKUP_MAP
+    sys_slist_t *list = &ts->data_objects_lookup[id % CONFIG_THINGSET_OBJECT_LOOKUP_BUCKETS];
+    sys_snode_t *pnode;
+    struct thingset_data_object *object;
+    SYS_SLIST_FOR_EACH_NODE(list, pnode)
+    {
+        object = CONTAINER_OF(pnode, struct thingset_data_object, node);
+        if (object->id == id) {
+            return object;
+        }
+    }
+#else
     for (unsigned int i = 0; i < ts->num_objects; i++) {
         if (ts->data_objects[i].id == id) {
             return &(ts->data_objects[i]);
         }
     }
 
+#endif /* CONFIG_THINGSET_OBJECT_LOOKUP_MAP */
     return NULL;
 }
 

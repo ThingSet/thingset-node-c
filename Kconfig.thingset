@@ -27,6 +27,22 @@ config THINGSET_IMMUTABLE_OBJECTS
 
 	  Possible future improvement: Store only subset information in RAM and the rest in ROM.
 
+config THINGSET_OBJECT_LOOKUP_MAP
+	bool "Enable hashmap for object lookup"
+	default n
+	help
+	  Enable to speed up performance of object lookup.
+
+if THINGSET_OBJECT_LOOKUP_MAP
+
+config THINGSET_OBJECT_LOOKUP_BUCKETS
+	int "Object lookup hashmap buckets"
+	default 8
+	help
+	  Number of buckets for object lookup. This should ideally be a power of 2.
+
+endif
+
 config THINGSET_NUM_JSON_TOKENS
 	int "Maximum number of expected JSON tokens."
 	default 50
