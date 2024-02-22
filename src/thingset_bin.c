@@ -217,8 +217,9 @@ static int bin_serialize_value(struct thingset_context *ts,
         success = zcbor_nil_put(ts->encoder, NULL);
     }
     else if (object->type == THINGSET_TYPE_RECORDS) {
-        if (IS_ENABLED(CONFIG_THINGSET_REPORT_RECORD_SERIALIZATION) &&
-            ts->rsp[0] == THINGSET_BIN_REPORT) {
+        if (IS_ENABLED(CONFIG_THINGSET_REPORT_RECORD_SERIALIZATION)
+            && ts->rsp[0] == THINGSET_BIN_REPORT)
+        {
             /* serialise all records */
             success = zcbor_list_start_encode(ts->encoder, UINT8_MAX);
             for (unsigned int i = 0; i < object->data.records->num_records; i++) {
@@ -446,7 +447,7 @@ static int bin_deserialize_child(struct thingset_context *ts,
     struct zcbor_string name;
     uint32_t id;
 
-    if (ts->decoder->payload_end == ts->decoder->payload) {
+    if (ts->decoder->payload_end == ts->decoder->payload || ts->decoder->elem_count == 0) {
         return -THINGSET_ERR_DESERIALIZATION_FINISHED;
     }
 
