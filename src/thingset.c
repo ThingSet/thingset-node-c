@@ -518,8 +518,9 @@ struct thingset_data_object *thingset_get_object_by_path(struct thingset_context
                  * Note: strtoul and atoi only work with null-terminated strings, so we have to use
                  * an own implementation to be able to parse CBOR-encoded strings.
                  */
-                *index = *start - '0';
-                while (start <= end) {
+                end = path + path_len; /* ensure we never go past the end of the declared length */
+                *index = 0;
+                do {
                     if (*start >= '0' && *start <= '9') {
                         *index = (*index) * 10 + *start - '0';
                         start++;
@@ -527,7 +528,7 @@ struct thingset_data_object *thingset_get_object_by_path(struct thingset_context
                     else {
                         return NULL;
                     }
-                }
+                } while (start < end);
             }
             else if (*start == '-') {
                 /* non-existent element behind the last array element */
