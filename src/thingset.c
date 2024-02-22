@@ -347,7 +347,7 @@ int thingset_import_record(struct thingset_context *ts, const uint8_t *data, siz
         }
     }
 
-    err = ts->api->deserialize_finish(ts);
+    err = err == -THINGSET_ERR_DESERIALIZATION_FINISHED ? 0 : ts->api->deserialize_finish(ts);
 
 out:
     k_sem_give(&ts->lock);
