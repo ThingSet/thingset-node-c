@@ -136,10 +136,13 @@ struct thingset_api
      *
      * @param ts Pointer to ThingSet context
      * @param subsets Subset(s) to be considered
+     * @param index Index of the current data item (input and output) or NULL to start from 0
      *
-     * @returns 0 for success or negative ThingSet response code in case of error
+     * @retval 0 If all data could be stored
+     * @retval 1 If more data is pending
+     * @retval err Negative ThingSet response code in case of error
      */
-    int (*serialize_subsets)(struct thingset_context *ts, uint16_t subsets);
+    int (*serialize_subsets)(struct thingset_context *ts, uint16_t subsets, uint16_t *index);
 
     /**
      * Serialize the start of a report message.

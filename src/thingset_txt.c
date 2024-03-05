@@ -692,14 +692,15 @@ int thingset_txt_desire(struct thingset_context *ts)
 }
 
 /* currently only supporting nesting of depth 2 (parent and grandparent != 0) */
-static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
+static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets, uint16_t *index)
 {
+    uint16_t start = (index != NULL) ? *index : 0;
     struct thingset_data_object *ancestors[2];
     int depth = 0;
 
     ts->rsp[ts->rsp_pos++] = '{';
 
-    for (unsigned int i = 0; i < ts->num_objects; i++) {
+    for (unsigned int i = start; i < ts->num_objects; i++) {
         if (ts->data_objects[i].subsets & subsets) {
             const uint16_t parent_id = ts->data_objects[i].parent_id;
 

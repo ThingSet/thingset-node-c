@@ -303,12 +303,22 @@ static int bin_serialize_key(struct thingset_context *ts, const struct thingset_
 static int bin_serialize_key_value(struct thingset_context *ts,
                                    const struct thingset_data_object *object)
 {
-    int err = ts->api->serialize_key(ts, object);
+    uint8_t *key_start = ts->encoder->payload_mut;
+    int err;
+
+    err = ts->api->serialize_key(ts, object);
     if (err != 0) {
         return err;
     }
 
-    return ts->api->serialize_value(ts, object);
+    err = ts->api->serialize_value(ts, object);
+    if (err != 0) {
+        /* reset encoder to beginning of key */
+        ts->encoder->payload_mut = key_start;
+        return err;
+    }
+
+    return 0;
 }
 
 static void bin_serialize_finish(struct thingset_context *ts)
@@ -370,21 +380,36 @@ int thingset_bin_desire(struct thingset_context *ts)
     return -THINGSET_ERR_NOT_IMPLEMENTED;
 }
 
-static int bin_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
+static int bin_serialize_subsets(struct thingset_context *ts, uint16_t subsets, uint16_t *index)
 {
+    uint16_t start = (index != NULL) ? *index : 0;
     bool success;
+    int err;
 
     success = zcbor_map_start_encode(ts->encoder, UINT8_MAX);
 
-    for (unsigned int i = 0; i < ts->num_objects; i++) {
+    for (unsigned int i = start; i < ts->num_objects; i++) {
         if (ts->data_objects[i].subsets & subsets) {
-            bin_serialize_key_value(ts, &ts->data_objects[i]);
+            err = bin_serialize_key_value(ts, &ts->data_objects[i]);
+            if (err == -THINGSET_ERR_RESPONSE_TOO_LARGE) {
+                if (index != NULL) {
+                    zcbor_map_end_encode(ts->encoder, UINT8_MAX);
+                    *index = i;
+                    return 1;
+                }
+                else {
+                    return err;
+                }
+            }
         }
     }
 
     success = success && zcbor_map_end_encode(ts->encoder, UINT8_MAX);
 
-    if (success) {
+    if (success && err == 0) {
+        if (index != NULL) {
+            *index = 0;
+        }
         return 0;
     }
     else {

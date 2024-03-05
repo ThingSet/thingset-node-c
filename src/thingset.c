@@ -156,7 +156,7 @@ int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t bu
             return -THINGSET_ERR_NOT_IMPLEMENTED;
     }
 
-    ret = ts->api->serialize_subsets(ts, subsets);
+    ret = ts->api->serialize_subsets(ts, subsets, NULL);
 
     ts->api->serialize_finish(ts);
 
@@ -405,7 +405,7 @@ int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size
             err = thingset_common_serialize_group(ts, ts->endpoint.object);
             break;
         case THINGSET_TYPE_SUBSET:
-            err = ts->api->serialize_subsets(ts, ts->endpoint.object->data.subset);
+            err = ts->api->serialize_subsets(ts, ts->endpoint.object->data.subset, NULL);
             break;
         case THINGSET_TYPE_FN_VOID:
         case THINGSET_TYPE_FN_I32:
