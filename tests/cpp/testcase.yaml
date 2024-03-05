@@ -4,4 +4,4 @@ tests:
   thingset.cpp:
     integration_platforms:
       - native_posix
-    extra_args: EXTRA_CFLAGS=-Wno-error
+    extra_args: EXTRA_CFLAGS=-Werror
