@@ -130,8 +130,9 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
     return ret;
 }
 
-int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
-                            uint16_t subsets, enum thingset_data_format format)
+int thingset_export_subsets_chunks(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
+                                   uint16_t subsets, enum thingset_data_format format,
+                                   uint16_t *index)
 {
     int ret;
 
@@ -156,11 +157,11 @@ int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t bu
             return -THINGSET_ERR_NOT_IMPLEMENTED;
     }
 
-    ret = ts->api->serialize_subsets(ts, subsets, NULL);
+    ret = ts->api->serialize_subsets(ts, subsets, index);
 
     ts->api->serialize_finish(ts);
 
-    if (ret == 0) {
+    if (ret == 0 || ret == 1) {
         ret = ts->rsp_pos;
     }
 

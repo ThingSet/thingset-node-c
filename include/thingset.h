@@ -1694,6 +1694,27 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
                              uint8_t *rsp, size_t rsp_size);
 
 /**
+ * Retrieve data for given subset(s) in chunks.
+ *
+ * Exports object data for the given subset to the supplied buffer in the specified format starting
+ * at the given object index. At present, only binary formats are supported.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param buf Pointer to the buffer where the data should be stored
+ * @param buf_size Size of the buffer, i.e. maximum allowed length of the data
+ * @param subsets Flags to select which subset(s) of data items should be exported
+ * @param format Protocol data format to be used (text, binary with IDs or binary with names)
+ * @param index Pointer to an integer which tracks the current object being exported
+ *
+ * @retval len Length of the written chunk.
+ * @retval 0 When export is complete.
+ * @retval err Negative ThingSet response code in case of error.
+ */
+int thingset_export_subsets_chunks(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
+                                  uint16_t subsets, enum thingset_data_format format,
+                                  uint16_t *index);
+
+/**
  * Retrieve data for given subset(s).
  *
  * This function does not return a complete ThingSet message, but only the payload data as a
@@ -1710,8 +1731,12 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
  *
  * @return Actual length of the data or negative ThingSet response code in case of error.
  */
-int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
-                            uint16_t subsets, enum thingset_data_format format);
+static inline int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf,
+                                          size_t buf_size, uint16_t subsets,
+                                          enum thingset_data_format format)
+{
+    return thingset_export_subsets_chunks(ts, buf, buf_size, subsets, format, NULL);
+}
 
 /**
  * Export id, value and/or name of a single data item.
