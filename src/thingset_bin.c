@@ -652,7 +652,7 @@ static int bin_deserialize_value(struct thingset_context *ts,
                 break;
             }
             index++;
-        } while (index < array->num_elements);
+        } while (index < array->max_elements);
 
         if (!check_only) {
             array->num_elements = index;
