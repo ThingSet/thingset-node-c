@@ -264,7 +264,7 @@ int thingset_import_data_progressively(struct thingset_context *ts, const uint8_
                                        enum thingset_data_format format, uint8_t auth_flags,
                                        uint32_t *last_id, size_t *consumed)
 {
-    int err;
+    int err = 0;
 
     if (*last_id == 0) {
         if (k_sem_take(&ts->lock, K_MSEC(THINGSET_CONTEXT_LOCK_TIMEOUT_MS)) != 0) {
