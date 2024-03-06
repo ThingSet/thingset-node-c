@@ -524,7 +524,7 @@ static int bin_deserialize_simple_value(struct thingset_context *ts,
             success = zcbor_int_decode(ts->decoder, data.i8, 1);
             break;
         case THINGSET_TYPE_F32:
-            success = zcbor_float32_decode(ts->decoder, data.f32);
+            success = zcbor_float16_32_decode(ts->decoder, data.f32);
             if (!success) {
                 /* try integer type */
                 int32_t tmp;
@@ -567,7 +567,7 @@ static int bin_deserialize_simple_value(struct thingset_context *ts,
                     *mantissa = i32;
                     success = true;
                 }
-                else if (zcbor_float32_decode(ts->decoder, &f32) == true) {
+                else if (zcbor_float16_32_decode(ts->decoder, &f32) == true) {
                     for (int i = 0; i < exponent; i++) {
                         f32 /= 10.0F;
                     }

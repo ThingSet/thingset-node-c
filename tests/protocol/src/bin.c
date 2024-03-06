@@ -487,6 +487,17 @@ ZTEST(thingset_bin, test_update_wrong_endpoint_id)
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
 
+ZTEST(thingset_bin, test_update_16bit_float)
+{
+    const char req_hex[] = "07 19 0200 A1 19 020A F9 3C00";
+    const char rsp_exp_hex[] = "84 F6 F6";
+
+    THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
+    zassert_equal(f32, 1.0F);
+
+    f32 = -3.2F;
+}
+
 #if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
 
 ZTEST(thingset_bin, test_update_bytes_buffer)
