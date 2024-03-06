@@ -619,6 +619,20 @@ extern "C" {
         parent_id, id, name, { .array = array_ptr }, THINGSET_TYPE_ARRAY, 0, THINGSET_READ_MASK \
     }
 
+/**
+ * Initialize struct thingset_data_object to expose a nested record item.
+ *
+ * @param parent_id ID of the parent data object of type `RECORDS`
+ * @param id ID of this data object (same for all records of this kind)
+ * @param name String literal with the data object name
+ * @param records_ptr Pointer to the struct thingset_records object
+ */
+#define THINGSET_RECORD_ITEM_RECORD(parent_id, id, name, records_ptr) \
+    { \
+        parent_id, id, name, { .records = records_ptr }, THINGSET_TYPE_RECORDS, 0, \
+            THINGSET_READ_MASK \
+    }
+
 /*
  * Macros for defining data objects using Zephyr iterable sections.
  *
@@ -904,6 +918,14 @@ extern "C" {
  */
 #define THINGSET_ADD_RECORD_ITEM_ARRAY(parent_id, id, ...) \
     _THINGSET_ADD_ITERABLE_SECTION(RECORD_ITEM_ARRAY, parent_id, id, __VA_ARGS__)
+
+/**
+ * Add record member of type record to global iterable section.
+ *
+ * Seee #THINGSET_RECORD_ITEM_RECORD for parameter description.
+ */
+#define THINGSET_ADD_RECORD_ITEM_RECORD(parent_id, id, ...) \
+    _THINGSET_ADD_ITERABLE_SECTION(RECORD_ITEM_RECORD, parent_id, id, __VA_ARGS__)
 
 /**
  * Define a struct thingset_bytes to be used with #THINGSET_ITEM_BYTES
@@ -1226,6 +1248,21 @@ extern "C" {
         _ARRAY_SIZE(((struct_type *)0)->struct_member), \
         _ARRAY_SIZE(((struct_type *)0)->struct_member), \
     };
+
+/**
+ * Define a struct thingset_records to expose a nested array of records.
+ *
+ * @param var_name Name of the created struct thingset_records variable
+ * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
+ * @param struct_member Struct member used for this item
+ */
+#define THINGSET_DEFINE_RECORD_RECORDS(var_name, struct_type, struct_member) \
+    struct thingset_records var_name = { offsetof(struct_type, struct_member), \
+                                         sizeof(__typeof__(((struct_type *)0)->struct_member)) \
+                                             / _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+                                         _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+                                         _ARRAY_SIZE(((struct_type *)0)->struct_member), \
+                                         THINGSET_NO_CALLBACK };
 
 /**
  * Define a struct thingset_records to be used with #THINGSET_RECORDS

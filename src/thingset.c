@@ -417,6 +417,21 @@ int thingset_import_record(struct thingset_context *ts, const uint8_t *data, siz
             };
             err = ts->api->deserialize_value(ts, &item_offset, false);
         }
+        else if (item->type == THINGSET_TYPE_RECORDS) {
+            struct thingset_records *rec = item->data.records;
+            struct thingset_records rec_offset = {
+                record_ptr + (size_t)rec->records,
+                rec->record_size,
+                rec->max_records,
+                rec->num_records,
+                rec->callback,
+            };
+            struct thingset_data_object item_offset = {
+                item->parent_id, item->id,     item->name, { .records = &rec_offset },
+                item->type,      item->detail,
+            };
+            err = ts->api->deserialize_value(ts, &item_offset, false);
+        }
         else {
             struct thingset_data_object item_offset = {
                 item->parent_id, item->id,     item->name, { .u8 = record_ptr + item->data.offset },
@@ -695,7 +710,9 @@ int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoin
     if (object != NULL) {
         /* check that the found endpoint is not part of a record (cannot be queried like this) */
         struct thingset_data_object *parent = thingset_get_object_by_id(ts, object->parent_id);
-        if (parent == NULL || parent->type != THINGSET_TYPE_RECORDS) {
+        if (parent == NULL || parent->type != THINGSET_TYPE_RECORDS
+            || object->type == THINGSET_TYPE_RECORDS)
+        {
             endpoint->object = object;
             return 0;
         }

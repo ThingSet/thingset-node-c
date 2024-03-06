@@ -76,7 +76,7 @@ int thingset_common_serialize_record(struct thingset_context *ts,
     }
 
     /* record item definitions are expected to start behind record data object */
-    const struct thingset_data_object *item = object + 1;
+    const struct thingset_data_object *item = thingset_get_object_by_id(ts, object->id) + 1;
     while (item < &ts->data_objects[ts->num_objects]) {
         if (item->parent_id != object->id) {
             item++;
@@ -97,6 +97,21 @@ int thingset_common_serialize_record(struct thingset_context *ts,
             struct thingset_data_object item_offset = {
                 item->parent_id,          item->id,   item->name,
                 { .array = &arr_offset }, item->type, item->detail,
+            };
+            err = ts->api->serialize_key_value(ts, &item_offset);
+        }
+        else if (item->type == THINGSET_TYPE_RECORDS) {
+            struct thingset_records *rec = item->data.records;
+            struct thingset_records rec_offset = {
+                record_ptr + (size_t)rec->records,
+                rec->record_size,
+                rec->max_records,
+                rec->num_records,
+                rec->callback,
+            };
+            struct thingset_data_object item_offset = {
+                item->parent_id, item->id,     item->name, { .records = &rec_offset },
+                item->type,      item->detail,
             };
             err = ts->api->serialize_key_value(ts, &item_offset);
         }
