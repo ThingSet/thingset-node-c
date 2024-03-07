@@ -1257,7 +1257,7 @@ extern "C" {
  * @param struct_member Struct member used for this item
  */
 #define THINGSET_DEFINE_RECORD_RECORDS(var_name, struct_type, struct_member) \
-    struct thingset_records var_name = { offsetof(struct_type, struct_member), \
+    struct thingset_records var_name = { (void *)offsetof(struct_type, struct_member), \
                                          sizeof(__typeof__(((struct_type *)0)->struct_member)) \
                                              / _ARRAY_SIZE(((struct_type *)0)->struct_member), \
                                          _ARRAY_SIZE(((struct_type *)0)->struct_member), \
