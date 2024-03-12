@@ -389,6 +389,14 @@ int thingset_common_serialize_group(struct thingset_context *ts,
 int thingset_common_serialize_record(struct thingset_context *ts,
                                      const struct thingset_data_object *object, int record_index);
 
+typedef int (*thingset_common_record_element_action)(
+    struct thingset_context *ts, const struct thingset_data_object *item_offset);
+
+int thingset_common_prepare_record_element(struct thingset_context *ts,
+                                           const struct thingset_data_object *item,
+                                           uint8_t *record_ptr,
+                                           thingset_common_record_element_action callback);
+
 /**
  * Process GET request.
  *
