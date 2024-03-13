@@ -395,7 +395,7 @@ struct thingset_data_object data_objects[] = {
     THINGSET_RECORD_ITEM_STRING(0x600, 0x60D, "wString", struct test_struct, strbuf,
                                 sizeof(records[0].strbuf)),
     THINGSET_RECORD_ITEM_ARRAY(0x600, 0x60F, "wF32Array", &f32_array_record),
-    THINGSET_RECORD_ITEM_RECORD(0x600, 0x610, "nested", &nested_records_obj),
+    THINGSET_RECORD_ITEM_RECORD(0x600, 0x610, "Nested", &nested_records_obj),
     THINGSET_RECORD_ITEM_UINT32(0x610, 0x611, "wU32", struct child_struct, child_u32),
     THINGSET_RECORD_ITEM_FLOAT(0x610, 0x612, "wF32", struct child_struct, child_f32, 2),
 
