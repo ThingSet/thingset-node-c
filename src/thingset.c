@@ -345,6 +345,12 @@ int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_
     return err;
 }
 
+static int deserialize_value_callback(struct thingset_context *ts,
+                                      const struct thingset_data_object *item_offset)
+{
+    return ts->api->deserialize_value(ts, item_offset, false);
+}
+
 int thingset_import_record(struct thingset_context *ts, const uint8_t *data, size_t len,
                            struct thingset_endpoint *endpoint, enum thingset_data_format format)
 {
@@ -401,29 +407,8 @@ int thingset_import_record(struct thingset_context *ts, const uint8_t *data, siz
         struct thingset_records *records = ts->endpoint.object->data.records;
         uint8_t *record_ptr =
             (uint8_t *)records->records + ts->endpoint.index * records->record_size;
-
-        if (item->type == THINGSET_TYPE_ARRAY) {
-            struct thingset_array *arr = item->data.array;
-            struct thingset_array arr_offset = {
-                { .u8 = record_ptr + arr->elements.offset },
-                arr->element_type,
-                arr->decimals,
-                arr->max_elements,
-                arr->num_elements,
-            };
-            struct thingset_data_object item_offset = {
-                item->parent_id,          item->id,   item->name,
-                { .array = &arr_offset }, item->type, item->detail,
-            };
-            err = ts->api->deserialize_value(ts, &item_offset, false);
-        }
-        else {
-            struct thingset_data_object item_offset = {
-                item->parent_id, item->id,     item->name, { .u8 = record_ptr + item->data.offset },
-                item->type,      item->detail,
-            };
-            err = ts->api->deserialize_value(ts, &item_offset, false);
-        }
+        err = thingset_common_prepare_record_element(ts, item, record_ptr,
+                                                     deserialize_value_callback);
 
         if (err != 0) {
             goto out;
@@ -695,7 +680,9 @@ int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoin
     if (object != NULL) {
         /* check that the found endpoint is not part of a record (cannot be queried like this) */
         struct thingset_data_object *parent = thingset_get_object_by_id(ts, object->parent_id);
-        if (parent == NULL || parent->type != THINGSET_TYPE_RECORDS) {
+        if (parent == NULL || parent->type != THINGSET_TYPE_RECORDS
+            || object->type == THINGSET_TYPE_RECORDS)
+        {
             endpoint->object = object;
             return 0;
         }

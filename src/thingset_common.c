@@ -48,6 +48,52 @@ int thingset_common_serialize_group(struct thingset_context *ts,
     return ts->api->serialize_map_end(ts);
 }
 
+int thingset_common_prepare_record_element(struct thingset_context *ts,
+                                           const struct thingset_data_object *item,
+                                           uint8_t *record_ptr,
+                                           thingset_common_record_element_action callback)
+{
+    int err;
+    if (item->type == THINGSET_TYPE_ARRAY) {
+        struct thingset_array *arr = item->data.array;
+        struct thingset_array arr_offset = {
+            { .u8 = record_ptr + arr->elements.offset },
+            arr->element_type,
+            arr->decimals,
+            arr->max_elements,
+            arr->num_elements,
+        };
+        struct thingset_data_object item_offset = {
+            item->parent_id,          item->id,   item->name,
+            { .array = &arr_offset }, item->type, item->detail,
+        };
+        err = callback(ts, &item_offset);
+    }
+    else if (item->type == THINGSET_TYPE_RECORDS) {
+        struct thingset_records *rec = item->data.records;
+        struct thingset_records rec_offset = {
+            record_ptr + (size_t)rec->records,
+            rec->record_size,
+            rec->max_records,
+            rec->num_records,
+            rec->callback,
+        };
+        struct thingset_data_object item_offset = {
+            item->parent_id, item->id,     item->name, { .records = &rec_offset },
+            item->type,      item->detail,
+        };
+        err = callback(ts, &item_offset);
+    }
+    else {
+        struct thingset_data_object item_offset = {
+            item->parent_id, item->id,     item->name, { .u8 = record_ptr + item->data.offset },
+            item->type,      item->detail,
+        };
+        err = callback(ts, &item_offset);
+    }
+    return err;
+}
+
 int thingset_common_serialize_record(struct thingset_context *ts,
                                      const struct thingset_data_object *object, int record_index)
 {
@@ -75,8 +121,7 @@ int thingset_common_serialize_record(struct thingset_context *ts,
         records->callback(THINGSET_CALLBACK_PRE_READ, record_index);
     }
 
-    /* record item definitions are expected to start behind record data object */
-    const struct thingset_data_object *item = object + 1;
+    const struct thingset_data_object *item = thingset_get_object_by_id(ts, object->id) + 1;
     while (item < &ts->data_objects[ts->num_objects]) {
         if (item->parent_id != object->id) {
             item++;
@@ -85,28 +130,8 @@ int thingset_common_serialize_record(struct thingset_context *ts,
 
         /* create new object with data pointer including offset */
         uint8_t *record_ptr = (uint8_t *)records->records + record_offset;
-        if (item->type == THINGSET_TYPE_ARRAY) {
-            struct thingset_array *arr = item->data.array;
-            struct thingset_array arr_offset = {
-                { .u8 = record_ptr + arr->elements.offset },
-                arr->element_type,
-                arr->decimals,
-                arr->max_elements,
-                arr->num_elements,
-            };
-            struct thingset_data_object item_offset = {
-                item->parent_id,          item->id,   item->name,
-                { .array = &arr_offset }, item->type, item->detail,
-            };
-            err = ts->api->serialize_key_value(ts, &item_offset);
-        }
-        else {
-            struct thingset_data_object item_offset = {
-                item->parent_id, item->id,     item->name, { .u8 = record_ptr + item->data.offset },
-                item->type,      item->detail,
-            };
-            err = ts->api->serialize_key_value(ts, &item_offset);
-        }
+        err = thingset_common_prepare_record_element(ts, item, record_ptr,
+                                                     ts->api->serialize_key_value);
 
         if (err != 0) {
             return err;

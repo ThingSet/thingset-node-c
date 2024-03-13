@@ -65,6 +65,12 @@ extern int dyn_records_callback_index;
 /*
  * Records
  */
+struct child_struct
+{
+    uint32_t child_u32;
+    float child_f32;
+};
+
 struct test_struct
 {
     uint32_t timestamp;
@@ -86,6 +92,7 @@ struct test_struct
 #endif
     char strbuf[300];
     float f32_arr[3];
+    struct child_struct nested[2];
 };
 
 extern struct test_struct records[5];

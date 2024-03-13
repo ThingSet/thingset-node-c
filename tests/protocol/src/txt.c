@@ -98,7 +98,8 @@ ZTEST(thingset_txt, test_get_record)
         "\"wU64\":64,\"wI64\":-64,"
         "\"wF32\":-3.2,\"wDecFrac\":-32e-2,"
         "\"wString\":\"string\","
-        "\"wF32Array\":[1.2,4.6,7.9]"
+        "\"wF32Array\":[1.2,4.6,7.9],"
+        "\"Nested\":2"
         "}";
 
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
@@ -561,7 +562,8 @@ ZTEST(thingset_txt, test_report_record)
         "\"wU64\":64,\"wI64\":-64,"
         "\"wF32\":-3.2,\"wDecFrac\":-32e-2,"
         "\"wString\":\"string\","
-        "\"wF32Array\":[1.2,4.6,7.9]"
+        "\"wF32Array\":[1.2,4.6,7.9],"
+        "\"Nested\":2"
         "}";
 
     THINGSET_ASSERT_REPORT_TXT("Records/1", rpt_exp, strlen(rpt_exp));
