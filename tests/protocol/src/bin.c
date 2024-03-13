@@ -194,7 +194,7 @@ ZTEST(thingset_bin, test_get_record_names)
         "67 77 53 74 72 69 6e 67 66 73 74 72 69 6e 67 "    /* "wString":"string" */
         "69 77 46 33 32 41 72 72 61 79 "                   /* "wF32Array": */
         "83 fa 3f 9d 70 a4 fa 40 91 eb 85 fa 40 fc 7a e1 " /* [1.23, 4.56, 7.89] */
-        "66 6e 65 73 74 65 64 02 ";                        /* "nested": 2 */
+        "66 4e 65 73 74 65 64 02 ";                        /* "Nested": 2 */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
@@ -832,7 +832,7 @@ ZTEST(thingset_bin, test_report_record_names)
         "67 77 53 74 72 69 6e 67 66 73 74 72 69 6e 67 "    /* "wString":"string" */
         "69 77 46 33 32 41 72 72 61 79 "                   /* "wF32Array": */
         "83 fa 3f 9d 70 a4 fa 40 91 eb 85 fa 40 fc 7a e1 " /* [1.23, 4.56, 7.89] */
-        "66 6e 65 73 74 65 64 02 ";                        /* "nested": 2 */
+        "66 4e 65 73 74 65 64 02 ";                        /* "Nested": 2 */
 
     THINGSET_ASSERT_REPORT_HEX_NAMES("Records/1", rpt_exp_hex, strlen(rpt_exp_hex) / 3);
 }

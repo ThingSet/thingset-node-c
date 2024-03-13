@@ -99,7 +99,7 @@ ZTEST(thingset_txt, test_get_record)
         "\"wF32\":-3.2,\"wDecFrac\":-32e-2,"
         "\"wString\":\"string\","
         "\"wF32Array\":[1.2,4.6,7.9],"
-        "\"nested\":2"
+        "\"Nested\":2"
         "}";
 
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
@@ -563,7 +563,7 @@ ZTEST(thingset_txt, test_report_record)
         "\"wF32\":-3.2,\"wDecFrac\":-32e-2,"
         "\"wString\":\"string\","
         "\"wF32Array\":[1.2,4.6,7.9],"
-        "\"nested\":2"
+        "\"Nested\":2"
         "}";
 
     THINGSET_ASSERT_REPORT_TXT("Records/1", rpt_exp, strlen(rpt_exp));
