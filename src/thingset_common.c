@@ -121,7 +121,6 @@ int thingset_common_serialize_record(struct thingset_context *ts,
         records->callback(THINGSET_CALLBACK_PRE_READ, record_index);
     }
 
-    /* record item definitions are expected to start behind record data object */
     const struct thingset_data_object *item = thingset_get_object_by_id(ts, object->id) + 1;
     while (item < &ts->data_objects[ts->num_objects]) {
         if (item->parent_id != object->id) {
