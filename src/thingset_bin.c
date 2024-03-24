@@ -820,6 +820,10 @@ int thingset_bin_import_data_progressively(struct thingset_context *ts, uint8_t 
                     else {
                         /* reset decoder position to the beginning of the buffer */
                         ts->decoder->payload = ts->msg;
+                        /* reincrement element count; empirical testing so far suggests
+                           this should be 2, even though surely we have only successfully
+                           parsed 1 (the ID; the element parsing failed?) */
+                        ts->decoder->elem_count += 2;
                         return 1; /* ask for more data */
                     }
                 }
