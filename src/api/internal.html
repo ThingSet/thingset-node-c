@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Internal &mdash; ThingSet Node library in C  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Library API" href="library.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #52595d" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ThingSet Node library in C
+              <img src="../../_static/thingset_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Features</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../dev/unit_tests.html">Unit Tests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="library.html">Library API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Internal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #52595d" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ThingSet Node library in C</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Internal</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/ThingSet/thingset-node-c/blob/main/docs/src/api/internal.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="internal">
+<h1>Internal<a class="headerlink" href="#internal" title="Permalink to this heading"></a></h1>
+<p>Below functions are only used internally by the library.</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-typedefs">Typedefs</p>
+<dl class="c type">
+<dt class="sig sig-object c" id="c.thingset_common_record_element_action">
+<span class="target" id="thingset__internal_8h_1a447728a7b4083179fe8db51bc9321485"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">thingset_common_record_element_action</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">item_offset</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_common_record_element_action" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_bin_serialize_response">
+<span class="target" id="thingset__internal_8h_1a4bf21b564db76c377a85acb55a61f74e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_bin_serialize_response</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">code</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">msg</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_bin_serialize_response" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Fill the rsp buffer with a CBOR response status message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context. </p></li>
+<li><p><strong>code</strong> – Numeric status code. </p></li>
+<li><p><strong>msg</strong> – Optional diagnostic error message (pass NULL if not used)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Length of response </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_txt_serialize_response">
+<span class="target" id="thingset__internal_8h_1aedbc66ff886bc88094d8fb46bd04eb0d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_txt_serialize_response</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">code</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">msg</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_txt_serialize_response" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Fill the rsp buffer with a JSON response status message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context. </p></li>
+<li><p><strong>code</strong> – Numeric status code. </p></li>
+<li><p><strong>msg</strong> – Optional diagnostic error message (pass NULL if not used)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Length of response </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_get_child_by_name">
+<span class="target" id="thingset__internal_8h_1ae52c8eaba1cc4ee3bb5cbf3b71ba2457"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">thingset_get_child_by_name</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">parent_id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">name</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">len</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_get_child_by_name" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Get the child object from a provided parent ID and the child name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context. </p></li>
+<li><p><strong>parent_id</strong> – ID of the parent object. </p></li>
+<li><p><strong>name</strong> – Child name. </p></li>
+<li><p><strong>len</strong> – Length of the entire path.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pointer to the data object or NULL in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_get_object_by_id">
+<span class="target" id="thingset__internal_8h_1a29128e3de202a94b42f66a9f9b02a802"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">thingset_get_object_by_id</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">id</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_get_object_by_id" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Get the object by ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context. </p></li>
+<li><p><strong>id</strong> – ID of the object.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pointer to the data object or NULL in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_get_object_by_path">
+<span class="target" id="thingset__internal_8h_1a056295bd7899fb4a37594540e11361fe"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">thingset_get_object_by_path</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">path</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">path_len</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">index</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_get_object_by_path" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Get an object by its path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context. </p></li>
+<li><p><strong>path</strong> – Path to the object </p></li>
+<li><p><strong>path_len</strong> – Length of path </p></li>
+<li><p><strong>index</strong> – Pointer to an index which may be decoded as part of the path </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_get_path">
+<span class="target" id="thingset__internal_8h_1a9b56f9fffcf07c28f7ba4cff4850c651"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_get_path</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">buf</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">obj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_get_path" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Get the relative path of an object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context. </p></li>
+<li><p><strong>buf</strong> – Pointer to the buffer to store the path. </p></li>
+<li><p><strong>size</strong> – Size of the buffer. </p></li>
+<li><p><strong>obj</strong> – Pointer to the object to get the path of.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Length of the path or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_get_type_name">
+<span class="target" id="thingset__internal_8h_1af3264fb957434ae746780dbdf3317f41"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_get_type_name</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">obj</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">buf</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_get_type_name" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Gets the type of a given object as a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context. </p></li>
+<li><p><strong>obj</strong> – Pointer to the object to get the path of. </p></li>
+<li><p><strong>buf</strong> – Pointer to the buffer to store the path. </p></li>
+<li><p><strong>size</strong> – Size of the buffer. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_txt_desire">
+<span class="target" id="thingset__internal_8h_1a03e287b3e8273fa3437a46f30b2ebf4b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_txt_desire</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_txt_desire" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Process text mode desire.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_txt_process">
+<span class="target" id="thingset__internal_8h_1ab099ef93b83bfeaa004f9fedb3c4ca31"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_txt_process</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_txt_process" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Process message in text mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>see thingset_process_message. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_txt_setup">
+<span class="target" id="thingset__internal_8h_1a771fe038699e4a7b3d8a8b47aaf28205"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_txt_setup</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_txt_setup" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_bin_desire">
+<span class="target" id="thingset__internal_8h_1a073e9f8f5f73080d8e87154b30ee9508"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_bin_desire</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_bin_desire" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Process binary mode desire.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_bin_process">
+<span class="target" id="thingset__internal_8h_1af8e4909bd842073ebc791c2c2dde9470"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_bin_process</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_bin_process" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Process message in binary mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>see thingset_process_message. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_bin_setup">
+<span class="target" id="thingset__internal_8h_1a55878e202a23b4b9d0de608d295003bd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_bin_setup</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">buf_offset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_bin_setup" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_bin_import_data">
+<span class="target" id="thingset__internal_8h_1ad930425a7021b180f9b616a352e89294"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_bin_import_data</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">auth_flags</span></span>, <span class="k"><span class="pre">enum</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_format" title="thingset_data_format"><span class="n"><span class="pre">thingset_data_format</span></span></a><span class="w"> </span><span class="n"><span class="pre">format</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_bin_import_data" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_bin_import_data_progressively">
+<span class="target" id="thingset__internal_8h_1ab0f0a13743c22375b30b74e74b226258"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_bin_import_data_progressively</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">auth_flags</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">last_id</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">consumed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_bin_import_data_progressively" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_bin_export_subsets_progressively">
+<span class="target" id="thingset__internal_8h_1aac1ec21399023b335dda460b92581735"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_bin_export_subsets_progressively</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">subsets</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">index</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">len</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_bin_export_subsets_progressively" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_common_serialize_group">
+<span class="target" id="thingset__internal_8h_1a577c1ebdaca9eafcbac7aef6124bf245"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_common_serialize_group</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">object</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_common_serialize_group" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_common_serialize_record">
+<span class="target" id="thingset__internal_8h_1a89652a49a93757f9560e0fe7b4fff8d2"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_common_serialize_record</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">object</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">record_index</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_common_serialize_record" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_common_prepare_record_element">
+<span class="target" id="thingset__internal_8h_1a55bb9e0aa14609da70f857f61d3b32a1"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_common_prepare_record_element</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">item</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">record_ptr</span></span>, <a class="reference internal" href="#c.thingset_common_record_element_action" title="thingset_common_record_element_action"><span class="n"><span class="pre">thingset_common_record_element_action</span></span></a><span class="w"> </span><span class="n"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_common_prepare_record_element" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_common_get">
+<span class="target" id="thingset__internal_8h_1a16a866158127b107fb62fc201c573fd3"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_common_get</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_common_get" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Process GET request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Length of response or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_common_fetch">
+<span class="target" id="thingset__internal_8h_1ab6bcf17fd2a547f0b0d594c1bf5a156b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_common_fetch</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_common_fetch" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Process FETCH request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Length of response or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_common_update">
+<span class="target" id="thingset__internal_8h_1a63e33ef2dbefabe536c38000e222ec2e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_common_update</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_common_update" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Process UPDATE request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Length of response or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_common_exec">
+<span class="target" id="thingset__internal_8h_1a53adde91e1558562989dd1d3fed07508"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_common_exec</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_common_exec" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Process EXEC request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Length of response or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_common_create">
+<span class="target" id="thingset__internal_8h_1a1db8a79478c06446da1035c3f3f85334"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_common_create</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_common_create" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Process CREATE request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Length of response or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.thingset_common_delete">
+<span class="target" id="thingset__internal_8h_1a1cbb48c966f061859ddc3487505dbf53"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_common_delete</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.thingset_common_delete" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Process DELETE request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> – Pointer to ThingSet context.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Length of response or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.thingset_api">
+<span class="target" id="structthingset__api"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">thingset_api</span></span></span><a class="headerlink" href="#c.thingset_api" title="Permalink to this definition"></a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;thingset_internal.h&gt;</em></div>
+<p>Internal functions that have to be implemented separately for text and binary mode.</p>
+<p>The correct API struct is assigned to the ThingSet context at the beginning of processing an incoming message.</p>
+<p>All serialize functions return 0 or negative error code. If a negative error code is returned, an error message may have been stored already. If ts-&gt;rsp_pos == 0, the error message has to be generated at the end.</p>
+<p>Also deserialize functions return 0 or negative error code, but never store any error response in the buffer. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_response">
+<span class="target" id="structthingset__api_1a6de61e3e453dc70312effb6afd6af742"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_response</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_response" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Store a response with the specified error code in the response buffer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+<dt class="field-even">Param code<span class="colon">:</span></dt>
+<dd class="field-even"><p>Response code </p>
+</dd>
+<dt class="field-odd">Param msg<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional diagnostic payload for errors, otherwise NULL</p>
+</dd>
+<dt class="field-even">Return<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_key">
+<span class="target" id="structthingset__api_1a455f4f1c9afca9ef72b77a7d23b9a34a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_key</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_key" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Serialize the key (name or ID) of the specified data object. For binary mode, the use_ids parameter of the endpoint determines whether IDs or names should be used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+<dt class="field-even">Param object<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pointer to data object</p>
+</dd>
+<dt class="field-odd">Return<span class="colon">:</span></dt>
+<dd class="field-odd"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_value">
+<span class="target" id="structthingset__api_1ae5db749eae73d486d3320c231fd5efd9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_value</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_value" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Serialize the value of the specified data object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+<dt class="field-even">Param object<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pointer to data object</p>
+</dd>
+<dt class="field-odd">Return<span class="colon">:</span></dt>
+<dd class="field-odd"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_path">
+<span class="target" id="structthingset__api_1a43d4cd04bf03f8bff58ce5097c90d359"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_path</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_path" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Serialize the path for the specified data object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+<dt class="field-even">Param object<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pointer to data object</p>
+</dd>
+<dt class="field-odd">Return<span class="colon">:</span></dt>
+<dd class="field-odd"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_key_value">
+<span class="target" id="structthingset__api_1ac94ee11b23f91ace01ef38eecff44210"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_key_value</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_key_value" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Serialize the key and value of the specified data object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+<dt class="field-even">Param object<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pointer to data object</p>
+</dd>
+<dt class="field-odd">Return<span class="colon">:</span></dt>
+<dd class="field-odd"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_map_start">
+<span class="target" id="structthingset__api_1a77fb4e8aa766b4ff60e146fe6cf5367c"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_map_start</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_map_start" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Serialize the start of a map (<code class="docutils literal notranslate"><span class="pre">{</span></code> for text mode).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context</p>
+</dd>
+<dt class="field-even">Return<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_map_end">
+<span class="target" id="structthingset__api_1a3d5f79c6941a2d53cb5b116def4a03d4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_map_end</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_map_end" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Serialize the end of a map (<code class="docutils literal notranslate"><span class="pre">}</span></code> for text mode).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context</p>
+</dd>
+<dt class="field-even">Return<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_list_start">
+<span class="target" id="structthingset__api_1a5004b9e04779d4cf9e5f412398eda000"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_list_start</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_list_start" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Serialize the start of a list/array (<code class="docutils literal notranslate"><span class="pre">[</span></code> for text mode).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context</p>
+</dd>
+<dt class="field-even">Return<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_list_end">
+<span class="target" id="structthingset__api_1a425e4375f65902b86dfc4b6dd7fc4b49"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_list_end</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_list_end" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Serialize the end of a list/array (<code class="docutils literal notranslate"><span class="pre">]</span></code> for text mode).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context</p>
+</dd>
+<dt class="field-even">Return<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_subsets">
+<span class="target" id="structthingset__api_1a113d8ac272e173cd02bdd0c390a7f192"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_subsets</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">subsets</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_subsets" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Serialize the payload data for the specified subset.</p>
+<p>The implementation of this function is very different for text and binary mode, so it cannot be implemented as a common function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+<dt class="field-even">Param subsets<span class="colon">:</span></dt>
+<dd class="field-even"><p>Subset(s) to be considered</p>
+</dd>
+<dt class="field-odd">Return<span class="colon">:</span></dt>
+<dd class="field-odd"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_report_header">
+<span class="target" id="structthingset__api_1a5d5dd1836e9bb59f1885afc77c3110d7"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_report_header</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_report_header" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Serialize the start of a report message.</p>
+<p>The path parameter is redundant, as it could be determined from the endpoint. However, providing it as a parameter reduces calculation effort.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+<dt class="field-even">Param path<span class="colon">:</span></dt>
+<dd class="field-even"><p>Path string or NULL if using IDs is desired for binary mode</p>
+</dd>
+<dt class="field-odd">Return<span class="colon">:</span></dt>
+<dd class="field-odd"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.serialize_finish">
+<span class="target" id="structthingset__api_1a667f8e119f02e9d51e2bedd0d418c7d3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">serialize_finish</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.serialize_finish" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Finalize serialization</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.deserialize_payload_reset">
+<span class="target" id="structthingset__api_1a2d4cf96a862357d175ae216d2903d987"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">deserialize_payload_reset</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.deserialize_payload_reset" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Reset payload deserialization to start parsing at beginning of payload.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.deserialize_string">
+<span class="target" id="structthingset__api_1a0a5b7c6fce14954b417ff3bb8469c0f2"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">deserialize_string</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">str_start</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">str_len</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.deserialize_string" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Deserialize string with zero-copy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+<dt class="field-even">Param str_start<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pointer to store start of string </p>
+</dd>
+<dt class="field-odd">Param str_len<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to store length of string in the buffer EXCLUDING null-termination</p>
+</dd>
+<dt class="field-even">Return<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.deserialize_null">
+<span class="target" id="structthingset__api_1aec198aceb7a6263866b9a3ff62b7e03b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">deserialize_null</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.deserialize_null" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Deserialize null value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context</p>
+</dd>
+<dt class="field-even">Return<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.deserialize_list_start">
+<span class="target" id="structthingset__api_1a35b972b9fcad6763ccc664d4afdadd2a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">deserialize_list_start</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.deserialize_list_start" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Deserialize the start of a list/array (<code class="docutils literal notranslate"><span class="pre">[</span></code> for text mode).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context</p>
+</dd>
+<dt class="field-even">Return<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.deserialize_map_start">
+<span class="target" id="structthingset__api_1a478a8336cf7662fd08c6a9dd9239ff7a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">deserialize_map_start</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.deserialize_map_start" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Deserialize the start of a map (<code class="docutils literal notranslate"><span class="pre">{</span></code> for text mode).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context</p>
+</dd>
+<dt class="field-even">Return<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.deserialize_child">
+<span class="target" id="structthingset__api_1acf9d733458389a1ac87d16822c3b798e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">deserialize_child</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.deserialize_child" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Deserialize a child object by name or ID for a given parent ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+<dt class="field-even">Param object<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pointer to store the pointer to the found child object</p>
+</dd>
+<dt class="field-odd">Return<span class="colon">:</span></dt>
+<dd class="field-odd"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.deserialize_value">
+<span class="target" id="structthingset__api_1ae7f01452d0828d06df823629188603db"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">deserialize_value</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_data_object" title="thingset_data_object"><span class="n"><span class="pre">thingset_data_object</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n"><span class="pre">check_only</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.deserialize_value" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Deserialize any value for the given data object</p>
+<p>Setting the check_only parameter allows to check the type and size of the data items prior to applying the changes of an entire UPDATE request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+<dt class="field-even">Param object<span class="colon">:</span></dt>
+<dd class="field-even"><p>Data object to use </p>
+</dd>
+<dt class="field-odd">Param check_only<span class="colon">:</span></dt>
+<dd class="field-odd"><p>If set to true, buffers are not actually deserialized and it is only checked if their size would fit.</p>
+</dd>
+<dt class="field-even">Return<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.deserialize_skip">
+<span class="target" id="structthingset__api_1ab3e3f8dfd7224db4e7dd573b5d4964be"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">deserialize_skip</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.deserialize_skip" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Deserialize the next object and skip it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context</p>
+</dd>
+<dt class="field-even">Return<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 for success or negative ThingSet response code in case of error </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c var">
+<dt class="sig sig-object c" id="c.thingset_api.deserialize_finish">
+<span class="target" id="structthingset__api_1ada264b1f19c42bc1b0bcd656e4c0053f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">deserialize_finish</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="library.html#c.thingset_context" title="thingset_context"><span class="n"><span class="pre">thingset_context</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.thingset_api.deserialize_finish" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Finalize deserialization</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param ts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to ThingSet context </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="library.html" class="btn btn-neutral float-left" title="Library API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024 The ThingSet Project Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
