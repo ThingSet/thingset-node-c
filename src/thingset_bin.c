@@ -208,8 +208,8 @@ static int bin_serialize_value(struct thingset_context *ts,
     int err;
 
     err = bin_serialize_simple_value(ts->encoder, object->data, object->type, object->detail);
-    if (err == 0) {
-        return 0;
+    if (err != -THINGSET_ERR_UNSUPPORTED_FORMAT) {
+        return err;
     }
 
     /* not a simple value */

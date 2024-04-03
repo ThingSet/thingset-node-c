@@ -247,7 +247,7 @@ static int txt_serialize_value(struct thingset_context *ts,
 
     int pos = json_serialize_simple_value(buf, size, object->data, object->type, object->detail);
 
-    if (pos < 0) {
+    if (pos == -THINGSET_ERR_UNSUPPORTED_FORMAT) {
         /* not a simple value */
         if (object->type == THINGSET_TYPE_GROUP) {
             pos = snprintf(buf, size, "null,");
