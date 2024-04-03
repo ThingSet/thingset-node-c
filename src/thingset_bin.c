@@ -266,6 +266,8 @@ static int bin_serialize_value(struct thingset_context *ts,
             err =
                 bin_serialize_simple_value(ts->encoder, data, array->element_type, array->decimals);
             if (err != 0) {
+                /* finish up to leave encoder in defined state */
+                zcbor_list_end_encode(ts->encoder, array->num_elements);
                 return err;
             }
         }
