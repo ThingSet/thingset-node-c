@@ -388,12 +388,22 @@ int thingset_bin_export_subsets_progressively(struct thingset_context *ts, uint1
             /* update last length in case next serialisation runs out of room */
             *len = ts->rsp_pos;
             int ret = bin_serialize_key_value(ts, &ts->data_objects[*index]);
-            if (ret < 0) {
-                /* buffer presumably full; reset pointer to position before
-                   we encoded this key-value pair and ask for more data */
-                ts->rsp_pos = 0;
-                ts->encoder->payload_mut = ts->rsp;
-                return 1;
+            if (ret == -THINGSET_ERR_RESPONSE_TOO_LARGE) {
+                if (ts->rsp_pos > 0) {
+                    /* reset pointer to position before we encoded this key-value
+                     * pair and ask for more data
+                     */
+                    ts->encoder->payload_mut = ts->rsp;
+                    ts->rsp_pos = 0;
+                    return 1;
+                }
+                else {
+                    /* this element alone is too large to fit the buffer */
+                    return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+                }
+            }
+            else if (ret < 0) {
+                return ret;
             }
         }
         (*index)++;
