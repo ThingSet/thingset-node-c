@@ -818,38 +818,53 @@ int thingset_bin_import_data_progressively(struct thingset_context *ts, uint8_t 
      */
     zcbor_new_decode_state(ts->decoder, ZCBOR_ARRAY_SIZE(ts->decoder), ts->decoder->payload_mut,
                            size - (ts->decoder->payload - ts->msg), ts->decoder->elem_count);
+
     uint32_t id;
+    size_t successfully_parsed_bytes = 0;
     while (zcbor_uint32_decode(ts->decoder, &id)) {
         if (id <= UINT16_MAX) {
             const struct thingset_data_object *object = thingset_get_object_by_id(ts, id);
             if (object != NULL && (object->access & THINGSET_WRITE_MASK & auth_flags) != 0) {
-                if (ts->api->deserialize_value(ts, object, false)) {
+                if (ts->api->deserialize_value(ts, object, false) == 0) {
+                    successfully_parsed_bytes = ts->decoder->payload - ts->msg;
+                }
+                else {
                     if (id == *last_id) {
                         /* we got stuck here last time, so no point going back and asking
                             for more data; just skip it and move on */
-                        zcbor_any_skip(ts->decoder, NULL);
+                        if (zcbor_any_skip(ts->decoder, NULL)) {
+                            successfully_parsed_bytes = ts->decoder->payload - ts->msg;
+                        }
+                        else {
+                            /* if we can't even skip the element, the data must be corrupted */
+                            *consumed = successfully_parsed_bytes;
+                            return -THINGSET_ERR_REQUEST_INCOMPLETE;
+                        }
                     }
                     else {
                         /* reset decoder position to the beginning of the buffer */
                         ts->decoder->payload = ts->msg;
-                        /* reincrement element count; empirical testing so far suggests
-                           this should be 2, even though surely we have only successfully
-                           parsed 1 (the ID; the element parsing failed?) */
-                        ts->decoder->elem_count += 2;
+                        /* reincrement element count because ID will be parsed again */
+                        ts->decoder->elem_count++;
+                        *consumed = successfully_parsed_bytes;
                         return 1; /* ask for more data */
                     }
                 }
             }
             else {
-                zcbor_any_skip(ts->decoder, NULL);
+                if (zcbor_any_skip(ts->decoder, NULL)) {
+                    successfully_parsed_bytes = ts->decoder->payload - ts->msg;
+                }
+                else {
+                    /* reincrement element count because ID will be parsed again */
+                    ts->decoder->elem_count++;
+                }
             }
             *last_id = id;
         }
-
-        *consumed = ts->decoder->payload - ts->msg;
     }
 
-    *consumed = ts->decoder->payload - ts->msg;
+    *consumed = successfully_parsed_bytes;
     if (*consumed == 0 && size > 0) {
         /* if we didn't manage to consume anything at this point, the data must be completely
          * invalid, because it means we didn't even parse an ID, so just bail out
