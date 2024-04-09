@@ -821,6 +821,7 @@ int thingset_bin_import_data_progressively(struct thingset_context *ts, uint8_t 
 
     uint32_t id;
     size_t successfully_parsed_bytes = 0;
+    zcbor_state_t state = *ts->decoder;
     while (zcbor_uint32_decode(ts->decoder, &id)) {
         if (id <= UINT16_MAX) {
             const struct thingset_data_object *object = thingset_get_object_by_id(ts, id);
@@ -833,6 +834,7 @@ int thingset_bin_import_data_progressively(struct thingset_context *ts, uint8_t 
                         /* we got stuck here last time, so no point going back and asking
                             for more data; just skip it and move on */
                         if (zcbor_any_skip(ts->decoder, NULL)) {
+                            state = *ts->decoder;
                             successfully_parsed_bytes = ts->decoder->payload - ts->msg;
                         }
                         else {
@@ -844,22 +846,24 @@ int thingset_bin_import_data_progressively(struct thingset_context *ts, uint8_t 
                     else {
                         /* reset decoder position to the beginning of the buffer */
                         ts->decoder->payload = ts->msg;
-                        /* reincrement element count because ID will be parsed again */
-                        ts->decoder->elem_count++;
+                        ts->decoder->elem_count = state.elem_count;
                         *consumed = successfully_parsed_bytes;
                         return 1; /* ask for more data */
                     }
                 }
             }
             else {
+                /* did not find this object in lookup or was not writable */
                 if (zcbor_any_skip(ts->decoder, NULL)) {
+                    state = *ts->decoder;
                     successfully_parsed_bytes = ts->decoder->payload - ts->msg;
                 }
                 else {
                     /* reincrement element count because ID will be parsed again */
-                    ts->decoder->elem_count++;
+                    ts->decoder->elem_count = state.elem_count;
                 }
             }
+            state = *ts->decoder;
             *last_id = id;
         }
     }
