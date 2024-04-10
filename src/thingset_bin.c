@@ -848,6 +848,7 @@ int thingset_bin_import_data_progressively(struct thingset_context *ts, uint8_t 
                         ts->decoder->payload = ts->msg;
                         ts->decoder->elem_count = state.elem_count;
                         *consumed = successfully_parsed_bytes;
+                        *last_id = id;
                         return 1; /* ask for more data */
                     }
                 }
