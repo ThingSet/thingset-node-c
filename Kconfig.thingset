@@ -12,6 +12,16 @@ config THINGSET
 
 if THINGSET
 
+config THINGSET_TEXT_MODE
+	bool "Enable text mode (JSON)"
+	default y
+	help
+	  Whether to enable text mode (JSON). It may be desirable to disable this
+	  to reduce code size in certain circumstances.
+
+	  Please note that text mode may also be required for the ThingSet shell
+	  in some applications, so one should be careful when disabling it.
+
 config THINGSET_IMMUTABLE_OBJECTS
 	bool "Make data objects immutable and store them in ROM"
 	default n
