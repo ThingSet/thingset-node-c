@@ -43,6 +43,13 @@ config THINGSET_OBJECT_LOOKUP_BUCKETS
 
 endif
 
+config THINGSET_ENCODE_ZERO_DECIMAL_FLOATS_AS_INTEGERS
+	bool "Send 0dp precision floats as integers"
+	default y
+	help
+	  In binary mode, when sending float items whose precision is declared as 0dp,
+	  encode them as integers to potentially reduce payload size.
+
 config THINGSET_NUM_JSON_TOKENS
 	int "Maximum number of expected JSON tokens."
 	default 50

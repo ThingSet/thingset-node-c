@@ -103,7 +103,8 @@ static int bin_serialize_simple_value(zcbor_state_t *encoder, union thingset_dat
             success = zcbor_int32_put(encoder, *data.i8);
             break;
         case THINGSET_TYPE_F32:
-            if (detail == 0) { /* round to 0 decimals: use int */
+            if (IS_ENABLED(CONFIG_THINGSET_ENCODE_ZERO_DECIMAL_FLOATS_AS_INTEGERS) && detail == 0)
+            { /* round to 0 decimals: use int */
                 success = zcbor_int32_put(encoder, lroundf(*data.f32));
             }
             else {
@@ -951,7 +952,6 @@ int thingset_bin_process(struct thingset_context *ts)
         default:
             return -THINGSET_ERR_BAD_REQUEST;
     }
-
     if (ts->msg[0] != THINGSET_BIN_DESIRE) {
         ts->api->serialize_finish(ts);
         return ts->rsp_pos;
