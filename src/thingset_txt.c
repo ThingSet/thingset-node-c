@@ -142,7 +142,8 @@ static int json_serialize_simple_value(char *buf, size_t size, union thingset_da
                 break;
             }
             else {
-                pos = snprintf(buf, size, "%.*f,", detail, *data.f32);
+                /* explicit double-conversion required to please compiler */
+                pos = snprintf(buf, size, "%.*f,", detail, (double)*data.f32);
                 break;
             }
 #if CONFIG_THINGSET_DECFRAC_TYPE_SUPPORT

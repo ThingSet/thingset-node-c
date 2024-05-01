@@ -4,16 +4,18 @@ manifest:
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
+    - name: NordicSemiconductor
+      url-base: https://github.com/NordicSemiconductor
 
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: v3.3-branch
+      revision: v3.6-branch
       import:
         name-allowlist:
           - edtt
-          - zcbor
+    # Use Nordic repo to pull in https://github.com/NordicSemiconductor/zcbor/pull/407
     - name: zcbor
-      remote: zephyrproject-rtos
-      revision: 67fd8bb88d3136738661fa8bb5f9989103f4599e
+      remote: NordicSemiconductor
+      revision: 16648fb060d857f164635ca4e8eaa716d906d244
       path: modules/lib/zcbor
