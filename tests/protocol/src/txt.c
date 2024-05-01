@@ -649,6 +649,11 @@ ZTEST(thingset_txt, test_import_record)
     records[1].b = true;
 }
 
+static bool thingset_txt_predicate(const void *global_state)
+{
+    return IS_ENABLED(CONFIG_THINGSET_TEXT_MODE);
+}
+
 static void *thingset_setup(void)
 {
     thingset_init_global(&ts);
@@ -656,4 +661,4 @@ static void *thingset_setup(void)
     return NULL;
 }
 
-ZTEST_SUITE(thingset_txt, NULL, thingset_setup, NULL, NULL, NULL);
+ZTEST_SUITE(thingset_txt, thingset_txt_predicate, thingset_setup, NULL, NULL, NULL);

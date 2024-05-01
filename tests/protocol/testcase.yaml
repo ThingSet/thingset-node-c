@@ -6,6 +6,13 @@ tests:
       - native_posix
       - native_posix_64
     extra_args: EXTRA_CFLAGS=-Werror
+  thingset.protocol.text_mode_disabled:
+    integration_platforms:
+      - native_posix
+      - native_posix_64
+    extra_args: EXTRA_CFLAGS=-Werror
+    extra_configs:
+      - CONFIG_THINGSET_TEXT_MODE=n
   thingset.protocol.objectlookup:
     integration_platforms:
       - native_posix
