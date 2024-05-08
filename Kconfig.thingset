@@ -24,7 +24,6 @@ config THINGSET_TEXT_MODE
 
 config THINGSET_IMMUTABLE_OBJECTS
 	bool "Make data objects immutable and store them in ROM"
-	default n
 	help
 	  This option adds const specifiers to the data object structs and stores them in iterable
 	  sections in ROM instead of RAM.
@@ -39,7 +38,7 @@ config THINGSET_IMMUTABLE_OBJECTS
 
 config THINGSET_OBJECT_LOOKUP_MAP
 	bool "Enable hashmap for object lookup"
-	default n
+	depends on !THINGSET_IMMUTABLE_OBJECTS
 	help
 	  Enable to speed up performance of object lookup.
 
@@ -79,21 +78,18 @@ config THINGSET_BINARY_MAX_DEPTH
 
 config THINGSET_REPORT_RECORD_SERIALIZATION
 	bool "Enable full record serialization in reports."
-	default n
 	help
 	  Switch on support for record serialisation in reports. It may be necessary
 	  to increase THINGSET_BINARY_MAX_DEPTH when using this feature.
 
 config THINGSET_64BIT_TYPES_SUPPORT
 	bool "Enable support for 64 bit variable types."
-	default n
 	help
 	  Switch on support for 64 bit variable types (uint64_t, int64_t, double).
 	  This should be disabled for most 8-bit microcontrollers to increase performance.
 
 config THINGSET_DECFRAC_TYPE_SUPPORT
 	bool "Enable support for decimal fraction variable type."
-	default n
 	help
 	  Switch on support for CBOR decimal fraction data type which stores a decimal mantissa
 	  and a constant decimal exponent. This allows to use e.g. millivolts internally instead
@@ -102,14 +98,12 @@ config THINGSET_DECFRAC_TYPE_SUPPORT
 config THINGSET_BYTES_TYPE_SUPPORT
 	bool "Enable support for byte buffer variable type."
 	select BASE64
-	default n
 	help
 	  Switch on support for CBOR byte strings, which can store any sort of binary data and
 	  can be used e.g. for firmware upgrades. JSON uses base64-encoded data.
 
 config THINGSET_JSON_STRING_ESCAPING
 	bool "Escape/unescape C strings when serializing/deserializing them to JSON"
-	default n
 	help
 	  This is only required if arbitrary strings may end up in data objects of type String,
 	  containing characters like the quotation mark that have to be escaped in JSON. This may
