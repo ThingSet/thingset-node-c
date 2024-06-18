@@ -133,13 +133,10 @@ int thingset_export_subsets_progressively(struct thingset_global_context *ts, ui
                                           size_t *len)
 {
     if (*index == 0) {
-        struct thingset_context r = {
-            .context = ts,
-            .rsp = buf,
-            .rsp_size = buf_size,
-            .rsp_pos = 0,
-        };
-        *req_ctx = r;
+        req_ctx->context = ts;
+        req_ctx->rsp = buf;
+        req_ctx->rsp_size = buf_size;
+        req_ctx->rsp_pos = 0;
 
         switch (format) {
             case THINGSET_BIN_IDS_VALUES:
@@ -265,16 +262,13 @@ int thingset_import_data_progressively(struct thingset_global_context *ts, const
     int err = 0;
 
     if (*last_id == 0) {
-        struct thingset_context r = {
-            .context = ts,
-            .msg = data,
-            .msg_len = len,
-            .msg_pos = 0,
-            .rsp = NULL,
-            .rsp_size = 0,
-            .rsp_pos = 0,
-        };
-        *req_ctx = r;
+        req_ctx->context = ts;
+        req_ctx->msg = data;
+        req_ctx->msg_len = len;
+        req_ctx->msg_pos = 0;
+        req_ctx->rsp = NULL;
+        req_ctx->rsp_size = 0;
+        req_ctx->rsp_pos = 0;
 
         switch (format) {
             case THINGSET_BIN_IDS_VALUES:
