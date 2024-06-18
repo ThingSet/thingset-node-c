@@ -816,7 +816,7 @@ int thingset_acquire_read_lock(struct thingset_global_context *ts, k_timeout_t t
 int thingset_release_read_lock(struct thingset_global_context *ts)
 {
     atomic_t previous_count = atomic_dec(&ts->reader_count);
-    if (previous_count == 0) {
+    if (previous_count == 1) { /* will now be 0 */
         k_sem_give(&ts->sem);
     }
 
