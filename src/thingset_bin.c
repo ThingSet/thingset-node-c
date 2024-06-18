@@ -942,25 +942,39 @@ int thingset_bin_process(struct thingset_context *ts)
     /* requests ordered with expected highest probability first */
     switch (ts->msg[0]) {
         case THINGSET_BIN_GET:
+            thingset_acquire_read_lock(ts->context, K_FOREVER);
             ret = thingset_common_get(ts);
+            thingset_release_read_lock(ts->context);
             break;
         case THINGSET_BIN_FETCH:
+            thingset_acquire_read_lock(ts->context, K_FOREVER);
             ret = thingset_common_fetch(ts);
+            thingset_release_read_lock(ts->context);
             break;
         case THINGSET_BIN_UPDATE:
+            thingset_acquire_write_lock(ts->context, K_FOREVER);
             ret = thingset_common_update(ts);
+            thingset_release_write_lock(ts->context);
             break;
         case THINGSET_BIN_EXEC:
+            thingset_acquire_write_lock(ts->context, K_FOREVER);
             ret = thingset_common_exec(ts);
+            thingset_release_write_lock(ts->context);
             break;
         case THINGSET_BIN_CREATE:
+            thingset_acquire_write_lock(ts->context, K_FOREVER);
             ret = thingset_common_create(ts);
+            thingset_release_write_lock(ts->context);
             break;
         case THINGSET_BIN_DELETE:
+            thingset_acquire_write_lock(ts->context, K_FOREVER);
             ret = thingset_common_delete(ts);
+            thingset_release_write_lock(ts->context);
             break;
         case THINGSET_BIN_DESIRE:
+            thingset_acquire_read_lock(ts->context, K_FOREVER);
             ret = thingset_bin_desire(ts);
+            thingset_release_read_lock(ts->context);
             break;
         default:
             return -THINGSET_ERR_BAD_REQUEST;
