@@ -30,11 +30,11 @@ int thingset_common_serialize_group(struct thingset_context *ts,
         object->data.group_callback(THINGSET_CALLBACK_PRE_READ);
     }
 
-    for (unsigned int i = 0; i < ts->num_objects; i++) {
-        if (ts->data_objects[i].parent_id == object->id
-            && (ts->data_objects[i].access & THINGSET_READ_MASK))
+    for (unsigned int i = 0; i < ts->context->num_objects; i++) {
+        if (ts->context->data_objects[i].parent_id == object->id
+            && (ts->context->data_objects[i].access & THINGSET_READ_MASK))
         {
-            err = ts->api->serialize_key_value(ts, &ts->data_objects[i]);
+            err = ts->api->serialize_key_value(ts, &ts->context->data_objects[i]);
             if (err != 0) {
                 return err;
             }
@@ -121,8 +121,9 @@ int thingset_common_serialize_record(struct thingset_context *ts,
         records->callback(THINGSET_CALLBACK_PRE_READ, record_index);
     }
 
-    const struct thingset_data_object *item = thingset_get_object_by_id(ts, object->id) + 1;
-    while (item < &ts->data_objects[ts->num_objects]) {
+    const struct thingset_data_object *item =
+        thingset_get_object_by_id(ts->context, object->id) + 1;
+    while (item < &ts->context->data_objects[ts->context->num_objects]) {
         if (item->parent_id != object->id) {
             item++;
             continue;
@@ -171,7 +172,7 @@ int thingset_common_get(struct thingset_context *ts)
             err = ts->api->serialize_value(ts, ts->endpoint.object);
             break;
         default:
-            parent = thingset_get_object_by_id(ts, ts->endpoint.object->parent_id);
+            parent = thingset_get_object_by_id(ts->context, ts->endpoint.object->parent_id);
 
             if (parent != NULL && parent->data.group_callback != NULL) {
                 parent->data.group_callback(THINGSET_CALLBACK_PRE_READ);
@@ -204,11 +205,11 @@ int thingset_common_fetch(struct thingset_context *ts)
 
     if (ts->api->deserialize_null(ts) == 0) {
         /* fetch names */
-        for (unsigned int i = 0; i < ts->num_objects; i++) {
-            if ((ts->data_objects[i].access & THINGSET_READ_MASK)
-                && (ts->data_objects[i].parent_id == ts->endpoint.object->id))
+        for (unsigned int i = 0; i < ts->context->num_objects; i++) {
+            if ((ts->context->data_objects[i].access & THINGSET_READ_MASK)
+                && (ts->context->data_objects[i].parent_id == ts->endpoint.object->id))
             {
-                err = ts->api->serialize_key(ts, &ts->data_objects[i]);
+                err = ts->api->serialize_key(ts, &ts->context->data_objects[i]);
                 if (err != 0) {
                     return ts->api->serialize_response(ts, -err, NULL);
                 }
@@ -241,7 +242,7 @@ int thingset_common_fetch(struct thingset_context *ts)
                                                    object->name);
             }
 
-            if ((object->access & THINGSET_READ_MASK & ts->auth_flags) == 0) {
+            if ((object->access & THINGSET_READ_MASK & ts->context->auth_flags) == 0) {
                 if (object->access & THINGSET_READ_MASK) {
                     return ts->api->serialize_response(ts, THINGSET_ERR_UNAUTHORIZED,
                                                        "Authentication required for %s",
@@ -302,7 +303,7 @@ int thingset_common_update(struct thingset_context *ts)
             return ts->api->serialize_response(ts, -err, NULL);
         }
 
-        if ((object->access & THINGSET_WRITE_MASK & ts->auth_flags) == 0) {
+        if ((object->access & THINGSET_WRITE_MASK & ts->context->auth_flags) == 0) {
             if (object->access & THINGSET_WRITE_MASK) {
                 return ts->api->serialize_response(ts, THINGSET_ERR_UNAUTHORIZED,
                                                    "Authentication required for %s", object->name);
@@ -348,7 +349,7 @@ int thingset_common_update(struct thingset_context *ts)
             return ts->api->serialize_response(ts, -err, NULL);
         }
 
-        if (ts->update_subsets & object->subsets) {
+        if (ts->context->update_subsets & object->subsets) {
             updated = true;
         }
     }
@@ -361,8 +362,8 @@ int thingset_common_update(struct thingset_context *ts)
      * The update callback should be invoked after the group callback. This allows to use the group
      * callback for data processing and the update callback for finally storing the data in NVM.
      */
-    if (updated && ts->update_cb != NULL) {
-        ts->update_cb();
+    if (updated && ts->context->update_cb != NULL) {
+        ts->context->update_cb();
     }
 
     return ts->api->serialize_response(ts, THINGSET_STATUS_CHANGED, NULL);
@@ -385,7 +386,7 @@ int thingset_common_exec(struct thingset_context *ts)
             || ts->endpoint.object->type == THINGSET_TYPE_FN_I32))
     {
         /* object is generally executable, but are we authorized? */
-        if ((ts->endpoint.object->access & THINGSET_WRITE_MASK & ts->auth_flags) == 0) {
+        if ((ts->endpoint.object->access & THINGSET_WRITE_MASK & ts->context->auth_flags) == 0) {
             return ts->api->serialize_response(ts, THINGSET_ERR_UNAUTHORIZED,
                                                "Authentication required");
         }
@@ -395,9 +396,9 @@ int thingset_common_exec(struct thingset_context *ts)
                                            ts->endpoint.object->name);
     }
 
-    for (unsigned int i = 0; i < ts->num_objects; i++) {
-        if (ts->data_objects[i].parent_id == ts->endpoint.object->id) {
-            err = ts->api->deserialize_value(ts, &ts->data_objects[i], false);
+    for (unsigned int i = 0; i < ts->context->num_objects; i++) {
+        if (ts->context->data_objects[i].parent_id == ts->endpoint.object->id) {
+            err = ts->api->deserialize_value(ts, &ts->context->data_objects[i], false);
             if (err == -THINGSET_ERR_DESERIALIZATION_FINISHED) {
                 /* more child objects found than parameters were passed */
                 return ts->api->serialize_response(ts, THINGSET_ERR_BAD_REQUEST,
@@ -457,7 +458,7 @@ int thingset_common_create_delete(struct thingset_context *ts, bool create)
         }
 
         struct thingset_endpoint element;
-        int ret = thingset_endpoint_by_path(ts, &element, str_start, str_len);
+        int ret = thingset_endpoint_by_path(ts->context, &element, str_start, str_len);
         if (ret >= 0 && element.index == THINGSET_ENDPOINT_INDEX_NONE) {
             if (create) {
                 element.object->subsets |= ts->endpoint.object->data.subset;

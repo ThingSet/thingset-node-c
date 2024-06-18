@@ -53,7 +53,7 @@ static void check_id_duplicates(const struct thingset_data_object *objects, size
     }
 }
 
-static void thingset_init_common(struct thingset_context *ts)
+static void thingset_init_common(struct thingset_global_context *ts)
 {
 #ifdef CONFIG_THINGSET_OBJECT_LOOKUP_MAP
     for (unsigned int b = 0; b < CONFIG_THINGSET_OBJECT_LOOKUP_BUCKETS; b++) {
@@ -69,10 +69,11 @@ static void thingset_init_common(struct thingset_context *ts)
 #endif
     ts->auth_flags = THINGSET_USR_MASK;
 
-    k_sem_init(&ts->lock, 1, 1);
+    k_sem_init(&ts->sem, 1, 1);
+    k_mutex_init(&ts->reader_wait_writer);
 }
 
-void thingset_init(struct thingset_context *ts, struct thingset_data_object *objects,
+void thingset_init(struct thingset_global_context *ts, struct thingset_data_object *objects,
                    size_t num_objects)
 {
     check_id_duplicates(objects, num_objects);
@@ -82,7 +83,7 @@ void thingset_init(struct thingset_context *ts, struct thingset_data_object *obj
     thingset_init_common(ts);
 }
 
-void thingset_init_global(struct thingset_context *ts)
+void thingset_init_global(struct thingset_global_context *ts)
 {
     /* duplicates are checked at compile-time */
 
@@ -91,7 +92,7 @@ void thingset_init_global(struct thingset_context *ts)
     thingset_init_common(ts);
 }
 
-int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, size_t msg_len,
+int thingset_process_message(struct thingset_global_context *ts, const uint8_t *msg, size_t msg_len,
                              uint8_t *rsp, size_t rsp_size)
 {
     int ret;
@@ -105,149 +106,141 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
         return -THINGSET_ERR_INTERNAL_SERVER_ERR;
     }
 
-    if (k_sem_take(&ts->lock, K_MSEC(THINGSET_CONTEXT_LOCK_TIMEOUT_MS)) != 0) {
-        LOG_ERR("ThingSet context lock timed out");
-        return -THINGSET_ERR_INTERNAL_SERVER_ERR;
-    }
+    struct thingset_context req_ctx = {
+        .context = ts,
+        .msg = msg,
+        .msg_len = msg_len,
+        .msg_pos = 0,
+        .rsp = rsp,
+        .rsp_size = rsp_size,
+        .rsp_pos = 0,
+    };
 
-    ts->msg = msg;
-    ts->msg_len = msg_len;
-    ts->msg_pos = 0;
-
-    ts->rsp = rsp;
-    ts->rsp_size = rsp_size;
-    ts->rsp_pos = 0;
-
-    if (IS_ENABLED(CONFIG_THINGSET_TEXT_MODE) && ts->msg[0] >= 0x20) {
-        ret = thingset_txt_process(ts);
+    if (IS_ENABLED(CONFIG_THINGSET_TEXT_MODE) && req_ctx.msg[0] >= 0x20) {
+        ret = thingset_txt_process(&req_ctx);
     }
     else {
-        ret = thingset_bin_process(ts);
+        ret = thingset_bin_process(&req_ctx);
     }
-
-    k_sem_give(&ts->lock);
 
     return ret;
 }
 
-int thingset_export_subsets_progressively(struct thingset_context *ts, uint8_t *buf,
+int thingset_export_subsets_progressively(struct thingset_global_context *ts, uint8_t *buf,
                                           size_t buf_size, uint16_t subsets,
-                                          enum thingset_data_format format, unsigned int *index,
+                                          enum thingset_data_format format,
+                                          struct thingset_context *req_ctx, unsigned int *index,
                                           size_t *len)
 {
     if (*index == 0) {
-        if (k_sem_take(&ts->lock, K_MSEC(THINGSET_CONTEXT_LOCK_TIMEOUT_MS)) != 0) {
-            LOG_ERR("ThingSet context lock timed out");
-            return -THINGSET_ERR_INTERNAL_SERVER_ERR;
-        }
-
-        ts->rsp = buf;
-        ts->rsp_size = buf_size;
-        ts->rsp_pos = 0;
+        struct thingset_context r = {
+            .context = ts,
+            .rsp = buf,
+            .rsp_size = buf_size,
+            .rsp_pos = 0,
+        };
+        *req_ctx = r;
 
         switch (format) {
             case THINGSET_BIN_IDS_VALUES:
-                ts->endpoint.use_ids = true;
-                thingset_bin_setup(ts, 0);
+                req_ctx->endpoint.use_ids = true;
+                thingset_bin_setup(req_ctx, 0);
                 break;
             default:
-                k_sem_give(&ts->lock);
                 return -THINGSET_ERR_NOT_IMPLEMENTED;
         }
     }
-    int ret = thingset_bin_export_subsets_progressively(ts, subsets, index, len);
-    if (ret <= 0) {
-        k_sem_give(&ts->lock);
-    }
+    thingset_acquire_read_lock(ts, K_FOREVER);
+    int ret = thingset_bin_export_subsets_progressively(req_ctx, subsets, index, len);
+    thingset_release_read_lock(ts);
 
     return ret;
 }
 
-int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
+int thingset_export_subsets(struct thingset_global_context *ts, uint8_t *buf, size_t buf_size,
                             uint16_t subsets, enum thingset_data_format format)
 {
     int ret;
 
-    if (k_sem_take(&ts->lock, K_MSEC(THINGSET_CONTEXT_LOCK_TIMEOUT_MS)) != 0) {
-        LOG_ERR("ThingSet context lock timed out");
-        return -THINGSET_ERR_INTERNAL_SERVER_ERR;
-    }
-
-    ts->rsp = buf;
-    ts->rsp_size = buf_size;
-    ts->rsp_pos = 0;
+    struct thingset_context req_ctx = {
+        .context = ts,
+        .rsp = buf,
+        .rsp_size = buf_size,
+        .rsp_pos = 0,
+    };
 
     switch (format) {
 #ifdef CONFIG_THINGSET_TEXT_MODE
         case THINGSET_TXT_NAMES_VALUES:
-            thingset_txt_setup(ts);
+            thingset_txt_setup(&req_ctx);
             break;
 #endif
         case THINGSET_BIN_IDS_VALUES:
-            ts->endpoint.use_ids = true;
-            thingset_bin_setup(ts, 0);
+            req_ctx.endpoint.use_ids = true;
+            thingset_bin_setup(&req_ctx, 0);
             break;
         default:
             return -THINGSET_ERR_NOT_IMPLEMENTED;
     }
 
-    ret = ts->api->serialize_subsets(ts, subsets);
+    thingset_acquire_read_lock(ts, K_FOREVER);
+    ret = req_ctx.api->serialize_subsets(&req_ctx, subsets);
 
-    ts->api->serialize_finish(ts);
+    req_ctx.api->serialize_finish(&req_ctx);
 
     if (ret == 0) {
-        ret = ts->rsp_pos;
+        ret = req_ctx.rsp_pos;
     }
 
-    k_sem_give(&ts->lock);
+    thingset_release_read_lock(ts);
 
     return ret;
 }
 
-int thingset_export_item(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
+int thingset_export_item(struct thingset_global_context *ts, uint8_t *buf, size_t buf_size,
                          const struct thingset_data_object *obj, enum thingset_data_format format)
 {
     int ret;
 
-    if (k_sem_take(&ts->lock, K_MSEC(THINGSET_CONTEXT_LOCK_TIMEOUT_MS)) != 0) {
-        LOG_ERR("ThingSet context lock timed out");
-        return -THINGSET_ERR_INTERNAL_SERVER_ERR;
-    }
-
-    ts->rsp = buf;
-    ts->rsp_size = buf_size;
-    ts->rsp_pos = 0;
+    struct thingset_context req_ctx = {
+        .context = ts,
+        .rsp = buf,
+        .rsp_size = buf_size,
+        .rsp_pos = 0,
+    };
 
     switch (format) {
 #ifdef CONFIG_THINGSET_TEXT_MODE
         case THINGSET_TXT_VALUES_ONLY:
-            thingset_txt_setup(ts);
+            thingset_txt_setup(&req_ctx);
             break;
 #endif
         case THINGSET_BIN_VALUES_ONLY:
-            ts->endpoint.use_ids = true;
-            thingset_bin_setup(ts, 0);
+            req_ctx.endpoint.use_ids = true;
+            thingset_bin_setup(&req_ctx, 0);
             break;
         default:
             ret = -THINGSET_ERR_NOT_IMPLEMENTED;
             goto out;
     }
 
-    ret = ts->api->serialize_value(ts, obj);
+    thingset_acquire_read_lock(ts, K_FOREVER);
+    ret = req_ctx.api->serialize_value(&req_ctx, obj);
 
-    ts->api->serialize_finish(ts);
+    req_ctx.api->serialize_finish(&req_ctx);
 
     if (ret == 0) {
-        ret = ts->rsp_pos;
+        ret = req_ctx.rsp_pos;
     }
 
 out:
-    k_sem_give(&ts->lock);
+    thingset_release_read_lock(ts);
 
     return ret;
 }
 
-struct thingset_data_object *thingset_iterate_subsets(struct thingset_context *ts, uint16_t subset,
+struct thingset_data_object *thingset_iterate_subsets(struct thingset_global_context *ts,
+                                                      uint16_t subset,
                                                       struct thingset_data_object *start_obj)
 {
     if (start_obj == NULL) {
@@ -264,87 +257,87 @@ struct thingset_data_object *thingset_iterate_subsets(struct thingset_context *t
     return NULL;
 }
 
-int thingset_import_data_progressively(struct thingset_context *ts, const uint8_t *data, size_t len,
-                                       enum thingset_data_format format, uint8_t auth_flags,
+int thingset_import_data_progressively(struct thingset_global_context *ts, const uint8_t *data,
+                                       size_t len, enum thingset_data_format format,
+                                       uint8_t auth_flags, struct thingset_context *req_ctx,
                                        uint32_t *last_id, size_t *consumed)
 {
     int err = 0;
 
     if (*last_id == 0) {
-        if (k_sem_take(&ts->lock, K_MSEC(THINGSET_CONTEXT_LOCK_TIMEOUT_MS)) != 0) {
-            LOG_ERR("ThingSet context lock timed out");
-            return -THINGSET_ERR_INTERNAL_SERVER_ERR;
-        }
-
-        ts->msg = data;
-        ts->msg_len = len;
-        ts->msg_pos = 0;
-        ts->rsp = NULL;
-        ts->rsp_size = 0;
-        ts->rsp_pos = 0;
+        struct thingset_context r = {
+            .context = ts,
+            .msg = data,
+            .msg_len = len,
+            .msg_pos = 0,
+            .rsp = NULL,
+            .rsp_size = 0,
+            .rsp_pos = 0,
+        };
+        *req_ctx = r;
 
         switch (format) {
             case THINGSET_BIN_IDS_VALUES:
-                ts->endpoint.use_ids = true;
-                thingset_bin_setup(ts, 0);
-                ts->msg_payload = data;
-                ts->api->deserialize_payload_reset(ts);
+                req_ctx->endpoint.use_ids = true;
+                thingset_bin_setup(req_ctx, 0);
+                req_ctx->msg_payload = data;
+                req_ctx->api->deserialize_payload_reset(req_ctx);
                 break;
             default:
                 err = -THINGSET_ERR_NOT_IMPLEMENTED;
-                k_sem_give(&ts->lock);
                 break;
         }
 
         if (err) {
             return err;
         }
+
+        thingset_acquire_write_lock(ts, K_FOREVER);
     }
 
-    err = thingset_bin_import_data_progressively(ts, auth_flags, len, last_id, consumed);
+    err = thingset_bin_import_data_progressively(req_ctx, auth_flags, len, last_id, consumed);
     if (err < 0) {
-        k_sem_give(&ts->lock);
+        thingset_release_write_lock(ts);
     }
     return err;
 }
 
-int thingset_import_data_progressively_end(struct thingset_context *ts)
+int thingset_import_data_progressively_end(struct thingset_global_context *ts)
 {
-    k_sem_give(&ts->lock);
+    thingset_release_write_lock(ts);
     return 0;
 }
 
-int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_t len,
+int thingset_import_data(struct thingset_global_context *ts, const uint8_t *data, size_t len,
                          uint8_t auth_flags, enum thingset_data_format format)
 {
     int err;
 
-    if (k_sem_take(&ts->lock, K_MSEC(THINGSET_CONTEXT_LOCK_TIMEOUT_MS)) != 0) {
-        LOG_ERR("ThingSet context lock timed out");
-        return -THINGSET_ERR_INTERNAL_SERVER_ERR;
-    }
-
-    ts->msg = data;
-    ts->msg_len = len;
-    ts->msg_pos = 0;
-    ts->rsp = NULL;
-    ts->rsp_size = 0;
-    ts->rsp_pos = 0;
+    struct thingset_context req_ctx = {
+        .context = ts,
+        .msg = data,
+        .msg_len = len,
+        .msg_pos = 0,
+        .rsp = NULL,
+        .rsp_size = 0,
+        .rsp_pos = 0,
+    };
 
     switch (format) {
         case THINGSET_BIN_IDS_VALUES:
-            ts->endpoint.use_ids = true;
-            thingset_bin_setup(ts, 0);
-            ts->msg_payload = data;
-            ts->api->deserialize_payload_reset(ts);
-            err = thingset_bin_import_data(ts, auth_flags, format);
+            req_ctx.endpoint.use_ids = true;
+            thingset_bin_setup(&req_ctx, 0);
+            req_ctx.msg_payload = data;
+            req_ctx.api->deserialize_payload_reset(&req_ctx);
+            thingset_acquire_write_lock(ts, K_FOREVER);
+            err = thingset_bin_import_data(&req_ctx, auth_flags, format);
             break;
         default:
             err = -THINGSET_ERR_NOT_IMPLEMENTED;
             break;
     }
 
-    k_sem_give(&ts->lock);
+    thingset_release_write_lock(ts);
 
     return err;
 }
@@ -352,68 +345,69 @@ int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_
 static int deserialize_value_callback(struct thingset_context *ts,
                                       const struct thingset_data_object *item_offset)
 {
+    /* already in a locked context */
     return ts->api->deserialize_value(ts, item_offset, false);
 }
 
-int thingset_import_record(struct thingset_context *ts, const uint8_t *data, size_t len,
+int thingset_import_record(struct thingset_global_context *ts, const uint8_t *data, size_t len,
                            struct thingset_endpoint *endpoint, enum thingset_data_format format)
 {
     int err;
 
-    if (k_sem_take(&ts->lock, K_MSEC(THINGSET_CONTEXT_LOCK_TIMEOUT_MS)) != 0) {
-        LOG_ERR("ThingSet context lock timed out");
-        return -THINGSET_ERR_INTERNAL_SERVER_ERR;
-    }
+    struct thingset_context req_ctx = {
+        .context = ts,
+        .msg = data,
+        .msg_len = len,
+        .msg_pos = 0,
+        .rsp = NULL,
+        .rsp_size = 0,
+        .rsp_pos = 0,
+    };
 
-    ts->msg = data;
-    ts->msg_len = len;
-    ts->msg_pos = 0;
-    ts->rsp = NULL;
-    ts->rsp_size = 0;
-    ts->rsp_pos = 0;
-
-    ts->endpoint = *endpoint;
+    req_ctx.endpoint = *endpoint;
 
     switch (format) {
 #ifdef CONFIG_THINGSET_TEXT_MODE
         case THINGSET_TXT_NAMES_VALUES:
-            thingset_txt_setup(ts);
-            ts->msg_payload = data;
-            ts->api->deserialize_payload_reset(ts);
+            thingset_txt_setup(&req_ctx);
+            req_ctx.msg_payload = data;
+            req_ctx.api->deserialize_payload_reset(&req_ctx);
             break;
 #endif
         case THINGSET_BIN_IDS_VALUES:
-            ts->endpoint.use_ids = true;
-            thingset_bin_setup(ts, 0);
-            ts->msg_payload = data;
-            ts->api->deserialize_payload_reset(ts);
+            req_ctx.endpoint.use_ids = true;
+            thingset_bin_setup(&req_ctx, 0);
+            req_ctx.msg_payload = data;
+            req_ctx.api->deserialize_payload_reset(&req_ctx);
             break;
         default:
             err = -THINGSET_ERR_NOT_IMPLEMENTED;
             goto out;
     }
 
-    err = ts->api->deserialize_map_start(ts);
+    thingset_acquire_read_lock(ts, K_FOREVER);
+    err = req_ctx.api->deserialize_map_start(&req_ctx);
     if (err != 0) {
         goto out;
     }
 
     const struct thingset_data_object *item;
-    while ((err = ts->api->deserialize_child(ts, &item)) != -THINGSET_ERR_DESERIALIZATION_FINISHED)
+    while ((err = req_ctx.api->deserialize_child(&req_ctx, &item))
+           != -THINGSET_ERR_DESERIALIZATION_FINISHED)
     {
         if (err == -THINGSET_ERR_NOT_FOUND) {
             /* silently ignore non-existing record items and skip value */
-            ts->api->deserialize_skip(ts);
+            req_ctx.api->deserialize_skip(&req_ctx);
             continue;
         }
         else if (err != 0) {
             goto out;
         }
 
-        struct thingset_records *records = ts->endpoint.object->data.records;
+        struct thingset_records *records = req_ctx.endpoint.object->data.records;
         uint8_t *record_ptr =
-            (uint8_t *)records->records + ts->endpoint.index * records->record_size;
-        err = thingset_common_prepare_record_element(ts, item, record_ptr,
+            (uint8_t *)records->records + req_ctx.endpoint.index * records->record_size;
+        err = thingset_common_prepare_record_element(&req_ctx, item, record_ptr,
                                                      deserialize_value_callback);
 
         if (err != 0) {
@@ -421,33 +415,32 @@ int thingset_import_record(struct thingset_context *ts, const uint8_t *data, siz
         }
     }
 
-    err = err == -THINGSET_ERR_DESERIALIZATION_FINISHED ? 0 : ts->api->deserialize_finish(ts);
+    err = err == -THINGSET_ERR_DESERIALIZATION_FINISHED ? 0
+                                                        : req_ctx.api->deserialize_finish(&req_ctx);
 
 out:
-    k_sem_give(&ts->lock);
+    thingset_release_read_lock(ts);
 
     return err;
 }
 
-int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size, const char *path,
-                         enum thingset_data_format format)
+int thingset_report_path(struct thingset_global_context *ts, char *buf, size_t buf_size,
+                         const char *path, enum thingset_data_format format)
 {
     int err;
 
-    if (k_sem_take(&ts->lock, K_MSEC(THINGSET_CONTEXT_LOCK_TIMEOUT_MS)) != 0) {
-        LOG_ERR("ThingSet context lock timed out");
-        return -THINGSET_ERR_INTERNAL_SERVER_ERR;
-    }
+    struct thingset_context req_ctx = {
+        .context = ts,
+        .rsp = buf,
+        .rsp_size = buf_size,
+        .rsp_pos = 0,
+    };
 
-    ts->rsp = buf;
-    ts->rsp_size = buf_size;
-    ts->rsp_pos = 0;
-
-    err = thingset_endpoint_by_path(ts, &ts->endpoint, path, strlen(path));
+    err = thingset_endpoint_by_path(ts, &req_ctx.endpoint, path, strlen(path));
     if (err != 0) {
         goto out;
     }
-    else if (ts->endpoint.object == NULL) {
+    else if (req_ctx.endpoint.object == NULL) {
         err = -THINGSET_ERR_BAD_REQUEST;
         goto out;
     }
@@ -455,33 +448,34 @@ int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size
     switch (format) {
 #ifdef CONFIG_THINGSET_TEXT_MODE
         case THINGSET_TXT_NAMES_VALUES:
-            thingset_txt_setup(ts);
+            thingset_txt_setup(&req_ctx);
             break;
 #endif
         case THINGSET_BIN_IDS_VALUES:
-            ts->endpoint.use_ids = true;
-            thingset_bin_setup(ts, 1);
+            req_ctx.endpoint.use_ids = true;
+            thingset_bin_setup(&req_ctx, 1);
             break;
         case THINGSET_BIN_NAMES_VALUES:
-            ts->endpoint.use_ids = false;
-            thingset_bin_setup(ts, 1);
+            req_ctx.endpoint.use_ids = false;
+            thingset_bin_setup(&req_ctx, 1);
             break;
         default:
             err = -THINGSET_ERR_NOT_IMPLEMENTED;
             goto out;
     }
 
-    err = ts->api->serialize_report_header(ts, path);
+    thingset_acquire_read_lock(ts, K_FOREVER);
+    err = req_ctx.api->serialize_report_header(&req_ctx, path);
     if (err != 0) {
         goto out;
     }
 
-    switch (ts->endpoint.object->type) {
+    switch (req_ctx.endpoint.object->type) {
         case THINGSET_TYPE_GROUP:
-            err = thingset_common_serialize_group(ts, ts->endpoint.object);
+            err = thingset_common_serialize_group(&req_ctx, req_ctx.endpoint.object);
             break;
         case THINGSET_TYPE_SUBSET:
-            err = ts->api->serialize_subsets(ts, ts->endpoint.object->data.subset);
+            err = req_ctx.api->serialize_subsets(&req_ctx, req_ctx.endpoint.object->data.subset);
             break;
         case THINGSET_TYPE_FN_VOID:
         case THINGSET_TYPE_FN_I32:
@@ -489,41 +483,42 @@ int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size
             err = -THINGSET_ERR_BAD_REQUEST;
             break;
         case THINGSET_TYPE_RECORDS:
-            if (ts->endpoint.index != THINGSET_ENDPOINT_INDEX_NONE) {
-                err = thingset_common_serialize_record(ts, ts->endpoint.object, ts->endpoint.index);
+            if (req_ctx.endpoint.index != THINGSET_ENDPOINT_INDEX_NONE) {
+                err = thingset_common_serialize_record(&req_ctx, req_ctx.endpoint.object,
+                                                       req_ctx.endpoint.index);
                 break;
             }
             /* fallthrough */
         default:
-            err = ts->api->serialize_value(ts, ts->endpoint.object);
+            err = req_ctx.api->serialize_value(&req_ctx, req_ctx.endpoint.object);
             break;
     }
 
-    ts->api->serialize_finish(ts);
+    req_ctx.api->serialize_finish(&req_ctx);
 
     if (err == 0) {
-        err = ts->rsp_pos;
+        err = req_ctx.rsp_pos;
     }
 
 out:
-    k_sem_give(&ts->lock);
+    thingset_release_read_lock(ts);
 
     return err;
 }
 
-void thingset_set_authentication(struct thingset_context *ts, uint8_t flags)
+void thingset_set_authentication(struct thingset_global_context *ts, uint8_t flags)
 {
     ts->auth_flags = flags;
 }
 
-void thingset_set_update_callback(struct thingset_context *ts, const uint16_t subsets,
+void thingset_set_update_callback(struct thingset_global_context *ts, const uint16_t subsets,
                                   void (*update_cb)(void))
 {
     ts->update_subsets = subsets;
     ts->update_cb = update_cb;
 }
 
-struct thingset_data_object *thingset_get_child_by_name(struct thingset_context *ts,
+struct thingset_data_object *thingset_get_child_by_name(struct thingset_global_context *ts,
                                                         uint16_t parent_id, const char *name,
                                                         size_t len)
 {
@@ -546,7 +541,8 @@ struct thingset_data_object *thingset_get_child_by_name(struct thingset_context 
     return NULL;
 }
 
-struct thingset_data_object *thingset_get_object_by_id(struct thingset_context *ts, uint16_t id)
+struct thingset_data_object *thingset_get_object_by_id(struct thingset_global_context *ts,
+                                                       uint16_t id)
 {
 #ifdef CONFIG_THINGSET_OBJECT_LOOKUP_MAP
     sys_slist_t *list = &ts->data_objects_lookup[id % CONFIG_THINGSET_OBJECT_LOOKUP_BUCKETS];
@@ -569,7 +565,7 @@ struct thingset_data_object *thingset_get_object_by_id(struct thingset_context *
     return NULL;
 }
 
-struct thingset_data_object *thingset_get_object_by_path(struct thingset_context *ts,
+struct thingset_data_object *thingset_get_object_by_path(struct thingset_global_context *ts,
                                                          const char *path, size_t path_len,
                                                          int *index)
 {
@@ -635,8 +631,8 @@ struct thingset_data_object *thingset_get_object_by_path(struct thingset_context
     return object;
 }
 
-int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpoint *endpoint,
-                              const char *path, size_t path_len)
+int thingset_endpoint_by_path(struct thingset_global_context *ts,
+                              struct thingset_endpoint *endpoint, const char *path, size_t path_len)
 {
     endpoint->index = THINGSET_ENDPOINT_INDEX_NONE;
     endpoint->use_ids = false;
@@ -662,7 +658,7 @@ int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpo
     return 0;
 }
 
-int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoint *endpoint,
+int thingset_endpoint_by_id(struct thingset_global_context *ts, struct thingset_endpoint *endpoint,
                             uint16_t id)
 {
     struct thingset_data_object *object;
@@ -699,7 +695,7 @@ int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoin
     return -THINGSET_ERR_NOT_FOUND;
 }
 
-int thingset_get_path(struct thingset_context *ts, char *buf, size_t size,
+int thingset_get_path(struct thingset_global_context *ts, char *buf, size_t size,
                       const struct thingset_data_object *obj)
 {
     int pos = 0;
@@ -736,7 +732,7 @@ static inline char *type_to_type_name(const enum thingset_type type)
     return type_name_lookup[type];
 }
 
-static int get_function_arg_types(struct thingset_context *ts, uint16_t parent_id, char *buf,
+static int get_function_arg_types(struct thingset_global_context *ts, uint16_t parent_id, char *buf,
                                   size_t size)
 {
     int len = 0;
@@ -762,8 +758,8 @@ static int get_function_arg_types(struct thingset_context *ts, uint16_t parent_i
     return len;
 }
 
-int thingset_get_type_name(struct thingset_context *ts, const struct thingset_data_object *obj,
-                           char *buf, size_t size)
+int thingset_get_type_name(struct thingset_global_context *ts,
+                           const struct thingset_data_object *obj, char *buf, size_t size)
 {
     switch (obj->type) {
         case THINGSET_TYPE_ARRAY: {
@@ -801,4 +797,54 @@ int thingset_get_type_name(struct thingset_context *ts, const struct thingset_da
             return sprintf(buf, "%s", type);
         }
     }
+}
+
+int thingset_acquire_read_lock(struct thingset_global_context *ts, k_timeout_t timeout)
+{
+    int result = k_mutex_lock(&ts->reader_wait_writer, timeout);
+    if (result) {
+        return result;
+    }
+    k_mutex_unlock(&ts->reader_wait_writer);
+
+    atomic_t previous_count = atomic_inc(&ts->reader_count);
+    if (previous_count == 0) {
+        result = k_sem_take(&ts->sem, timeout);
+        if (result) {
+            atomic_dec(&ts->reader_count);
+            return result;
+        }
+    }
+
+    return 0;
+}
+
+int thingset_release_read_lock(struct thingset_global_context *ts)
+{
+    atomic_t previous_count = atomic_dec(&ts->reader_count);
+    if (previous_count == 0) {
+        k_sem_give(&ts->sem);
+    }
+
+    return 0;
+}
+
+int thingset_acquire_write_lock(struct thingset_global_context *ts, k_timeout_t timeout)
+{
+    int result = k_mutex_lock(&ts->reader_wait_writer, timeout);
+    if (result) {
+        return result;
+    }
+    result = k_sem_take(&ts->sem, timeout);
+    k_mutex_unlock(&ts->reader_wait_writer);
+    if (result) {
+        return result;
+    }
+    return 0;
+}
+
+int thingset_release_write_lock(struct thingset_global_context *ts)
+{
+    k_sem_give(&ts->sem);
+    return 0;
 }

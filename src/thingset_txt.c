@@ -280,9 +280,10 @@ static int txt_serialize_value(struct thingset_context *ts,
         }
         else if (object->type == THINGSET_TYPE_FN_VOID || object->type == THINGSET_TYPE_FN_I32) {
             pos = snprintf(buf, size, "[");
-            for (unsigned int i = 0; i < ts->num_objects; i++) {
-                if (ts->data_objects[i].parent_id == object->id) {
-                    pos += snprintf(buf + pos, size - pos, "\"%s\",", ts->data_objects[i].name);
+            for (unsigned int i = 0; i < ts->context->num_objects; i++) {
+                if (ts->context->data_objects[i].parent_id == object->id) {
+                    pos += snprintf(buf + pos, size - pos, "\"%s\",",
+                                    ts->context->data_objects[i].name);
                 }
             }
             if (pos > 1) {
@@ -292,10 +293,11 @@ static int txt_serialize_value(struct thingset_context *ts,
         }
         else if (object->type == THINGSET_TYPE_SUBSET) {
             pos = snprintf(buf, size, "[");
-            for (unsigned int i = 0; i < ts->num_objects; i++) {
-                if (ts->data_objects[i].subsets & object->data.subset) {
+            for (unsigned int i = 0; i < ts->context->num_objects; i++) {
+                if (ts->context->data_objects[i].subsets & object->data.subset) {
                     buf[pos++] = '"';
-                    ret = thingset_get_path(ts, buf + pos, size - pos, &ts->data_objects[i]);
+                    ret = thingset_get_path(ts->context, buf + pos, size - pos,
+                                            &ts->context->data_objects[i]);
                     if (ret <= 0) {
                         ts->rsp_pos = 0;
                         return ret;
@@ -391,7 +393,7 @@ static int txt_serialize_metadata(struct thingset_context *ts,
     }
 
     char buf[128];
-    int len = thingset_get_type_name(ts, object, (char *)&buf, sizeof(buf));
+    int len = thingset_get_type_name(ts->context, object, (char *)&buf, sizeof(buf));
     if (len < 0) {
         return THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
@@ -444,7 +446,7 @@ static int txt_parse_endpoint(struct thingset_context *ts)
         path_len = ts->msg_len - 1;
     }
 
-    int err = thingset_endpoint_by_path(ts, &ts->endpoint, path_begin, path_len);
+    int err = thingset_endpoint_by_path(ts->context, &ts->endpoint, path_begin, path_len);
     if (err != 0) {
         return err;
     }
@@ -700,9 +702,9 @@ static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
 
     ts->rsp[ts->rsp_pos++] = '{';
 
-    for (unsigned int i = 0; i < ts->num_objects; i++) {
-        if (ts->data_objects[i].subsets & subsets) {
-            const uint16_t parent_id = ts->data_objects[i].parent_id;
+    for (unsigned int i = 0; i < ts->context->num_objects; i++) {
+        if (ts->context->data_objects[i].subsets & subsets) {
+            const uint16_t parent_id = ts->context->data_objects[i].parent_id;
 
             struct thingset_data_object *parent = NULL;
             if (depth > 0 && parent_id == ancestors[depth - 1]->id) {
@@ -711,7 +713,7 @@ static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
             }
             else if (parent_id != 0) {
                 /* parent needs to be searched in the object database */
-                parent = thingset_get_object_by_id(ts, parent_id);
+                parent = thingset_get_object_by_id(ts->context, parent_id);
             }
 
             /* close object if previous object had different parent or grandparent */
@@ -727,7 +729,7 @@ static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
             if (depth == 0 && parent != NULL) {
                 if (parent->parent_id != 0) {
                     struct thingset_data_object *grandparent =
-                        thingset_get_object_by_id(ts, parent->parent_id);
+                        thingset_get_object_by_id(ts->context, parent->parent_id);
                     if (grandparent != NULL) {
                         ts->rsp_pos += snprintf(ts->rsp + ts->rsp_pos, ts->rsp_size - ts->rsp_pos,
                                                 "\"%s\":{", grandparent->name);
@@ -745,7 +747,7 @@ static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
                     ancestors[depth++] = parent;
                 }
             }
-            ts->rsp_pos += ts->api->serialize_key_value(ts, &ts->data_objects[i]);
+            ts->rsp_pos += ts->api->serialize_key_value(ts, &ts->context->data_objects[i]);
         }
         if (ts->rsp_pos >= ts->rsp_size - 1 - depth) {
             return -THINGSET_ERR_RESPONSE_TOO_LARGE;
@@ -817,10 +819,10 @@ static int txt_deserialize_child(struct thingset_context *ts,
 
     if (ts->endpoint.object->id == THINGSET_ID_METADATA) {
         int index;
-        *object = thingset_get_object_by_path(ts, name, name_len, &index);
+        *object = thingset_get_object_by_path(ts->context, name, name_len, &index);
     }
     else {
-        *object = thingset_get_child_by_name(ts, ts->endpoint.object->id, name, name_len);
+        *object = thingset_get_child_by_name(ts->context, ts->endpoint.object->id, name, name_len);
     }
 
     if (*object == NULL) {
