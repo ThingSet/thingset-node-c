@@ -11,7 +11,7 @@
 
 #include "test_utils.h"
 
-static struct thingset_context ts;
+static struct thingset_global_context ts;
 
 static void patch_json_get_cbor(const char *name, const char *json_value,
                                 const char *cbor_value_hex)

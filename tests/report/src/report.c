@@ -12,7 +12,7 @@
 #include "test_utils.h"
 
 #ifdef CONFIG_THINGSET_REPORT_RECORD_SERIALIZATION
-static struct thingset_context ts;
+static struct thingset_global_context ts;
 
 ZTEST(thingset_report, test_report_bin)
 {

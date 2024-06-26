@@ -13,7 +13,7 @@
 #include "data.h"
 #include "test_utils.h"
 
-static struct thingset_context ts;
+static struct thingset_global_context ts;
 
 bool update_callback_called;
 
