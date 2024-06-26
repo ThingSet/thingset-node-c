@@ -53,44 +53,54 @@ int thingset_common_prepare_record_element(struct thingset_context *ts,
                                            uint8_t *record_ptr,
                                            thingset_common_record_element_action callback)
 {
-    int err;
-    if (item->type == THINGSET_TYPE_ARRAY) {
-        struct thingset_array *arr = item->data.array;
-        struct thingset_array arr_offset = {
-            { .u8 = record_ptr + arr->elements.offset },
-            arr->element_type,
-            arr->decimals,
-            arr->max_elements,
-            arr->num_elements,
-        };
-        struct thingset_data_object item_offset = {
-            item->parent_id,          item->id,   item->name,
-            { .array = &arr_offset }, item->type, item->detail,
-        };
-        err = callback(ts, &item_offset);
+    int err = -EINVAL;
+
+    switch (item->type)
+    {
+        case THINGSET_TYPE_ARRAY:
+            struct thingset_array *arr = item->data.array;
+            struct thingset_array arr_offset = {
+                { .u8 = record_ptr + arr->elements.offset },
+                arr->element_type,
+                arr->decimals,
+                arr->max_elements,
+                arr->num_elements,
+            };
+            struct thingset_data_object array_item_offset = {
+                item->parent_id,          item->id,   item->name,
+                { .array = &arr_offset }, item->type, item->detail,
+            };
+            err = callback(ts, &array_item_offset);
+            break;
+
+
+        case THINGSET_TYPE_RECORDS:
+            struct thingset_records *rec = item->data.records;
+            struct thingset_records rec_offset = {
+                record_ptr + (size_t)rec->records,
+                rec->record_size,
+                rec->max_records,
+                rec->num_records,
+                rec->callback,
+            };
+            struct thingset_data_object record_item_offset = {
+                item->parent_id, item->id,     item->name, { .records = &rec_offset },
+                item->type,      item->detail,
+            };
+            err = callback(ts, &record_item_offset);
+            break;
+
+
+        default:
+            struct thingset_data_object default_item_offset = {
+                item->parent_id, item->id,     item->name, { .u8 = record_ptr + item->data.offset },
+                item->type,      item->detail,
+            };
+            err = callback(ts, &default_item_offset);
+            break;
+
     }
-    else if (item->type == THINGSET_TYPE_RECORDS) {
-        struct thingset_records *rec = item->data.records;
-        struct thingset_records rec_offset = {
-            record_ptr + (size_t)rec->records,
-            rec->record_size,
-            rec->max_records,
-            rec->num_records,
-            rec->callback,
-        };
-        struct thingset_data_object item_offset = {
-            item->parent_id, item->id,     item->name, { .records = &rec_offset },
-            item->type,      item->detail,
-        };
-        err = callback(ts, &item_offset);
-    }
-    else {
-        struct thingset_data_object item_offset = {
-            item->parent_id, item->id,     item->name, { .u8 = record_ptr + item->data.offset },
-            item->type,      item->detail,
-        };
-        err = callback(ts, &item_offset);
-    }
+
     return err;
 }
 

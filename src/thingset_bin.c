@@ -685,70 +685,79 @@ static int bin_deserialize_value(struct thingset_context *ts,
         bin_deserialize_simple_value(ts, object->data, object->type, object->detail, check_only);
 
     if (err == -THINGSET_ERR_UNSUPPORTED_FORMAT) {
-        if (object->type == THINGSET_TYPE_ARRAY) {
-            struct thingset_array *array = object->data.array;
-            bool success;
+        bool success;
 
-            success = zcbor_list_start_decode(ts->decoder);
-            if (!success) {
-                return -THINGSET_ERR_UNSUPPORTED_FORMAT;
-            }
+        switch (object->type) {
+            case THINGSET_TYPE_ARRAY:
+                struct thingset_array *array = object->data.array;
 
-            size_t type_size = thingset_type_size(array->element_type);
-            int index = 0;
-            do {
-                /* using uint8_t pointer for byte-wise pointer arithmetics */
-                union thingset_data_pointer data = { .u8 = array->elements.u8 + index * type_size };
-
-                err = bin_deserialize_simple_value(ts, data, array->element_type, array->decimals,
-                                                   check_only);
-                if (err != 0) {
+                success = zcbor_list_start_decode(ts->decoder);
+                if (!success) {
+                    err = -THINGSET_ERR_UNSUPPORTED_FORMAT;
                     break;
                 }
-                index++;
-            } while (index < array->max_elements);
 
-            if (!check_only) {
-                array->num_elements = index;
-            }
+                size_t type_size = thingset_type_size(array->element_type);
+                int index = 0;
+                do {
+                    /* using uint8_t pointer for byte-wise pointer arithmetics */
+                    union thingset_data_pointer data = { .u8 = array->elements.u8 + index * type_size };
 
-            success = zcbor_list_end_decode(ts->decoder);
-            if (success) {
-                err = 0;
-            }
-        }
-        else if (object->type == THINGSET_TYPE_RECORDS) {
-            struct thingset_records *records = object->data.records;
-            uint32_t id;
-            bool success;
-
-            success = zcbor_list_start_decode(ts->decoder);
-            for (unsigned int i = 0; i < records->num_records; i++) {
-                success = zcbor_map_start_decode(ts->decoder);
-                if (!success) {
-                    return -THINGSET_ERR_UNSUPPORTED_FORMAT;
-                }
-
-                while (zcbor_uint32_decode(ts->decoder, &id) && id < UINT16_MAX) {
-                    struct thingset_data_object *element = thingset_get_object_by_id(ts, id);
-                    if (element == NULL) {
-                        zcbor_any_skip(ts->decoder, NULL);
-                        continue;
+                    err = bin_deserialize_simple_value(ts, data, array->element_type, array->decimals,
+                                                    check_only);
+                    if (err != 0) {
+                        break;
                     }
-                    union thingset_data_pointer data = { .u8 = ((uint8_t *)records->records)
-                                                               + (i * records->record_size)
-                                                               + element->data.offset };
-                    err = bin_deserialize_simple_value(ts, data, element->type, element->detail,
-                                                       check_only);
+                    index++;
+                } while (index < array->max_elements);
+
+                if (!check_only) {
+                    array->num_elements = index;
                 }
 
-                success = zcbor_map_end_decode(ts->decoder);
-            }
+                success = zcbor_list_end_decode(ts->decoder);
+                if (success) {
+                    err = 0;
+                }
+                break;
 
-            success = zcbor_list_end_decode(ts->decoder);
-            if (success) {
-                err = 0;
-            }
+            case THINGSET_TYPE_RECORDS:
+                struct thingset_records *records = object->data.records;
+                uint32_t id;
+
+                success = zcbor_list_start_decode(ts->decoder);
+                for (unsigned int i = 0; i < records->num_records; i++) {
+                    success = zcbor_map_start_decode(ts->decoder);
+                    if (!success) {
+                        err = -THINGSET_ERR_UNSUPPORTED_FORMAT;
+                        break;
+                    }
+
+                    while (zcbor_uint32_decode(ts->decoder, &id) && id < UINT16_MAX) {
+                        struct thingset_data_object *element = thingset_get_object_by_id(ts, id);
+                        if (element == NULL) {
+                            zcbor_any_skip(ts->decoder, NULL);
+                            continue;
+                        }
+                        union thingset_data_pointer data = { .u8 = ((uint8_t *)records->records)
+                                                                + (i * records->record_size)
+                                                                + element->data.offset };
+                        err = bin_deserialize_simple_value(ts, data, element->type, element->detail,
+                                                        check_only);
+                    }
+
+                    success = zcbor_map_end_decode(ts->decoder);
+                }
+
+                success = zcbor_list_end_decode(ts->decoder);
+                if (success) {
+                    err = 0;
+                }
+                break;
+
+            default:
+                err = -THINGSET_ERR_UNSUPPORTED_FORMAT;
+                break;
         }
     }
 
