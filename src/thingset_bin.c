@@ -246,7 +246,8 @@ static int bin_serialize_value(struct thingset_context *ts,
         success = zcbor_list_start_encode(ts->encoder, UINT8_MAX);
         for (unsigned int i = 0; i < ts->context->num_objects; i++) {
             if (ts->context->data_objects[i].parent_id == object->id) {
-                zcbor_tstr_encode_ptr(ts->encoder, ts->context->data_objects[i].name, strlen(ts->data_objects[i].name));
+                zcbor_tstr_encode_ptr(ts->encoder, ts->context->data_objects[i].name,
+                                      strlen(ts->context->data_objects[i].name));
             }
         }
         success = success && zcbor_list_end_encode(ts->encoder, UINT8_MAX);
