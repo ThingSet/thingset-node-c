@@ -1568,35 +1568,16 @@ struct thingset_endpoint
 /* Forward-declaration of internal ThingSet API struct (defined in thingset_internal.h) */
 struct thingset_api;
 
-/**
- * ThingSet context.
- *
- * Stores and handles all data objects exposed to different communication interfaces.
- */
+struct thingset_global_context;
+
 struct thingset_context
 {
-    /**
-     * Array of objects database provided during initialization
-     */
-    struct thingset_data_object *data_objects;
-
-#ifdef CONFIG_THINGSET_OBJECT_LOOKUP_MAP
-    /**
-     * Array of linked lists: map for object ID lookup
-     */
-    sys_slist_t data_objects_lookup[CONFIG_THINGSET_OBJECT_LOOKUP_BUCKETS];
-#endif
+    struct thingset_global_context *context;
 
     /**
-     * Number of objects in the data_objects array
+     * Function pointers to mode-specific implementation (text or binary)
      */
-    size_t num_objects;
-
-    /**
-     * Semaphore to lock this context and avoid race conditions if the context may be used by
-     * multiple threads in parallel.
-     */
-    struct k_sem lock;
+    struct thingset_api *api;
 
     /**
      * Pointer to the incoming message buffer (request or desire, provided by process function)
@@ -1635,11 +1616,6 @@ struct thingset_context
     size_t rsp_pos;
 
     /**
-     * Function pointers to mode-specific implementation (text or binary)
-     */
-    struct thingset_api *api;
-
-    /**
      * State information for data processing, either for text mode or binary mode depending on the
      * assigned api.
      */
@@ -1668,6 +1644,40 @@ struct thingset_context
     };
 
     /**
+     * Endpoint used for the current message
+     */
+    struct thingset_endpoint endpoint;
+};
+
+/**
+ * ThingSet context.
+ *
+ * Stores and handles all data objects exposed to different communication interfaces.
+ */
+struct thingset_global_context
+{
+    /**
+     * Array of objects database provided during initialization
+     */
+    struct thingset_data_object *data_objects;
+
+#ifdef CONFIG_THINGSET_OBJECT_LOOKUP_MAP
+    /**
+     * Array of linked lists: map for object ID lookup
+     */
+    sys_slist_t data_objects_lookup[CONFIG_THINGSET_OBJECT_LOOKUP_BUCKETS];
+#endif
+
+    /**
+     * Number of objects in the data_objects array
+     */
+    size_t num_objects;
+
+    struct k_mutex reader_wait_writer;
+    struct k_sem sem;
+    atomic_t reader_count;
+
+    /**
      * Stores current authentication status (authentication as "normal" user as default)
      */
     uint8_t auth_flags;
@@ -1682,11 +1692,6 @@ struct thingset_context
      * was changed
      */
     void (*update_cb)(void);
-
-    /**
-     * Endpoint used for the current message
-     */
-    struct thingset_endpoint endpoint;
 };
 
 /**
@@ -1696,7 +1701,7 @@ struct thingset_context
  * @param objects Pointer to array containing the ThingSet object database
  * @param num_objects Number of elements in that array
  */
-void thingset_init(struct thingset_context *ts, struct thingset_data_object *objects,
+void thingset_init(struct thingset_global_context *ts, struct thingset_data_object *objects,
                    size_t num_objects);
 
 /**
@@ -1707,7 +1712,7 @@ void thingset_init(struct thingset_context *ts, struct thingset_data_object *obj
  *
  * @param ts Pointer to ThingSet context.
  */
-void thingset_init_global(struct thingset_context *ts);
+void thingset_init_global(struct thingset_global_context *ts);
 
 /**
  * Process ThingSet request or desire.
@@ -1727,7 +1732,7 @@ void thingset_init_global(struct thingset_context *ts);
  * @retval 0 If the message was empty or a desire was processed successfully (no response)
  * @retval err Negative ThingSet response code if a desire could not be processed successfully
  */
-int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, size_t msg_len,
+int thingset_process_message(struct thingset_global_context *ts, const uint8_t *msg, size_t msg_len,
                              uint8_t *rsp, size_t rsp_size);
 
 /**
@@ -1747,7 +1752,7 @@ int thingset_process_message(struct thingset_context *ts, const uint8_t *msg, si
  *
  * @return Actual length of the data or negative ThingSet response code in case of error.
  */
-int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
+int thingset_export_subsets(struct thingset_global_context *ts, uint8_t *buf, size_t buf_size,
                             uint16_t subsets, enum thingset_data_format format);
 
 /**
@@ -1766,9 +1771,10 @@ int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t bu
  *
  * @returns 1 if there are more objects to export, 0 when complete or negative if an error.
  */
-int thingset_export_subsets_progressively(struct thingset_context *ts, uint8_t *buf,
+int thingset_export_subsets_progressively(struct thingset_global_context *ts, uint8_t *buf,
                                           size_t buf_size, uint16_t subsets,
-                                          enum thingset_data_format format, unsigned int *index,
+                                          enum thingset_data_format format,
+                                          struct thingset_context *req_ctx, unsigned int *index,
                                           size_t *len);
 
 /**
@@ -1788,7 +1794,7 @@ int thingset_export_subsets_progressively(struct thingset_context *ts, uint8_t *
  *
  * @return Actual length of the data or negative ThingSet response code in case of error.
  */
-int thingset_export_item(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
+int thingset_export_item(struct thingset_global_context *ts, uint8_t *buf, size_t buf_size,
                          const struct thingset_data_object *obj, enum thingset_data_format format);
 
 /**
@@ -1800,7 +1806,8 @@ int thingset_export_item(struct thingset_context *ts, uint8_t *buf, size_t buf_s
  *
  * @returns Pointer to the next object found or NULL if end of data objects was reached
  */
-struct thingset_data_object *thingset_iterate_subsets(struct thingset_context *ts, uint16_t subset,
+struct thingset_data_object *thingset_iterate_subsets(struct thingset_global_context *ts,
+                                                      uint16_t subset,
                                                       struct thingset_data_object *start_obj);
 
 /**
@@ -1819,7 +1826,7 @@ struct thingset_data_object *thingset_iterate_subsets(struct thingset_context *t
  *
  * @returns 0 for success or negative ThingSet response code in case of error
  */
-int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_t len,
+int thingset_import_data(struct thingset_global_context *ts, const uint8_t *data, size_t len,
                          uint8_t auth_flags, enum thingset_data_format format);
 
 /**
@@ -1844,8 +1851,9 @@ int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_
  * @returns 0 for success, 1 if more data is required or negative ThingSet response code
  * in case of error
  */
-int thingset_import_data_progressively(struct thingset_context *ts, const uint8_t *data, size_t len,
-                                       enum thingset_data_format format, uint8_t auth_flags,
+int thingset_import_data_progressively(struct thingset_global_context *ts, const uint8_t *data,
+                                       size_t len, enum thingset_data_format format,
+                                       uint8_t auth_flags, struct thingset_context *req_ctx,
                                        uint32_t *last_id, size_t *consumed);
 
 /**
@@ -1857,7 +1865,7 @@ int thingset_import_data_progressively(struct thingset_context *ts, const uint8_
  *
  * @returns 0 for success
  */
-int thingset_import_data_progressively_end(struct thingset_context *ts);
+int thingset_import_data_progressively_end(struct thingset_global_context *ts);
 
 /**
  * Import data into a record.
@@ -1872,7 +1880,7 @@ int thingset_import_data_progressively_end(struct thingset_context *ts);
  *
  * @returns 0 for success or negative ThingSet response code in case of error
  */
-int thingset_import_record(struct thingset_context *ts, const uint8_t *data, size_t len,
+int thingset_import_record(struct thingset_global_context *ts, const uint8_t *data, size_t len,
                            struct thingset_endpoint *endpoint, enum thingset_data_format format);
 
 /**
@@ -1894,8 +1902,8 @@ int thingset_import_record(struct thingset_context *ts, const uint8_t *data, siz
  *
  * @return Actual length of the report or negative ThingSet response code in case of error
  */
-int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size, const char *path,
-                         enum thingset_data_format format);
+int thingset_report_path(struct thingset_global_context *ts, char *buf, size_t buf_size,
+                         const char *path, enum thingset_data_format format);
 
 /**
  * Set current authentication level.
@@ -1905,7 +1913,7 @@ int thingset_report_path(struct thingset_context *ts, char *buf, size_t buf_size
  * @param ts Pointer to ThingSet context.
  * @param flags Flags to define authentication level (1 = access allowed)
  */
-void thingset_set_authentication(struct thingset_context *ts, uint8_t flags);
+void thingset_set_authentication(struct thingset_global_context *ts, uint8_t flags);
 
 /**
  * Configure a callback for notification if data belonging to specified subset(s) was updated.
@@ -1914,7 +1922,7 @@ void thingset_set_authentication(struct thingset_context *ts, uint8_t flags);
  * @param subsets Flags to select which subset(s) of data items should be considered
  * @param update_cb Callback to be called after an update.
  */
-void thingset_set_update_callback(struct thingset_context *ts, const uint16_t subsets,
+void thingset_set_update_callback(struct thingset_global_context *ts, const uint16_t subsets,
                                   void (*update_cb)(void));
 
 /**
@@ -1927,8 +1935,8 @@ void thingset_set_update_callback(struct thingset_context *ts, const uint16_t su
  *
  * @return 0 if successful or negative ThingSet error code to be reported
  */
-int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpoint *endpoint,
-                              const char *path, size_t len);
+int thingset_endpoint_by_path(struct thingset_global_context *ts,
+                              struct thingset_endpoint *endpoint, const char *path, size_t len);
 
 /**
  * Get the endpoint from a provided ID.
@@ -1939,8 +1947,13 @@ int thingset_endpoint_by_path(struct thingset_context *ts, struct thingset_endpo
  *
  * @return 0 if successful or negative ThingSet error code to be reported
  */
-int thingset_endpoint_by_id(struct thingset_context *ts, struct thingset_endpoint *endpoint,
+int thingset_endpoint_by_id(struct thingset_global_context *ts, struct thingset_endpoint *endpoint,
                             uint16_t id);
+
+int thingset_acquire_read_lock(struct thingset_global_context *ts, k_timeout_t timeout);
+int thingset_release_read_lock(struct thingset_global_context *ts);
+int thingset_acquire_write_lock(struct thingset_global_context *ts, k_timeout_t timeout);
+int thingset_release_write_lock(struct thingset_global_context *ts);
 
 #ifdef __cplusplus
 } /* extern "C" */

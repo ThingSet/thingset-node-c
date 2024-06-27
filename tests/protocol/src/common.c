@@ -12,7 +12,7 @@
 
 #include "test_utils.h"
 
-static struct thingset_context ts;
+static struct thingset_global_context ts;
 
 ZTEST(thingset_common, test_endpoint_from_path)
 {

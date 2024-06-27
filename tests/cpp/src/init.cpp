@@ -15,8 +15,8 @@
 
 ZTEST(thingset_init_cpp, test_init_data_objects)
 {
-    struct thingset_context ts_local;
-    struct thingset_context ts_global;
+    struct thingset_global_context ts_local;
+    struct thingset_global_context ts_global;
 
     /* initialized with array declared in data.c */
     thingset_init(&ts_local, data_objects, data_objects_size);

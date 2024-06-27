@@ -284,7 +284,7 @@ int thingset_txt_serialize_response(struct thingset_context *ts, uint8_t code, c
  *
  * @return Pointer to the data object or NULL in case of error
  */
-struct thingset_data_object *thingset_get_child_by_name(struct thingset_context *ts,
+struct thingset_data_object *thingset_get_child_by_name(struct thingset_global_context *ts,
                                                         uint16_t parent_id, const char *name,
                                                         size_t len);
 
@@ -296,7 +296,8 @@ struct thingset_data_object *thingset_get_child_by_name(struct thingset_context 
  *
  * @return Pointer to the data object or NULL in case of error
  */
-struct thingset_data_object *thingset_get_object_by_id(struct thingset_context *ts, uint16_t id);
+struct thingset_data_object *thingset_get_object_by_id(struct thingset_global_context *ts,
+                                                       uint16_t id);
 
 /**
  * Get an object by its path.
@@ -306,7 +307,7 @@ struct thingset_data_object *thingset_get_object_by_id(struct thingset_context *
  * @param path_len Length of path
  * @param index Pointer to an index which may be decoded as part of the path
  */
-struct thingset_data_object *thingset_get_object_by_path(struct thingset_context *ts,
+struct thingset_data_object *thingset_get_object_by_path(struct thingset_global_context *ts,
                                                          const char *path, size_t path_len,
                                                          int *index);
 
@@ -320,7 +321,7 @@ struct thingset_data_object *thingset_get_object_by_path(struct thingset_context
  *
  * @return Length of the path or negative ThingSet response code in case of error
  */
-int thingset_get_path(struct thingset_context *ts, char *buf, size_t size,
+int thingset_get_path(struct thingset_global_context *ts, char *buf, size_t size,
                       const struct thingset_data_object *obj);
 
 /**
@@ -331,8 +332,8 @@ int thingset_get_path(struct thingset_context *ts, char *buf, size_t size,
  * @param buf Pointer to the buffer to store the path.
  * @param size Size of the buffer.
  */
-int thingset_get_type_name(struct thingset_context *ts, const struct thingset_data_object *obj,
-                           char *buf, size_t size);
+int thingset_get_type_name(struct thingset_global_context *ts,
+                           const struct thingset_data_object *obj, char *buf, size_t size);
 
 /**
  * Process text mode desire.

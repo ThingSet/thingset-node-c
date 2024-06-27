@@ -13,7 +13,7 @@
 #include "data.h"
 #include "test_utils.h"
 
-static struct thingset_context ts;
+static struct thingset_global_context ts;
 
 ZTEST(thingset_bin, test_get_root_ids)
 {
@@ -910,8 +910,9 @@ ZTEST(thingset_bin, test_export_subsets_progressively)
     int data_exp_len = hex2bin_spaced(data_exp_hex, data_exp, sizeof(data_exp));
 
     index = 0;
+    struct thingset_context req_ctx;
     ret = thingset_export_subsets_progressively(&ts, buf_large, sizeof(buf_large), SUBSET_LIVE,
-                                                THINGSET_BIN_IDS_VALUES, &index, &len);
+                                                THINGSET_BIN_IDS_VALUES, &req_ctx, &index, &len);
     zassert_true(ret >= 0);
     zassert_equal(len, data_exp_len);
     zassert_mem_equal(data_exp, buf_large, data_exp_len);
@@ -919,8 +920,9 @@ ZTEST(thingset_bin, test_export_subsets_progressively)
     index = 0;
     size_t pos = 0;
     do {
-        ret = thingset_export_subsets_progressively(&ts, buf_small, sizeof(buf_small), SUBSET_LIVE,
-                                                    THINGSET_BIN_IDS_VALUES, &index, &len);
+        ret =
+            thingset_export_subsets_progressively(&ts, buf_small, sizeof(buf_small), SUBSET_LIVE,
+                                                  THINGSET_BIN_IDS_VALUES, &req_ctx, &index, &len);
         zassert_true(ret >= 0);
         zassert_mem_equal(data_exp + pos, buf_small, len);
         pos += len;
