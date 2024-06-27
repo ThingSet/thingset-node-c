@@ -940,23 +940,37 @@ int thingset_txt_process(struct thingset_context *ts)
 
     /* requests ordered with expected highest probability first */
     int (*request_fn)(struct thingset_context *ts);
+    int (*acquire_lock_fn)(struct thingset_global_context *ts, k_timeout_t timeout);
+    int (*release_lock_fn)(struct thingset_global_context *ts);
     switch (ts->msg[0]) {
         case THINGSET_TXT_GET_FETCH:
+            acquire_lock_fn = thingset_acquire_read_lock;
+            release_lock_fn = thingset_release_read_lock;
             request_fn = thingset_txt_get_fetch;
             break;
         case THINGSET_TXT_UPDATE:
+            acquire_lock_fn = thingset_acquire_write_lock;
+            release_lock_fn = thingset_release_write_lock;
             request_fn = thingset_common_update;
             break;
         case THINGSET_TXT_EXEC:
+            acquire_lock_fn = thingset_acquire_write_lock;
+            release_lock_fn = thingset_release_write_lock;
             request_fn = thingset_common_exec;
             break;
         case THINGSET_TXT_CREATE:
+            acquire_lock_fn = thingset_acquire_write_lock;
+            release_lock_fn = thingset_release_write_lock;
             request_fn = thingset_common_create;
             break;
         case THINGSET_TXT_DELETE:
+            acquire_lock_fn = thingset_acquire_write_lock;
+            release_lock_fn = thingset_release_write_lock;
             request_fn = thingset_common_delete;
             break;
         case THINGSET_TXT_DESIRE:
+            acquire_lock_fn = thingset_acquire_read_lock;
+            release_lock_fn = thingset_release_read_lock;
             request_fn = thingset_txt_desire;
             break;
         default:
@@ -975,7 +989,9 @@ int thingset_txt_process(struct thingset_context *ts)
         goto out;
     }
 
+    acquire_lock_fn(ts->context, K_FOREVER);
     ret = request_fn(ts);
+    release_lock_fn(ts->context);
 
 out:
     if (ts->msg[0] != THINGSET_TXT_DESIRE) {
