@@ -739,27 +739,27 @@ static inline char *type_to_type_name(const enum thingset_type type)
 static int get_function_arg_types(struct thingset_context *ts, uint16_t parent_id, char *buf,
                                   size_t size)
 {
-    int len = 0;
+    int total_len = 0;
     for (unsigned int i = 0; i < ts->num_objects; i++) {
         if (ts->data_objects[i].parent_id == parent_id) {
-            if (len > 0) {
+            int len = 0;
+            if (total_len > 0) {
                 if (size < 2) {
                     return -THINGSET_ERR_RESPONSE_TOO_LARGE;
                 }
                 len += sprintf(buf, ",");
-                size -= 1;
-                buf += 1;
             }
             char *elementType = type_to_type_name(ts->data_objects[i].type);
-            if (len > size) {
-                return -THINGSET_ERR_RESPONSE_TOO_LARGE;
-            }
-            len += sprintf(buf, "%s", elementType);
+            len += sprintf(buf + len, "%s", elementType);
             buf += len;
             size -= len;
+            total_len += len;
+            if (total_len > size) {
+                return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+            }
         }
     }
-    return len;
+    return total_len;
 }
 
 int thingset_get_type_name(struct thingset_context *ts, const struct thingset_data_object *obj,
