@@ -747,10 +747,10 @@ static int get_function_arg_types(struct thingset_context *ts, uint16_t parent_i
                 if (size < 2) {
                     return -THINGSET_ERR_RESPONSE_TOO_LARGE;
                 }
-                len += sprintf(buf, ",");
+                len += snprintf(buf, size, ",");
             }
             char *elementType = type_to_type_name(ts->data_objects[i].type);
-            len += sprintf(buf + len, "%s", elementType);
+            len += snprintf(buf + len, size - len, "%s", elementType);
             buf += len;
             size -= len;
             total_len += len;
@@ -771,11 +771,11 @@ int thingset_get_type_name(struct thingset_context *ts, const struct thingset_da
             if (sizeof(elementType) > size) {
                 return -THINGSET_ERR_RESPONSE_TOO_LARGE;
             }
-            return sprintf(buf, "%s[]", elementType);
+            return snprintf(buf, size, "%s[]", elementType);
         }
         case THINGSET_TYPE_FN_VOID:
         case THINGSET_TYPE_FN_I32:
-            sprintf(buf, "(");
+            snprintf(buf, size, "(");
             int len = 1 + get_function_arg_types(ts, obj->id, buf + 1, size - 1);
             if (len < 0) {
                 return -THINGSET_ERR_RESPONSE_TOO_LARGE;
@@ -787,10 +787,10 @@ int thingset_get_type_name(struct thingset_context *ts, const struct thingset_da
             size -= len;
             switch (obj->type) {
                 case THINGSET_TYPE_FN_VOID:
-                    len += sprintf(buf, ")->()");
+                    len += snprintf(buf, size, ")->()");
                     break;
                 case THINGSET_TYPE_FN_I32:
-                    len += sprintf(buf, ")->(i32)");
+                    len += snprintf(buf, size, ")->(i32)");
                     break;
                 default:
                     break;
@@ -798,7 +798,7 @@ int thingset_get_type_name(struct thingset_context *ts, const struct thingset_da
             return len;
         default: {
             char *type = type_to_type_name(obj->type);
-            return sprintf(buf, "%s", type);
+            return snprintf(buf, size, "%s", type);
         }
     }
 }
