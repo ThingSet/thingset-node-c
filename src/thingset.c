@@ -349,6 +349,41 @@ int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_
     return err;
 }
 
+int thingset_import_report(struct thingset_context *ts, const uint8_t *data, size_t len,
+                           uint8_t auth_flags, enum thingset_data_format format, uint16_t subset)
+{
+    int err;
+
+    if (k_sem_take(&ts->lock, K_MSEC(THINGSET_CONTEXT_LOCK_TIMEOUT_MS)) != 0) {
+        LOG_ERR("ThingSet context lock timed out");
+        return -THINGSET_ERR_INTERNAL_SERVER_ERR;
+    }
+
+    ts->msg = data;
+    ts->msg_len = len;
+    ts->msg_pos = 0;
+    ts->rsp = NULL;
+    ts->rsp_size = 0;
+    ts->rsp_pos = 0;
+
+    switch (format) {
+        case THINGSET_BIN_IDS_VALUES:
+            ts->endpoint.use_ids = true;
+            thingset_bin_setup(ts, 0);
+            ts->decoder->elem_count = 2;
+            ts->msg_payload = data;
+            err = thingset_bin_import_report(ts, auth_flags, subset);
+            break;
+        default:
+            err = -THINGSET_ERR_NOT_IMPLEMENTED;
+            break;
+    }
+
+    k_sem_give(&ts->lock);
+
+    return err;
+}
+
 static int deserialize_value_callback(struct thingset_context *ts,
                                       const struct thingset_data_object *item_offset)
 {

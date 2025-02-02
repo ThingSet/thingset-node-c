@@ -13,6 +13,13 @@
 #include "data.h"
 #include "test_utils.h"
 
+extern struct thingset_data_object report_data_objects[];
+extern size_t report_data_objects_size;
+extern uint32_t report_timestamp;
+extern bool report_b;
+extern int32_t report_nested_beginning;
+extern float report_nested_obj2_item2;
+
 static struct thingset_context ts;
 
 ZTEST(thingset_bin, test_get_root_ids)
@@ -983,6 +990,63 @@ ZTEST(thingset_bin, test_import_data)
     /* reset to default values */
     timestamp = 1000;
     b = true;
+}
+
+ZTEST(thingset_bin, test_import_report)
+{
+    uint8_t data[THINGSET_TEST_BUF_SIZE];
+
+    const char rpt_exp_hex[] =
+        "1F 19 08 00 A5 "
+        "10 19 03 E8 "             /* t_s */
+        "19 02 01 F5 "             /* Types/wBool */
+        "19 06 00 02 "             /* Records: 2 */
+        "19 07 01 01 "             /* Nested/rBeginning */
+        "19 07 08 FA 40 0C CC CD"; /* Nested/Obj2/rItem2_V */
+
+    struct thingset_context ts_local;
+    thingset_init(&ts_local, report_data_objects, report_data_objects_size);
+
+    int data_len = hex2bin_spaced(rpt_exp_hex, data, sizeof(data));
+
+    int status = thingset_import_report(&ts_local, data, data_len, THINGSET_WRITE_MASK,
+                                        THINGSET_BIN_IDS_VALUES, 0x800);
+
+    zassert_equal(status, 0);
+    zassert_equal(report_timestamp, 1000);
+    zassert_equal(report_b, true);
+    zassert_equal(report_nested_beginning, 1);
+    zassert_equal(report_nested_obj2_item2, 2.2F);
+}
+
+ZTEST(thingset_bin, test_import_report_error)
+{
+    uint8_t data[THINGSET_TEST_BUF_SIZE];
+
+    const char rpt_exp_hex[] =
+        "1F 19 08 00 A5 "
+        "10 19 03 E8 "             /* t_s */
+        "19 02 01 F5 "             /* Types/wBool */
+        "19 06 00 02 "             /* Records: 2 */
+        "19 07 01 01 "             /* Nested/rBeginning */
+        "19 07 08 FA 40 0C CC CD"; /* Nested/Obj2/rItem2_V */
+
+    struct thingset_context ts_local;
+    thingset_init(&ts_local, report_data_objects, report_data_objects_size);
+
+    int data_len = hex2bin_spaced(rpt_exp_hex, data, sizeof(data));
+
+    /* no report */
+    data[0] = 0x00;
+    int status = thingset_import_report(&ts_local, data, data_len, THINGSET_WRITE_MASK,
+                                        THINGSET_BIN_IDS_VALUES, 0x800);
+    zassert_equal(status, -THINGSET_ERR_UNSUPPORTED_FORMAT);
+
+    /* wrong subset */
+    data[0] = 0x1f;
+    status = thingset_import_report(&ts_local, data, data_len, THINGSET_WRITE_MASK,
+                                    THINGSET_BIN_IDS_VALUES, 0x0);
+    zassert_equal(status, -THINGSET_ERR_NOT_FOUND);
 }
 
 ZTEST(thingset_bin, test_import_record)

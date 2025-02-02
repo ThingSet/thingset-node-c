@@ -377,6 +377,8 @@ void thingset_bin_setup(struct thingset_context *ts, size_t buf_offset);
 int thingset_bin_import_data(struct thingset_context *ts, uint8_t auth_flags,
                              enum thingset_data_format format);
 
+int thingset_bin_import_report(struct thingset_context *ts, uint8_t auth_flags, uint16_t subset);
+
 int thingset_bin_import_data_progressively(struct thingset_context *ts, uint8_t auth_flags,
                                            size_t size, uint32_t *last_id, size_t *consumed);
 
