@@ -423,3 +423,23 @@ struct thingset_data_object data_objects[] = {
 };
 
 size_t data_objects_size = ARRAY_SIZE(data_objects);
+
+/*
+ * Test case for importing reports with initial zero values.
+ */
+uint32_t report_timestamp = 0;
+bool report_b = false;
+int32_t report_nested_beginning = 0;
+float report_nested_obj2_item2 = 0.0;
+
+struct thingset_data_object report_data_objects[] = {
+    THINGSET_ITEM_UINT32(THINGSET_ID_ROOT, 0x10, "t_s", &report_timestamp, THINGSET_ANY_RW,
+                         SUBSET_LIVE),
+    THINGSET_ITEM_BOOL(0x200, 0x201, "wBool", &report_b, THINGSET_ANY_RW, SUBSET_LIVE),
+    THINGSET_ITEM_INT32(0x700, 0x701, "rBeginning", &report_nested_beginning, THINGSET_ANY_RW,
+                        SUBSET_LIVE),
+    THINGSET_ITEM_FLOAT(0x706, 0x708, "rItem2_V", &report_nested_obj2_item2, 1, THINGSET_ANY_RW,
+                        SUBSET_LIVE),
+};
+
+size_t report_data_objects_size = ARRAY_SIZE(report_data_objects);

@@ -931,6 +931,22 @@ int thingset_bin_import_data(struct thingset_context *ts, uint8_t auth_flags,
     return ts->api->deserialize_finish(ts);
 }
 
+int thingset_bin_import_report(struct thingset_context *ts, uint8_t auth_flags, uint16_t subset)
+{
+    uint32_t id = 0;
+
+    if (ts->msg_payload[0] != THINGSET_BIN_REPORT) {
+        return -THINGSET_ERR_UNSUPPORTED_FORMAT;
+    }
+
+    zcbor_uint32_decode(ts->decoder, &id);
+    if (id != subset) {
+        return -THINGSET_ERR_NOT_FOUND;
+    }
+
+    return thingset_bin_import_data(ts, auth_flags, subset);
+}
+
 int thingset_bin_process(struct thingset_context *ts)
 {
     int ret;

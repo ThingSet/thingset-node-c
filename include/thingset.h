@@ -1823,6 +1823,25 @@ int thingset_import_data(struct thingset_context *ts, const uint8_t *data, size_
                          uint8_t auth_flags, enum thingset_data_format format);
 
 /**
+ * Import report into data objects.
+ *
+ * This function allows importing data objects from a received report.
+ *
+ * Unknown data items are silently ignored.
+ *
+ * @param ts Pointer to ThingSet context.
+ * @param data Buffer containing ID/value map that should be written to the data objects
+ * @param len Length of the data in the buffer
+ * @param auth_flags Authentication flags to be used in this function (to override auth_flags)
+ * @param format Protocol data format to be used (text, binary with IDs or binary with names)
+ * @param subset The subset associated with the published report
+ *
+ * @returns 0 for success or negative ThingSet response code in case of error
+ */
+int thingset_import_report(struct thingset_context *ts, const uint8_t *data, size_t len,
+                           uint8_t auth_flags, enum thingset_data_format format, uint16_t subset);
+
+/**
  * EXPERIMENTAL
  *
  * Import data from a buffer into data objects.
