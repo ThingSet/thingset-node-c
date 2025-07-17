@@ -103,7 +103,8 @@ int group_callback_pre_read_count;
 int group_callback_post_read_count;
 int group_callback_pre_write_count;
 int group_callback_post_write_count;
-static void group_callback(enum thingset_callback_reason reason)
+static int group_callback(enum thingset_callback_reason reason,
+                          const struct thingset_data_object *obj)
 {
     switch (reason) {
         case THINGSET_CALLBACK_PRE_READ:
@@ -119,6 +120,7 @@ static void group_callback(enum thingset_callback_reason reason)
             group_callback_post_write_count++;
             break;
     }
+    return 0;
 }
 
 /* Records */
@@ -164,7 +166,8 @@ static struct test_dyn_struct dyn_records = {
 int dyn_records_callback_pre_read_count;
 int dyn_records_callback_post_read_count;
 int dyn_records_callback_index;
-static void dyn_records_callback(enum thingset_callback_reason reason, int index)
+static int dyn_records_callback(enum thingset_callback_reason reason, int index,
+                                const struct thingset_data_object *object)
 {
     switch (reason) {
         case THINGSET_CALLBACK_PRE_READ:
@@ -180,9 +183,10 @@ static void dyn_records_callback(enum thingset_callback_reason reason, int index
             dyn_records_callback_post_read_count++;
             break;
         default:
-            return;
+            return 0;
     }
     dyn_records_callback_index = index;
+    return 0;
 }
 
 THINGSET_DEFINE_DYN_RECORDS(dyn_records_obj, &dyn_records, 10, dyn_records_callback);
