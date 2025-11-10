@@ -163,6 +163,12 @@ int thingset_export_subsets_progressively(struct thingset_context *ts, uint8_t *
     return ret;
 }
 
+int thingset_export_subsets_progressively_abort(struct thingset_context *ts)
+{
+    k_sem_give(&ts->lock);
+    return 0;
+}
+
 int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t buf_size,
                             uint16_t subsets, enum thingset_data_format format)
 {
