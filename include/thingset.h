@@ -88,16 +88,13 @@ extern "C" {
     (code >= 0x80 && code < 0xA0) /**< Check if provided code indicates success. */
 
 /* Reserved data object IDs */
-#define THINGSET_ID_ROOT            0x00 /**< Root object for a node (empty path) */
-#define THINGSET_ID_TIME            0x10 /**< Unix timestamp `t_s` */
-#define THINGSET_ID_IDS             0x16 /**< `_Ids` overlay */
-#define THINGSET_ID_PATHS           0x17 /**< `_Paths` overlay */
-#define THINGSET_ID_METADATAURL     0x18 /**< URL for extended metadata information: `cMetadataURL` */
-#define THINGSET_ID_METADATA        0x19 /**< `_Metadata` overlay */
-#define THINGSET_ID_METADATA_NAME   0x1A /**< `name` key in metadata overlay */
-#define THINGSET_ID_METADATA_TYPE   0x1B /**< `type` key in metadata overlay */
-#define THINGSET_ID_METADATA_ACCESS 0x1C /**< `access` key in metadata overlay */
-#define THINGSET_ID_NODEID          0x1D /**< String containing the node ID: `cNodeID` */
+#define THINGSET_ID_ROOT        0x00 /**< Root object for a node (empty path) */
+#define THINGSET_ID_TIME        0x10 /**< Unix timestamp `t_s` */
+#define THINGSET_ID_IDS         0x16 /**< `_Ids` overlay */
+#define THINGSET_ID_PATHS       0x17 /**< `_Paths` overlay */
+#define THINGSET_ID_METADATAURL 0x18 /**< URL for extended metadata information: `cMetadataURL` */
+#define THINGSET_ID_METADATA    0x19 /**< `_Metadata` overlay */
+#define THINGSET_ID_NODEID      0x1D /**< String containing the node ID: `cNodeID` */
 
 /*
  * Macros for defining data object array elements.

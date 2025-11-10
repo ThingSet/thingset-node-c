@@ -17,6 +17,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#define THINGSET_METADATA_KEY_NAME   0x1A /**< `name` key in metadata overlay */
+#define THINGSET_METADATA_KEY_TYPE   0x1B /**< `type` key in metadata overlay */
+#define THINGSET_METADATA_KEY_ACCESS 0x1C /**< `access` key in metadata overlay */
+
 static void bin_decoder_init(struct thingset_context *ts, const uint8_t *payload,
                              size_t payload_len)
 {
@@ -181,7 +185,7 @@ static int bin_serialize_metadata(struct thingset_context *ts,
         return err;
     }
 
-    if (!zcbor_uint32_put(ts->encoder, THINGSET_ID_METADATA_NAME)) {
+    if (!zcbor_uint32_put(ts->encoder, THINGSET_METADATA_KEY_NAME)) {
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
 
@@ -189,7 +193,7 @@ static int bin_serialize_metadata(struct thingset_context *ts,
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
 
-    if (!zcbor_uint32_put(ts->encoder, THINGSET_ID_METADATA_TYPE)) {
+    if (!zcbor_uint32_put(ts->encoder, THINGSET_METADATA_KEY_TYPE)) {
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
 
@@ -202,7 +206,7 @@ static int bin_serialize_metadata(struct thingset_context *ts,
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
 
-    if (!zcbor_uint32_put(ts->encoder, THINGSET_ID_METADATA_ACCESS)) {
+    if (!zcbor_uint32_put(ts->encoder, THINGSET_METADATA_KEY_ACCESS)) {
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
     if (!zcbor_uint32_put(ts->encoder, object->access)) {
