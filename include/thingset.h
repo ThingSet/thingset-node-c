@@ -1776,6 +1776,17 @@ int thingset_export_subsets_progressively(struct thingset_context *ts, uint8_t *
                                           size_t *len);
 
 /**
+ * Aborts the export of data to the buffer passed to @ref
+ * thingset_export_subsets_progressively. Call this method if
+ * the export has failed outside ThingSet code.
+ *
+ * @param ts Pointer to ThingSet context.
+ *
+ * @returns 0 for success
+ */
+int thingset_export_subsets_progressively_abort(struct thingset_context *ts);
+
+/**
  * Export id, value and/or name of a single data item.
  *
  * This function is typically used together with thingset_iterate_subsets to export items of a
