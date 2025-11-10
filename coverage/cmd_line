@@ -1,0 +1,1 @@
+genhtml build/lcov.info --output-directory build/lcov_html --ignore-errors source --branch-coverage --highlight --legend
