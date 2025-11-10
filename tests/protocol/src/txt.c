@@ -241,7 +241,7 @@ ZTEST(thingset_txt, test_fetch_float_array)
 ZTEST(thingset_txt, test_fetch_metadata)
 {
     THINGSET_ASSERT_REQUEST_TXT("?_Metadata [\"Arrays/wF32\"]",
-                                ":85 [{\"name\":\"wF32\",\"type\":\"f32[]\"}]");
+                                ":85 [{\"name\":\"wF32\",\"type\":\"f32[]\",\"access\":119}]");
 }
 
 #endif /* CONFIG_THINGSET_METADATA_ENDPOINT */
