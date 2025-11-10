@@ -1777,7 +1777,7 @@ int thingset_export_subsets_progressively(struct thingset_context *ts, uint8_t *
 
 /**
  * Aborts the export of data to the buffer passed to @ref
- * thingset_export_subsets_progressively. Call this method if.
+ * thingset_export_subsets_progressively. Call this method if
  * the export has failed outside ThingSet code.
  *
  * @param ts Pointer to ThingSet context.
