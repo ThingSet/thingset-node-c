@@ -188,6 +188,26 @@ ZTEST(thingset_txt, test_fetch_group)
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
 }
 
+/*
+ * A request with more tokens than CONFIG_THINGSET_NUM_JSON_TOKENS must be rejected without
+ * writing past the end of the token array in the ThingSet context.
+ */
+ZTEST(thingset_txt, test_fetch_too_many_json_tokens)
+{
+    char req[THINGSET_TEST_BUF_SIZE];
+    int pos = snprintf(req, sizeof(req), "?Access [");
+
+    /* jsmn counts the array itself as a token, so this is one token too many */
+    for (unsigned int i = 0; i < CONFIG_THINGSET_NUM_JSON_TOKENS; i++) {
+        pos += snprintf(req + pos, sizeof(req) - pos, i > 0 ? ",0" : "0");
+    }
+    pos += snprintf(req + pos, sizeof(req) - pos, "]");
+
+    zassert_true(pos < sizeof(req), "test request does not fit into buffer");
+
+    THINGSET_ASSERT_REQUEST_TXT(req, ":AD \"JSON parsing error\"");
+}
+
 ZTEST(thingset_txt, test_fetch_multiple)
 {
     THINGSET_ASSERT_REQUEST_TXT("?Types [\"wF32\",\"wBool\",\"wU32\"]", ":85 [-3.20,true,32]");

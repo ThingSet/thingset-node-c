@@ -468,7 +468,7 @@ static int txt_parse_payload(struct thingset_context *ts)
     jsmn_init(&parser);
 
     ret = jsmn_parse(&parser, ts->msg_payload, ts->msg_len - ts->msg_pos, ts->tokens,
-                     sizeof(ts->tokens));
+                     _ARRAY_SIZE(ts->tokens));
     if (ret == JSMN_ERROR_NOMEM) {
         ts->rsp_pos = 0;
         return -THINGSET_ERR_REQUEST_TOO_LARGE;
