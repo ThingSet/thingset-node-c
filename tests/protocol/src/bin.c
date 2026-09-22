@@ -1083,12 +1083,39 @@ ZTEST(thingset_bin, test_import_record)
     records[1].f32_arr[2] = 7.89F;
 }
 
+/* An UPDATE of a whole records object must not treat the dummy check buffer as a record struct. */
+ZTEST(thingset_bin, test_update_records_empty)
+{
+    /* = {0x600: [{},{}]} */
+#if CONFIG_THINGSET_BINARY_MAX_DEPTH >= 5
+    THINGSET_ASSERT_REQUEST_HEX("07 00 A1 19 0600 82 A0 A0", "84 F6 F6");
+#else
+    /* the record map cannot be entered with the default nesting depth */
+    THINGSET_ASSERT_REQUEST_HEX("07 00 A1 19 0600 82 A0 A0", "AF F6 F6");
+#endif
+
+    zassert_equal(records[0].timestamp, 1);
+    zassert_equal(records[1].timestamp, 2);
+}
+
 /*
- * Deserializing records requires a nesting depth of 3 (outer map, list of records, record map),
- * which needs CONFIG_THINGSET_BINARY_MAX_DEPTH of at least 5. With fewer states zcbor cannot
- * enter the record map and the tests below would only assert that the path is unreachable.
+ * The following tests deserialize the content of a record map, which requires a nesting depth of
+ * 3 (outer map, list of records, record map) and thus CONFIG_THINGSET_BINARY_MAX_DEPTH >= 5.
  */
 #if CONFIG_THINGSET_BINARY_MAX_DEPTH >= 5
+
+/* An UPDATE of a whole records object must write through the actual records descriptor. */
+ZTEST(thingset_bin, test_update_records_values)
+{
+    /* = {0x600: [{0x601: 5},{0x601: 6}]} */
+    THINGSET_ASSERT_REQUEST_HEX("07 00 A1 19 0600 82 A1 19 0601 05 A1 19 0601 06", "84 F6 F6");
+
+    zassert_equal(records[0].timestamp, 5);
+    zassert_equal(records[1].timestamp, 6);
+
+    records[0].timestamp = 1;
+    records[1].timestamp = 2;
+}
 
 /* Items of a nested record must be addressed by IDs belonging to that record. */
 ZTEST(thingset_bin, test_import_record_foreign_id)
