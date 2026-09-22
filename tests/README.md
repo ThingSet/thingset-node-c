@@ -14,7 +14,7 @@ With twister:
 
 Manually:
 
-    west build -b native_posix tests/protocol -t run
+    west build -b native_sim tests/protocol -t run
 
 ## Test Coverage
 

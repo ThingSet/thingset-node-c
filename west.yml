@@ -8,7 +8,7 @@ manifest:
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: v4.0-branch
+      revision: v4.4-branch
       import:
         name-allowlist:
           - edtt
