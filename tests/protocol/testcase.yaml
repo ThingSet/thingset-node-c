@@ -20,3 +20,11 @@ tests:
     extra_args: EXTRA_CFLAGS=-Werror
     extra_configs:
       - CONFIG_THINGSET_OBJECT_LOOKUP_MAP=y
+  # deserializing records needs a nesting depth of 3, which the default max depth cannot provide
+  thingset.protocol.nested_records:
+    integration_platforms:
+      - native_sim
+      - native_sim/native/64
+    extra_args: EXTRA_CFLAGS=-Werror
+    extra_configs:
+      - CONFIG_THINGSET_BINARY_MAX_DEPTH=5
