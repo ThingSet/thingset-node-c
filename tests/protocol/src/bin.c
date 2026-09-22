@@ -1083,6 +1083,76 @@ ZTEST(thingset_bin, test_import_record)
     records[1].f32_arr[2] = 7.89F;
 }
 
+/*
+ * Deserializing records requires a nesting depth of 3 (outer map, list of records, record map),
+ * which needs CONFIG_THINGSET_BINARY_MAX_DEPTH of at least 5. With fewer states zcbor cannot
+ * enter the record map and the tests below would only assert that the path is unreachable.
+ */
+#if CONFIG_THINGSET_BINARY_MAX_DEPTH >= 5
+
+/* Items of a nested record must be addressed by IDs belonging to that record. */
+ZTEST(thingset_bin, test_import_record_foreign_id)
+{
+    struct thingset_endpoint endpoint;
+    uint8_t data[THINGSET_TEST_BUF_SIZE];
+    int err;
+
+    /* 0x502 is Access/wItem, a float item that does not belong to record 0x610 */
+    const char data_hex[] =
+        "A1 "
+        "19 06 10 "                /* Records/Nested */
+        "82 "                      /* two records */
+        "A1 19 05 02 FA 3F800000 " /* {Access/wItem: 1.0} -> must be ignored */
+        "A0";                      /* {} */
+    int data_len = hex2bin_spaced(data_hex, data, sizeof(data));
+
+    err = thingset_endpoint_by_path(&ts, &endpoint, "Records/1", strlen("Records/1"));
+    zassert_equal(err, 0);
+
+    uint32_t child_u32_bak = records[1].nested[0].child_u32;
+    float child_f32_bak = records[1].nested[0].child_f32;
+
+    err = thingset_import_record(&ts, data, data_len, &endpoint, THINGSET_BIN_IDS_VALUES);
+    zassert_equal(err, 0, "act: 0x%X", -err);
+
+    /* the foreign item must have been skipped without touching the record */
+    zassert_equal(records[1].nested[0].child_u32, child_u32_bak);
+    zassert_equal(records[1].nested[0].child_f32, child_f32_bak);
+}
+
+/* Items that do belong to the nested record must still be written. */
+ZTEST(thingset_bin, test_import_record_nested)
+{
+    struct thingset_endpoint endpoint;
+    uint8_t data[THINGSET_TEST_BUF_SIZE];
+    int err;
+
+    const char data_hex[] =
+        "A1 "
+        "19 06 10 "       /* Records/Nested */
+        "82 "             /* two records */
+        "A1 19 06 11 0A " /* {Nested/wU32: 10} */
+        "A1 19 06 11 14"; /* {Nested/wU32: 20} */
+    int data_len = hex2bin_spaced(data_hex, data, sizeof(data));
+
+    err = thingset_endpoint_by_path(&ts, &endpoint, "Records/1", strlen("Records/1"));
+    zassert_equal(err, 0);
+
+    uint32_t bak0 = records[1].nested[0].child_u32;
+    uint32_t bak1 = records[1].nested[1].child_u32;
+
+    err = thingset_import_record(&ts, data, data_len, &endpoint, THINGSET_BIN_IDS_VALUES);
+    zassert_equal(err, 0, "act: 0x%X", -err);
+
+    zassert_equal(records[1].nested[0].child_u32, 10);
+    zassert_equal(records[1].nested[1].child_u32, 20);
+
+    records[1].nested[0].child_u32 = bak0;
+    records[1].nested[1].child_u32 = bak1;
+}
+
+#endif /* CONFIG_THINGSET_BINARY_MAX_DEPTH >= 5 */
+
 static void *thingset_setup(void)
 {
     thingset_init_global(&ts);
