@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 LOG_MODULE_REGISTER(thingset, CONFIG_THINGSET_LOG_LEVEL);
 
@@ -623,10 +624,18 @@ struct thingset_data_object *thingset_get_object_by_path(struct thingset_context
     const char *end;
     uint16_t parent = 0;
 
+    if (path_len == 0) {
+        return NULL;
+    }
+
     /* maximum depth of 10 assumed */
     for (int i = 0; i < 10; i++) {
-        end = strchr(start, '/');
-        if (end == NULL || end >= path + path_len) {
+        /*
+         * The path may point directly into a received message and is not null-terminated, so the
+         * search for the separator has to be limited to the remaining length.
+         */
+        end = memchr(start, '/', path + path_len - start);
+        if (end == NULL) {
             /* reached at the end of the path */
             if (object != NULL && object->type == THINGSET_TYPE_RECORDS && *start >= '0'
                 && *start <= '9')

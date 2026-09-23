@@ -115,6 +115,34 @@ ZTEST(thingset_common, test_serialize_path)
     zassert_mem_equal(buf, "Nested/Obj2/rItem1_V", len);
 }
 
+/* Paths are not null-terminated, so parsing must not read beyond the given length. */
+static char path_without_termination[] = { 'T', 'y', 'p', 'e', 's', '/', 'w', 'B', 'o', 'o', 'l' };
+
+ZTEST(thingset_common, test_endpoint_from_path_without_termination)
+{
+    struct thingset_endpoint endpoint;
+    int err;
+
+    err = thingset_endpoint_by_path(&ts, &endpoint, path_without_termination,
+                                    sizeof(path_without_termination));
+    zassert_equal(err, 0, "act: 0x%X", -err);
+    zassert_equal(endpoint.object->id, 0x201);
+
+    /* a shorter length must select the group instead of the item */
+    err = thingset_endpoint_by_path(&ts, &endpoint, path_without_termination, 5);
+    zassert_equal(err, 0, "act: 0x%X", -err);
+    zassert_equal(endpoint.object->id, 0x200);
+
+    /* an empty path selects the root object */
+    err = thingset_endpoint_by_path(&ts, &endpoint, path_without_termination, 0);
+    zassert_equal(err, 0, "act: 0x%X", -err);
+    zassert_equal(endpoint.object->id, 0);
+
+    /* an empty path must not be dereferenced when looked up directly */
+    int index;
+    zassert_is_null(thingset_get_object_by_path(&ts, path_without_termination, 0, &index));
+}
+
 /* Rejecting an unsupported format must not leave the context locked. */
 ZTEST(thingset_common, test_export_subsets_unsupported_format)
 {
