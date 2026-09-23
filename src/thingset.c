@@ -418,6 +418,14 @@ int thingset_import_record(struct thingset_context *ts, const uint8_t *data, siz
 
     ts->endpoint = *endpoint;
 
+    if (ts->endpoint.object == NULL || ts->endpoint.object->type != THINGSET_TYPE_RECORDS
+        || ts->endpoint.index < 0
+        || ts->endpoint.index >= ts->endpoint.object->data.records->num_records)
+    {
+        err = -THINGSET_ERR_NOT_FOUND;
+        goto out;
+    }
+
     switch (format) {
 #ifdef CONFIG_THINGSET_TEXT_MODE
         case THINGSET_TXT_NAMES_VALUES:
@@ -442,6 +450,12 @@ int thingset_import_record(struct thingset_context *ts, const uint8_t *data, siz
         goto out;
     }
 
+    /* dynamic records keep the data of only one record in memory */
+    struct thingset_records *records = ts->endpoint.object->data.records;
+    size_t record_offset = ts->endpoint.object->detail == THINGSET_DETAIL_DYN_RECORDS
+                               ? 0
+                               : ts->endpoint.index * records->record_size;
+
     const struct thingset_data_object *item;
     while ((err = ts->api->deserialize_child(ts, &item)) != -THINGSET_ERR_DESERIALIZATION_FINISHED)
     {
@@ -454,9 +468,7 @@ int thingset_import_record(struct thingset_context *ts, const uint8_t *data, siz
             goto out;
         }
 
-        struct thingset_records *records = ts->endpoint.object->data.records;
-        uint8_t *record_ptr =
-            (uint8_t *)records->records + ts->endpoint.index * records->record_size;
+        uint8_t *record_ptr = (uint8_t *)records->records + record_offset;
         err = thingset_common_prepare_record_element(ts, item, record_ptr,
                                                      deserialize_value_callback);
 
@@ -650,6 +662,10 @@ struct thingset_data_object *thingset_get_object_by_path(struct thingset_context
                 do {
                     if (*start >= '0' && *start <= '9') {
                         *index = (*index) * 10 + *start - '0';
+                        if (*index > UINT16_MAX) {
+                            /* record indices are limited to the range of uint16_t */
+                            return NULL;
+                        }
                         start++;
                     }
                     else {

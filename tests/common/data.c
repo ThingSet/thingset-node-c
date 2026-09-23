@@ -158,7 +158,7 @@ THINGSET_DEFINE_RECORD_FLOAT_ARRAY(f32_array_record, 1, struct test_struct, f32_
 THINGSET_DEFINE_RECORD_RECORDS(nested_records_obj, struct test_struct, nested);
 
 /* Dynamic record */
-static struct test_dyn_struct dyn_records = {
+struct test_dyn_struct dyn_records = {
     .index = 0,
 };
 
