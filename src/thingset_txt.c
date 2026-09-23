@@ -101,6 +101,36 @@ static int txt_serialize_response(struct thingset_context *ts, uint8_t code, con
 }
 
 /**
+ * Append a formatted string at the given position of the buffer.
+ *
+ * A negative position is passed through unchanged, so that errors propagate through consecutive
+ * calls and only have to be checked once at the end.
+ *
+ * @returns New position or negative ThingSet reponse code in case of error
+ */
+static int json_append(char *buf, size_t size, int pos, const char *format, ...)
+{
+    va_list vargs;
+
+    if (pos < 0) {
+        return pos;
+    }
+    else if ((size_t)pos >= size) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    va_start(vargs, format);
+    int len = vsnprintf(buf + pos, size - pos, format, vargs);
+    va_end(vargs);
+
+    if (len < 0 || (size_t)len >= size - pos) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    return pos + len;
+}
+
+/**
  * @returns Number of serialized bytes or negative ThingSet reponse code in case of error
  */
 static int json_serialize_simple_value(char *buf, size_t size, union thingset_data_pointer data,
@@ -156,6 +186,9 @@ static int json_serialize_simple_value(char *buf, size_t size, union thingset_da
             break;
         case THINGSET_TYPE_STRING:
 #if CONFIG_THINGSET_JSON_STRING_ESCAPING
+            if (size < 1) {
+                return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+            }
             buf[0] = '"';
             pos = 1;
             for (int data_pos = 0; data_pos < detail; data_pos++) {
@@ -203,8 +236,14 @@ static int json_serialize_simple_value(char *buf, size_t size, union thingset_da
                         buf[pos++] = data.str[data_pos];
                 }
             }
-            buf[pos++] = '"';
-            buf[pos++] = ',';
+            if ((size_t)pos + 2 < size) {
+                buf[pos++] = '"';
+                buf[pos++] = ',';
+            }
+            else {
+                /* indicate that the buffer is too small (similar to snprintf) */
+                pos += 2;
+            }
 #else
             pos = snprintf(buf, size, "\"%s\",", data.str);
 #endif
@@ -212,6 +251,9 @@ static int json_serialize_simple_value(char *buf, size_t size, union thingset_da
 #if CONFIG_THINGSET_BYTES_TYPE_SUPPORT
         case THINGSET_TYPE_BYTES: {
             size_t strlen;
+            if (size < 4) {
+                return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+            }
             int err = base64_encode((uint8_t *)buf + 1, size - 4, &strlen, data.bytes->bytes,
                                     data.bytes->num_bytes);
             if (err == 0) {
@@ -251,79 +293,88 @@ static int txt_serialize_value(struct thingset_context *ts,
     if (pos == -THINGSET_ERR_UNSUPPORTED_FORMAT) {
         /* not a simple value */
         if (object->type == THINGSET_TYPE_GROUP) {
-            pos = snprintf(buf, size, "null,");
+            pos = json_append(buf, size, 0, "null,");
         }
         else if (object->type == THINGSET_TYPE_RECORDS) {
             if (IS_ENABLED(CONFIG_THINGSET_REPORT_RECORD_SERIALIZATION)
                 && ts->rsp[0] == THINGSET_TXT_REPORT)
             {
-                pos = snprintf(buf, size, "[");
-                ts->rsp_pos++;
+                pos = json_append(buf, size, 0, "[");
+                if (pos < 0) {
+                    ts->rsp_pos = 0;
+                    return pos;
+                }
+                ts->rsp_pos += pos;
+
+                /* the records are serialized directly into the response buffer, each of them
+                   already terminated with a comma by the map end */
                 for (unsigned int i = 0; i < object->data.records->num_records; i++) {
                     ret = thingset_common_serialize_record(ts, object, i);
-                    pos = ts->rsp_pos;
-                    buf[pos++] = ',';
+                    if (ret != 0) {
+                        ts->rsp_pos = 0;
+                        return ret;
+                    }
                 }
-                /* thingset_common_serialize_record has already incremeneted rsp_pos, so we reset
-                   the length of pos here, so that when we increment at the end, we are only
-                   incrementing the small delta below */
-                buf = ts->rsp + ts->rsp_pos;
-                pos = 0;
+
                 if (object->data.records->num_records > 0) {
-                    pos--; /* remove trailing comma */
+                    ts->rsp_pos--; /* overwrite trailing comma */
                 }
-                pos += snprintf(buf + pos, size - pos, "],");
+                buf = ts->rsp + ts->rsp_pos;
+                size = ts->rsp_size - ts->rsp_pos;
+                pos = json_append(buf, size, 0, "],");
             }
             else {
-                pos = snprintf(buf, size, "%d,", object->data.records->num_records);
+                pos = json_append(buf, size, 0, "%d,", object->data.records->num_records);
             }
         }
         else if (object->type == THINGSET_TYPE_FN_VOID || object->type == THINGSET_TYPE_FN_I32) {
-            pos = snprintf(buf, size, "[");
+            pos = json_append(buf, size, 0, "[");
             for (unsigned int i = 0; i < ts->num_objects; i++) {
                 if (ts->data_objects[i].parent_id == object->id) {
-                    pos += snprintf(buf + pos, size - pos, "\"%s\",", ts->data_objects[i].name);
+                    pos = json_append(buf, size, pos, "\"%s\",", ts->data_objects[i].name);
                 }
             }
             if (pos > 1) {
                 pos--; /* remove trailing comma */
             }
-            pos += snprintf(buf + pos, size - pos, "],");
+            pos = json_append(buf, size, pos, "],");
         }
         else if (object->type == THINGSET_TYPE_SUBSET) {
-            pos = snprintf(buf, size, "[");
+            pos = json_append(buf, size, 0, "[");
             for (unsigned int i = 0; i < ts->num_objects; i++) {
                 if (ts->data_objects[i].subsets & object->data.subset) {
-                    buf[pos++] = '"';
+                    pos = json_append(buf, size, pos, "\"");
+                    if (pos < 0) {
+                        break;
+                    }
                     ret = thingset_get_path(ts, buf + pos, size - pos, &ts->data_objects[i]);
                     if (ret <= 0) {
                         ts->rsp_pos = 0;
                         return ret;
                     }
-                    pos += ret;
-                    buf[pos++] = '"';
-                    buf[pos++] = ',';
+                    pos = json_append(buf, size, pos + ret, "\",");
                 }
             }
             if (pos > 1) {
                 pos--; /* remove trailing comma */
             }
-            pos += snprintf(buf + pos, size - pos, "],");
+            pos = json_append(buf, size, pos, "],");
         }
         else if (object->type == THINGSET_TYPE_ARRAY && object->data.array != NULL) {
             struct thingset_array *array = object->data.array;
-            pos = snprintf(buf, size, "[");
+            pos = json_append(buf, size, 0, "[");
             size_t type_size = thingset_type_size(array->element_type);
-            for (int i = 0; i < array->num_elements; i++) {
+            for (int i = 0; i < array->num_elements && pos >= 0; i++) {
                 /* using uint8_t pointer for byte-wise pointer arithmetics */
                 union thingset_data_pointer data = { .u8 = array->elements.u8 + i * type_size };
-                pos += json_serialize_simple_value(buf + pos, size - pos, data, array->element_type,
-                                                   array->decimals);
+                ret = json_serialize_simple_value(buf + pos, size - pos, data, array->element_type,
+                                                  array->decimals);
+                pos = ret < 0 ? ret : pos + ret;
             }
-            if (array->num_elements > 0) {
+            if (pos > 1) {
                 pos--; /* remove trailing comma */
             }
-            pos += snprintf(buf + pos, size - pos, "],");
+            pos = json_append(buf, size, pos, "],");
         }
         else {
             ts->rsp_pos = 0;
@@ -424,8 +475,12 @@ static int txt_serialize_name_value(struct thingset_context *ts,
 static void txt_serialize_finish(struct thingset_context *ts)
 {
     /* remove the trailing comma or space (in case of no payload) and terminate string */
-    ts->rsp_pos--;
-    ts->rsp[ts->rsp_pos] = '\0';
+    if (ts->rsp_pos > 0) {
+        ts->rsp_pos--;
+    }
+    if (ts->rsp_pos < ts->rsp_size) {
+        ts->rsp[ts->rsp_pos] = '\0';
+    }
 }
 
 /**
@@ -697,8 +752,13 @@ static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
 {
     struct thingset_data_object *ancestors[2];
     int depth = 0;
+    int pos;
 
-    ts->rsp[ts->rsp_pos++] = '{';
+    pos = json_append(ts->rsp, ts->rsp_size, ts->rsp_pos, "{");
+    if (pos < 0) {
+        return pos;
+    }
+    ts->rsp_pos = pos;
 
     for (unsigned int i = 0; i < ts->num_objects; i++) {
         if (ts->data_objects[i].subsets & subsets) {
@@ -720,7 +780,11 @@ static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
                     || parent_id == 0)) /* return to root */
             {
                 ts->rsp[ts->rsp_pos - 1] = '}'; /* overwrite comma */
-                ts->rsp[ts->rsp_pos++] = ',';
+                pos = json_append(ts->rsp, ts->rsp_size, ts->rsp_pos, ",");
+                if (pos < 0) {
+                    return pos;
+                }
+                ts->rsp_pos = pos;
                 depth--;
             }
 
@@ -729,25 +793,40 @@ static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
                     struct thingset_data_object *grandparent =
                         thingset_get_object_by_id(ts, parent->parent_id);
                     if (grandparent != NULL) {
-                        ts->rsp_pos += snprintf(ts->rsp + ts->rsp_pos, ts->rsp_size - ts->rsp_pos,
-                                                "\"%s\":{", grandparent->name);
+                        pos = json_append(ts->rsp, ts->rsp_size, ts->rsp_pos, "\"%s\":{",
+                                          grandparent->name);
+                        if (pos < 0) {
+                            return pos;
+                        }
+                        ts->rsp_pos = pos;
                         ancestors[depth++] = grandparent;
                     }
                 }
-                ts->rsp_pos += snprintf(ts->rsp + ts->rsp_pos, ts->rsp_size - ts->rsp_pos,
-                                        "\"%s\":{", parent->name);
+                pos = json_append(ts->rsp, ts->rsp_size, ts->rsp_pos, "\"%s\":{", parent->name);
+                if (pos < 0) {
+                    return pos;
+                }
+                ts->rsp_pos = pos;
                 ancestors[depth++] = parent;
             }
             else if (depth > 0 && parent_id != ancestors[depth - 1]->id) {
                 if (parent != NULL) {
-                    ts->rsp_pos += snprintf(ts->rsp + ts->rsp_pos, ts->rsp_size - ts->rsp_pos,
-                                            "\"%s\":{", parent->name);
+                    pos = json_append(ts->rsp, ts->rsp_size, ts->rsp_pos, "\"%s\":{", parent->name);
+                    if (pos < 0) {
+                        return pos;
+                    }
+                    ts->rsp_pos = pos;
                     ancestors[depth++] = parent;
                 }
             }
-            ts->rsp_pos += ts->api->serialize_key_value(ts, &ts->data_objects[i]);
+
+            /* serialize_key_value advances rsp_pos itself */
+            int err = ts->api->serialize_key_value(ts, &ts->data_objects[i]);
+            if (err != 0) {
+                return err;
+            }
         }
-        if (ts->rsp_pos >= ts->rsp_size - 1 - depth) {
+        if (ts->rsp_pos + 1 + depth >= ts->rsp_size) {
             return -THINGSET_ERR_RESPONSE_TOO_LARGE;
         }
     }
@@ -766,11 +845,13 @@ static int txt_serialize_subsets(struct thingset_context *ts, uint16_t subsets)
 
 static int txt_serialize_report_header(struct thingset_context *ts, const char *path)
 {
-    ts->rsp_pos = snprintf(ts->rsp, ts->rsp_size, "#%s ", path);
-    if (ts->rsp_pos < 0 || ts->rsp_pos > ts->rsp_size) {
-        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    int pos = json_append(ts->rsp, ts->rsp_size, 0, "#%s ", path);
+    if (pos < 0) {
+        ts->rsp_pos = 0;
+        return pos;
     }
     else {
+        ts->rsp_pos = pos;
         return 0;
     }
 }
