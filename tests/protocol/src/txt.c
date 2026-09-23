@@ -550,6 +550,39 @@ ZTEST(thingset_txt, test_create_delete_subset_item)
         ":85 [\"t_s\",\"Types/wBool\",\"Records\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
 }
 
+/* The group callbacks must not be invoked with an object that was never deserialized. */
+ZTEST(thingset_txt, test_group_callback_without_children)
+{
+    group_callback_pre_read_count = 0;
+    group_callback_post_read_count = 0;
+    group_callback_pre_write_count = 0;
+    group_callback_post_write_count = 0;
+
+    /* nothing is fetched, so there is no object to pass to the callbacks */
+    THINGSET_ASSERT_REQUEST_TXT("?Access []", ":85 []");
+    zassert_equal(group_callback_pre_read_count, 0);
+    zassert_equal(group_callback_post_read_count, 0);
+
+    /* the element cannot be deserialized, so the callbacks must not be invoked either */
+    THINGSET_ASSERT_REQUEST_TXT("?Access [true]", ":A0");
+    zassert_equal(group_callback_pre_read_count, 0);
+    zassert_equal(group_callback_post_read_count, 0);
+
+    THINGSET_ASSERT_REQUEST_TXT("?Access [\"foo\"]", ":A4");
+    zassert_equal(group_callback_pre_read_count, 0);
+    zassert_equal(group_callback_post_read_count, 0);
+
+    /* the write callbacks are still invoked for an empty map, but without an object */
+    THINGSET_ASSERT_REQUEST_TXT("=Access {}", ":84");
+    zassert_equal(group_callback_pre_write_count, 1);
+    zassert_equal(group_callback_post_write_count, 1);
+
+    /* a regular fetch still invokes both read callbacks */
+    THINGSET_ASSERT_REQUEST_TXT("?Access [\"wItem\"]", ":85 [1.00]");
+    zassert_equal(group_callback_pre_read_count, 1);
+    zassert_equal(group_callback_post_read_count, 1);
+}
+
 /* Both the subset and the item added to or removed from it require write access. */
 ZTEST(thingset_txt, test_create_delete_subset_item_auth)
 {

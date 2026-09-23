@@ -233,17 +233,16 @@ int thingset_common_fetch(struct thingset_context *ts)
 
         /* fetch values */
 
-        const struct thingset_data_object *object;
+        const struct thingset_data_object *object = NULL;
         while ((err = ts->api->deserialize_child(ts, &object))
                != -THINGSET_ERR_DESERIALIZATION_FINISHED)
         {
+            if (err != 0) {
+                return ts->api->serialize_response(ts, -err, NULL);
+            }
 
             if (ts->endpoint.object->data.group_callback != NULL) {
                 ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_PRE_READ, object);
-            }
-
-            if (err != 0) {
-                return ts->api->serialize_response(ts, -err, NULL);
             }
 
             if (object->type == THINGSET_TYPE_GROUP && ts->endpoint.object->id != THINGSET_ID_PATHS
@@ -282,7 +281,8 @@ int thingset_common_fetch(struct thingset_context *ts)
             }
         }
 
-        if (ts->endpoint.object->data.group_callback != NULL) {
+        /* object stays NULL if no child was fetched at all */
+        if (object != NULL && ts->endpoint.object->data.group_callback != NULL) {
             ts->endpoint.object->data.group_callback(THINGSET_CALLBACK_POST_READ, object);
         }
     }
@@ -297,7 +297,8 @@ int thingset_common_fetch(struct thingset_context *ts)
 
 int thingset_common_update(struct thingset_context *ts)
 {
-    const struct thingset_data_object *object;
+    /* stays NULL if the map is empty, which the group callbacks have to cope with */
+    const struct thingset_data_object *object = NULL;
     bool updated = false;
     int err;
 
@@ -360,6 +361,10 @@ int thingset_common_update(struct thingset_context *ts)
     while ((err = ts->api->deserialize_child(ts, &object))
            != -THINGSET_ERR_DESERIALIZATION_FINISHED)
     {
+        if (err != 0) {
+            return ts->api->serialize_response(ts, -err, NULL);
+        }
+
         err = ts->api->deserialize_value(ts, object, false);
         if (err != 0) {
             return ts->api->serialize_response(ts, -err, NULL);
