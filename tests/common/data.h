@@ -105,4 +105,6 @@ struct test_dyn_struct
     uint32_t index;
 };
 
+extern struct test_dyn_struct dyn_records;
+
 #endif /* TESTS_COMMON_DATA_H_ */
