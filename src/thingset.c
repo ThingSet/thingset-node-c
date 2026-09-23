@@ -194,7 +194,8 @@ int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t bu
             thingset_bin_setup(ts, 0);
             break;
         default:
-            return -THINGSET_ERR_NOT_IMPLEMENTED;
+            ret = -THINGSET_ERR_NOT_IMPLEMENTED;
+            goto out;
     }
 
     ret = ts->api->serialize_subsets(ts, subsets);
@@ -205,6 +206,7 @@ int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t bu
         ret = ts->rsp_pos;
     }
 
+out:
     k_sem_give(&ts->lock);
 
     return ret;
