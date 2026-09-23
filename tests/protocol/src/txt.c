@@ -439,7 +439,8 @@ ZTEST(thingset_txt, test_group_callback)
     zassert_equal(group_callback_pre_write_count, 1);
     zassert_equal(group_callback_post_write_count, 1);
 
-    THINGSET_ASSERT_REQUEST_TXT("?Access", ":85 {\"rItem\":1.00,\"wItem\":1.00,\"wMfrOnly\":1.00}");
+    THINGSET_ASSERT_REQUEST_TXT(
+        "?Access", ":85 {\"rItem\":1.00,\"wItem\":1.00,\"wMfrOnly\":1.00,\"rMfrOnly\":1.00}");
 
     zassert_equal(group_callback_pre_read_count, 1);
     zassert_equal(group_callback_post_read_count, 1);
@@ -583,34 +584,35 @@ ZTEST(thingset_txt, test_group_callback_without_children)
     zassert_equal(group_callback_post_read_count, 1);
 }
 
-/* Both the subset and the item added to or removed from it require write access. */
+/* Modifying a subset requires write access to the subset and read access to the item. */
 ZTEST(thingset_txt, test_create_delete_subset_item_auth)
 {
     thingset_set_authentication(&ts, THINGSET_USR_MASK);
 
-    /* wMfrOnly may only be written by the manufacturer */
-    THINGSET_ASSERT_REQUEST_TXT("+mLive \"Access/wMfrOnly\"",
-                                ":A1 \"Modifying wMfrOnly not allowed\"");
-    THINGSET_ASSERT_REQUEST_TXT("-mLive \"Access/wMfrOnly\"",
-                                ":A1 \"Modifying wMfrOnly not allowed\"");
+    /* rMfrOnly may only be read by the manufacturer */
+    THINGSET_ASSERT_REQUEST_TXT("+mLive \"Access/rMfrOnly\"",
+                                ":A1 \"Reading rMfrOnly not allowed\"");
+    THINGSET_ASSERT_REQUEST_TXT("-mLive \"Access/rMfrOnly\"",
+                                ":A1 \"Reading rMfrOnly not allowed\"");
 
-    /* rItem cannot be written at all */
-    THINGSET_ASSERT_REQUEST_TXT("+mLive \"Access/rItem\"", ":A3 \"Modifying rItem not allowed\"");
-
-    /* the subset itself must be writable as well */
+    /* the subset itself must be writable */
     THINGSET_ASSERT_REQUEST_TXT("+mNvm \"Types/wBool\"", ":A3 \"Modifying mNvm not allowed\"");
 
-    /* the item must not have been added to the subset */
+    /* a read-only item can be added and removed again */
+    THINGSET_ASSERT_REQUEST_TXT("+mLive \"Access/rItem\"", ":81");
+    THINGSET_ASSERT_REQUEST_TXT("-mLive \"Access/rItem\"", ":82");
+
+    /* after authentication as manufacturer the restricted item can be added as well */
+    thingset_set_authentication(&ts, THINGSET_USR_MASK | THINGSET_MFR_MASK);
+    THINGSET_ASSERT_REQUEST_TXT("+mLive \"Access/rMfrOnly\"", ":81");
+    THINGSET_ASSERT_REQUEST_TXT("-mLive \"Access/rMfrOnly\"", ":82");
+
+    thingset_set_authentication(&ts, THINGSET_USR_MASK);
+
+    /* the subset must be unchanged again */
     THINGSET_ASSERT_REQUEST_TXT(
         "?mLive",
         ":85 [\"t_s\",\"Types/wBool\",\"Records\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
-
-    /* after authentication as manufacturer the item can be added and removed again */
-    thingset_set_authentication(&ts, THINGSET_USR_MASK | THINGSET_MFR_MASK);
-    THINGSET_ASSERT_REQUEST_TXT("+mLive \"Access/wMfrOnly\"", ":81");
-    THINGSET_ASSERT_REQUEST_TXT("-mLive \"Access/wMfrOnly\"", ":82");
-
-    thingset_set_authentication(&ts, THINGSET_USR_MASK);
 }
 
 ZTEST(thingset_txt, test_create_root_item)

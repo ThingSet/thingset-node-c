@@ -460,17 +460,19 @@ int thingset_common_exec(struct thingset_context *ts)
 }
 
 /**
- * Check if an object may be written with the current authentication.
+ * Check if an object may be accessed with the current authentication.
  *
- * @returns 0 if writing is allowed or the ThingSet response code to be returned otherwise
+ * @param mask THINGSET_READ_MASK or THINGSET_WRITE_MASK
+ *
+ * @returns 0 if the access is allowed or the ThingSet response code to be returned otherwise
  */
-static uint8_t check_write_access(struct thingset_context *ts,
-                                  const struct thingset_data_object *object)
+static uint8_t check_access(struct thingset_context *ts,
+                            const struct thingset_data_object *object, uint8_t mask)
 {
-    if ((object->access & THINGSET_WRITE_MASK & ts->auth_flags) != 0) {
+    if ((object->access & mask & ts->auth_flags) != 0) {
         return 0;
     }
-    else if (object->access & THINGSET_WRITE_MASK) {
+    else if (object->access & mask) {
         return THINGSET_ERR_UNAUTHORIZED;
     }
     else {
@@ -493,7 +495,7 @@ int thingset_common_create_delete(struct thingset_context *ts, bool create)
         return ts->api->serialize_response(ts, THINGSET_ERR_METHOD_NOT_ALLOWED,
                                            "Subset is immutable");
 #else
-        uint8_t code = check_write_access(ts, ts->endpoint.object);
+        uint8_t code = check_access(ts, ts->endpoint.object, THINGSET_WRITE_MASK);
         if (code != 0) {
             return ts->api->serialize_response(ts, code, "Modifying %s not allowed",
                                                ts->endpoint.object->name);
@@ -509,9 +511,14 @@ int thingset_common_create_delete(struct thingset_context *ts, bool create)
         struct thingset_endpoint element;
         int ret = thingset_endpoint_by_path(ts, &element, str_start, str_len);
         if (ret >= 0 && element.index == THINGSET_ENDPOINT_INDEX_NONE) {
-            code = check_write_access(ts, element.object);
+            /*
+             * Reading the item is sufficient, as it is only reported and not written through the
+             * subset. Requiring write access would exclude measurement values, which are the main
+             * use case for subsets.
+             */
+            code = check_access(ts, element.object, THINGSET_READ_MASK);
             if (code != 0) {
-                return ts->api->serialize_response(ts, code, "Modifying %s not allowed",
+                return ts->api->serialize_response(ts, code, "Reading %s not allowed",
                                                    element.object->name);
             }
             if (create) {

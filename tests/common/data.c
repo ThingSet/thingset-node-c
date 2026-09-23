@@ -264,6 +264,7 @@ THINGSET_ADD_ITEM_FLOAT(0x500, 0x501, "rItem", &access_item, 2, THINGSET_ANY_R, 
 THINGSET_ADD_ITEM_FLOAT(0x500, 0x502, "wItem", &access_item, 2, THINGSET_ANY_RW, SUBSET_NVM);
 THINGSET_ADD_ITEM_FLOAT(0x500, 0x503, "wMfrOnly", &access_item, 2, THINGSET_ANY_R | THINGSET_MFR_RW,
                         0);
+THINGSET_ADD_ITEM_FLOAT(0x500, 0x504, "rMfrOnly", &access_item, 2, THINGSET_MFR_R, 0);
 
 /* Records */
 THINGSET_ADD_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_RW,
@@ -379,6 +380,7 @@ struct thingset_data_object data_objects[] = {
     THINGSET_ITEM_FLOAT(0x500, 0x502, "wItem", &access_item, 2, THINGSET_ANY_RW, SUBSET_NVM),
     THINGSET_ITEM_FLOAT(0x500, 0x503, "wMfrOnly", &access_item, 2, THINGSET_ANY_R | THINGSET_MFR_RW,
                         0),
+    THINGSET_ITEM_FLOAT(0x500, 0x504, "rMfrOnly", &access_item, 2, THINGSET_MFR_R, 0),
 
     /* Records */
     THINGSET_RECORDS(THINGSET_ID_ROOT, 0x600, "Records", &records_obj, THINGSET_ANY_RW,
