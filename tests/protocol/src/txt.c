@@ -294,6 +294,51 @@ ZTEST(thingset_txt, test_update_escaped_string)
 
 #endif /* CONFIG_THINGSET_JSON_STRING_ESCAPING */
 
+/*
+ * Process the request with a response buffer of the given size, which is followed by a guard
+ * pattern to detect writes beyond the end of the buffer.
+ */
+static void assert_response_within_buffer(const char *req, size_t rsp_size)
+{
+    uint8_t buf[THINGSET_TEST_BUF_SIZE];
+    const uint8_t guard = 0xAA;
+
+    memset(buf, guard, sizeof(buf));
+
+    int len = thingset_process_message(&ts, req, strlen(req), buf, rsp_size);
+
+    for (size_t i = rsp_size; i < sizeof(buf); i++) {
+        if (buf[i] != guard) {
+            zassert_unreachable("req \"%s\" with buffer size %u wrote %u bytes beyond the end", req,
+                                (unsigned int)rsp_size, (unsigned int)(i - rsp_size + 1));
+        }
+    }
+
+    zassert_true(len <= (int)rsp_size, "req \"%s\" returned %d for a buffer size of %u", req, len,
+                 (unsigned int)rsp_size);
+}
+
+/* Serializing into a buffer that is too small must not write beyond the end of the buffer. */
+ZTEST(thingset_txt, test_serialize_buffer_too_small)
+{
+    static const char *const reqs[] = {
+        "?Arrays/wF32",   /* array */
+        "?mLive",         /* subset of paths */
+        "?Exec",          /* group containing functions */
+        "?Types/wString", /* string */
+        "?Types",         /* group of simple values */
+        "?Records/1",     /* record */
+        "?",              /* whole node */
+    };
+
+    for (unsigned int i = 0; i < ARRAY_SIZE(reqs); i++) {
+        /* 4 bytes is the minimum size accepted by thingset_process_message() */
+        for (size_t size = 4; size <= 128; size++) {
+            assert_response_within_buffer(reqs[i], size);
+        }
+    }
+}
+
 ZTEST(thingset_txt, test_update_timestamp_zero)
 {
     THINGSET_ASSERT_REQUEST_TXT("= {\"t_s\":0}", ":84");

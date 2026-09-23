@@ -140,6 +140,29 @@ ZTEST(thingset_report, test_report_txt)
     THINGSET_ASSERT_REPORT_TXT("mLive", rpt_exp, strlen(rpt_exp));
 }
 
+/* Generating a report into a buffer that is too small must not write beyond the end. */
+ZTEST(thingset_report, test_report_buffer_too_small)
+{
+    uint8_t buf[THINGSET_TEST_BUF_SIZE];
+    const uint8_t guard = 0xAA;
+
+    for (size_t rpt_size = 1; rpt_size <= 256; rpt_size++) {
+        memset(buf, guard, sizeof(buf));
+
+        int len = thingset_report_path(&ts, buf, rpt_size, "mLive", THINGSET_TXT_NAMES_VALUES);
+
+        for (size_t i = rpt_size; i < sizeof(buf); i++) {
+            if (buf[i] != guard) {
+                zassert_unreachable("buffer size %u: wrote %u bytes beyond the end",
+                                    (unsigned int)rpt_size, (unsigned int)(i - rpt_size + 1));
+            }
+        }
+
+        zassert_true(len <= (int)rpt_size, "buffer size %u: returned %d", (unsigned int)rpt_size,
+                     len);
+    }
+}
+
 static void *thingset_setup(void)
 {
     thingset_init_global(&ts);
