@@ -10,6 +10,7 @@
 
 #include "../../src/thingset_internal.h"
 
+#include "data.h"
 #include "test_utils.h"
 
 static struct thingset_context ts;
@@ -112,6 +113,20 @@ ZTEST(thingset_common, test_serialize_path)
     len = thingset_get_path(&ts, buf, sizeof(buf), obj);
     zassert_true(len > 0);
     zassert_mem_equal(buf, "Nested/Obj2/rItem1_V", len);
+}
+
+/* Rejecting an unsupported format must not leave the context locked. */
+ZTEST(thingset_common, test_export_subsets_unsupported_format)
+{
+    uint8_t buf[THINGSET_TEST_BUF_SIZE];
+    int err;
+
+    err = thingset_export_subsets(&ts, buf, sizeof(buf), SUBSET_LIVE, THINGSET_BIN_IDS_ONLY);
+    zassert_equal(err, -THINGSET_ERR_NOT_IMPLEMENTED, "act: 0x%X", -err);
+
+    /* a leaked lock would make this time out and fail with an internal server error */
+    err = thingset_export_subsets(&ts, buf, sizeof(buf), SUBSET_LIVE, THINGSET_BIN_IDS_VALUES);
+    zassert_true(err > 0, "act: 0x%X", -err);
 }
 
 static void *thingset_setup(void)
