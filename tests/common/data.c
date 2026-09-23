@@ -312,6 +312,7 @@ THINGSET_ADD_ITEM_INT32(0x700, 0x709, "rEnd", &nested_end, THINGSET_ANY_RW, 0);
 
 /* Subset */
 THINGSET_ADD_SUBSET(THINGSET_ID_ROOT, 0x800, "mLive", SUBSET_LIVE, THINGSET_ANY_RW);
+THINGSET_ADD_SUBSET(THINGSET_ID_ROOT, 0x801, "mNvm", SUBSET_NVM, THINGSET_ANY_R);
 
 /*
  * Same data objects defined using data object array macros.
@@ -426,6 +427,7 @@ struct thingset_data_object data_objects[] = {
 
     /* Subset */
     THINGSET_SUBSET(THINGSET_ID_ROOT, 0x800, "mLive", SUBSET_LIVE, THINGSET_ANY_RW),
+    THINGSET_SUBSET(THINGSET_ID_ROOT, 0x801, "mNvm", SUBSET_NVM, THINGSET_ANY_R),
 };
 
 size_t data_objects_size = ARRAY_SIZE(data_objects);

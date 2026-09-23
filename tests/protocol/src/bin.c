@@ -26,7 +26,7 @@ ZTEST(thingset_bin, test_get_root_ids)
 {
     const char req_hex[] = "01 00";
     const char rsp_exp_hex[] =
-        "85 F6 AA "
+        "85 F6 AB "
         "10 19 03 E8 "                      /* t_s */
         "18 1D 68 41 42 43 44 31 32 33 34 " /* cNodeID */
         "19 02 00 F6 "                      /* Types */
@@ -41,7 +41,9 @@ ZTEST(thingset_bin, test_get_root_ids)
         "19 02 01 "                         /* Types/wBool */
         "19 06 00 "                         /* Records */
         "19 07 01 "                         /* Nested/rBeginning */
-        "19 07 08";                         /* Nested/Obj2/rItem2_V */
+        "19 07 08 "                         /* Nested/Obj2/rItem2_V */
+        "19 08 01 81 "                      /* mNvm (array) */
+        "19 05 02";                         /* Access/wItem */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
@@ -50,7 +52,7 @@ ZTEST(thingset_bin, test_get_root_names)
 {
     const char req_hex[] = "01 60";
     const char rsp_exp_hex[] =
-        "85 F6 AA "
+        "85 F6 AB "
         "63 745F73 19 03E8 "                           /* t_s */
         "67 634E6F64654944 "                           /* cNodeID */
         "68 41 42 43 44 31 32 33 34 "                  /* ABCD1234 */
@@ -66,7 +68,9 @@ ZTEST(thingset_bin, test_get_root_names)
         "6B 54797065732F77426F6F6C "                   /* Types/wBool */
         "67 5265636f726473 "                           /* Records */
         "71 4E65737465642F72426567696E6E696E67 "       /* Nested/rBeginning */
-        "74 4E65737465642F4F626A322F724974656D325F56"; /* Nested/Obj2/rItem2_V */
+        "74 4E65737465642F4F626A322F724974656D325F56 " /* Nested/Obj2/rItem2_V */
+        "64 6D4E766D 81 "                              /* mNvm (array) */
+        "6C 4163636573732F774974656D";                 /* Access/wItem */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
@@ -210,7 +214,8 @@ ZTEST(thingset_bin, test_fetch_root_ids)
 {
     const char req_hex[] = "05 00 F6";
     const char rsp_exp_hex[] =
-        "85 f6 8A 10 18 1d 19 02 00 19 03 00 19 04 00 19 05 00 19 06 00 19 06 80 19 07 00 19 08 00";
+        "85 f6 8B 10 18 1d 19 02 00 19 03 00 19 04 00 19 05 00 19 06 00 19 06 80 19 07 00 19 08 00 "
+        "19 08 01";
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
@@ -219,7 +224,7 @@ ZTEST(thingset_bin, test_fetch_root_names)
 {
     const char req_hex[] = "05 60 F6";
     const char rsp_exp_hex[] =
-        "85 f6 8A "
+        "85 f6 8B "
         "63 74 5f 73 "             /* t_s */
         "67 63 4e 6f 64 65 49 44"  /* cNodeID */
         "65 54 79 70 65 73 "       /* Types */
@@ -229,7 +234,8 @@ ZTEST(thingset_bin, test_fetch_root_names)
         "67 52 65 63 6f 72 64 73 " /* Records */
         "6A 44796E5265636F726473 " /* DynRecords */
         "66 4e 65 73 74 65 64 "    /* Nested */
-        "65 6d 4c 69 76 65";       /* mLive */
+        "65 6d 4c 69 76 65 "       /* mLive */
+        "64 6d 4e 76 6d";          /* mNvm */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }

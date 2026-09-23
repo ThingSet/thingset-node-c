@@ -454,6 +454,25 @@ int thingset_common_exec(struct thingset_context *ts)
     return 0;
 }
 
+/**
+ * Check if an object may be written with the current authentication.
+ *
+ * @returns 0 if writing is allowed or the ThingSet response code to be returned otherwise
+ */
+static uint8_t check_write_access(struct thingset_context *ts,
+                                  const struct thingset_data_object *object)
+{
+    if ((object->access & THINGSET_WRITE_MASK & ts->auth_flags) != 0) {
+        return 0;
+    }
+    else if (object->access & THINGSET_WRITE_MASK) {
+        return THINGSET_ERR_UNAUTHORIZED;
+    }
+    else {
+        return THINGSET_ERR_FORBIDDEN;
+    }
+}
+
 int thingset_common_create_delete(struct thingset_context *ts, bool create)
 {
     if (ts->endpoint.object->id == 0) {
@@ -469,6 +488,12 @@ int thingset_common_create_delete(struct thingset_context *ts, bool create)
         return ts->api->serialize_response(ts, THINGSET_ERR_METHOD_NOT_ALLOWED,
                                            "Subset is immutable");
 #else
+        uint8_t code = check_write_access(ts, ts->endpoint.object);
+        if (code != 0) {
+            return ts->api->serialize_response(ts, code, "Modifying %s not allowed",
+                                               ts->endpoint.object->name);
+        }
+
         const char *str_start;
         size_t str_len;
         int err = ts->api->deserialize_string(ts, &str_start, &str_len);
@@ -479,6 +504,11 @@ int thingset_common_create_delete(struct thingset_context *ts, bool create)
         struct thingset_endpoint element;
         int ret = thingset_endpoint_by_path(ts, &element, str_start, str_len);
         if (ret >= 0 && element.index == THINGSET_ENDPOINT_INDEX_NONE) {
+            code = check_write_access(ts, element.object);
+            if (code != 0) {
+                return ts->api->serialize_response(ts, code, "Modifying %s not allowed",
+                                                   element.object->name);
+            }
             if (create) {
                 element.object->subsets |= ts->endpoint.object->data.subset;
                 return ts->api->serialize_response(ts, THINGSET_STATUS_CREATED, NULL);

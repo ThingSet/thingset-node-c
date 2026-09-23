@@ -37,7 +37,8 @@ ZTEST(thingset_txt, test_get_root)
         "\"DynRecords\":10,"
         "\"Nested\":null,"
         "\"mLive\":[\"t_s\",\"Types/wBool\",\"Records\",\"Nested/rBeginning\",\"Nested/Obj2/"
-        "rItem2_V\"]"
+        "rItem2_V\"],"
+        "\"mNvm\":[\"Access/wItem\"]"
         "}";
 
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
@@ -135,7 +136,8 @@ ZTEST(thingset_txt, test_fetch_root_names)
         "\"Records\","
         "\"DynRecords\","
         "\"Nested\","
-        "\"mLive\""
+        "\"mLive\","
+        "\"mNvm\""
         "]";
 
     THINGSET_ASSERT_REQUEST_TXT(req, rsp_exp);
@@ -546,6 +548,36 @@ ZTEST(thingset_txt, test_create_delete_subset_item)
     THINGSET_ASSERT_REQUEST_TXT(
         "?mLive",
         ":85 [\"t_s\",\"Types/wBool\",\"Records\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
+}
+
+/* Both the subset and the item added to or removed from it require write access. */
+ZTEST(thingset_txt, test_create_delete_subset_item_auth)
+{
+    thingset_set_authentication(&ts, THINGSET_USR_MASK);
+
+    /* wMfrOnly may only be written by the manufacturer */
+    THINGSET_ASSERT_REQUEST_TXT("+mLive \"Access/wMfrOnly\"",
+                                ":A1 \"Modifying wMfrOnly not allowed\"");
+    THINGSET_ASSERT_REQUEST_TXT("-mLive \"Access/wMfrOnly\"",
+                                ":A1 \"Modifying wMfrOnly not allowed\"");
+
+    /* rItem cannot be written at all */
+    THINGSET_ASSERT_REQUEST_TXT("+mLive \"Access/rItem\"", ":A3 \"Modifying rItem not allowed\"");
+
+    /* the subset itself must be writable as well */
+    THINGSET_ASSERT_REQUEST_TXT("+mNvm \"Types/wBool\"", ":A3 \"Modifying mNvm not allowed\"");
+
+    /* the item must not have been added to the subset */
+    THINGSET_ASSERT_REQUEST_TXT(
+        "?mLive",
+        ":85 [\"t_s\",\"Types/wBool\",\"Records\",\"Nested/rBeginning\",\"Nested/Obj2/rItem2_V\"]");
+
+    /* after authentication as manufacturer the item can be added and removed again */
+    thingset_set_authentication(&ts, THINGSET_USR_MASK | THINGSET_MFR_MASK);
+    THINGSET_ASSERT_REQUEST_TXT("+mLive \"Access/wMfrOnly\"", ":81");
+    THINGSET_ASSERT_REQUEST_TXT("-mLive \"Access/wMfrOnly\"", ":82");
+
+    thingset_set_authentication(&ts, THINGSET_USR_MASK);
 }
 
 ZTEST(thingset_txt, test_create_root_item)
