@@ -1487,7 +1487,7 @@ struct thingset_records
     const size_t record_size;   /**< Size of one record in bytes */
     const uint16_t max_records; /**< Maximum number of records in the array */
     uint16_t num_records;       /**< Actual number of records in the array */
-    thingset_records_callback_t callback;
+    thingset_records_callback_t callback; /**< Callback for read/write operations to records */
 };
 
 /**
@@ -1810,7 +1810,7 @@ int thingset_export_item(struct thingset_context *ts, uint8_t *buf, size_t buf_s
  * Iterate over all objects of given subset(s).
  *
  * @param ts Pointer to ThingSet context.
- * @param subsets Flags to select which subset(s) of data items should be iterated over
+ * @param subset Flags to select which subset(s) of data items should be iterated over
  * @param start_obj Data object to start searching (use NULL to start at the beginning)
  *
  * @returns Pointer to the next object found or NULL if end of data objects was reached

@@ -1,5 +1,5 @@
 breathe
-sphinx~=5.3
+sphinx~=8.1
 sphinx-notfound-page
 sphinx-rtd-theme
 sphinx-tabs
