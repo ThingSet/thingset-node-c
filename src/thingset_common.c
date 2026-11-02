@@ -111,7 +111,7 @@ int thingset_common_serialize_record(struct thingset_context *ts,
     size_t record_offset;
     int err;
 
-    if (record_index >= records->num_records) {
+    if (record_index < 0 || record_index >= records->num_records) {
         return -THINGSET_ERR_NOT_FOUND;
     }
 
@@ -328,10 +328,12 @@ int thingset_common_update(struct thingset_context *ts)
         /*
          * Test format of simple data types (up to 64-bit) by deserializing the value into a dummy
          * object of the same type. For string and byte buffers only the size of the buffers is
-         * checked.
+         * checked. Types described by a struct don't fit into the dummy buffer, so the data
+         * pointer of the actual object is used for them.
          */
         uint8_t dummy_data[8];
         uint8_t *data = object->type == THINGSET_TYPE_BYTES || object->type == THINGSET_TYPE_ARRAY
+                                || object->type == THINGSET_TYPE_RECORDS
                             ? object->data.u8
                             : dummy_data;
         struct thingset_data_object dummy_object = {

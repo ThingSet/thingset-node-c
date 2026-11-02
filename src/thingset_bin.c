@@ -113,8 +113,8 @@ static int bin_serialize_simple_value(zcbor_state_t *encoder, union thingset_dat
             success = zcbor_int32_put(encoder, *data.i8);
             break;
         case THINGSET_TYPE_F32:
-            if (IS_ENABLED(CONFIG_THINGSET_ENCODE_ZERO_DECIMAL_FLOATS_AS_INTEGERS) && detail == 0)
-            { /* round to 0 decimals: use int */
+            if (IS_ENABLED(CONFIG_THINGSET_ENCODE_ZERO_DECIMAL_FLOATS_AS_INTEGERS) && detail == 0) {
+                /* round to 0 decimals: use int */
                 success = zcbor_int32_put(encoder, lroundf(*data.f32));
             }
             else {
@@ -710,10 +710,11 @@ static int bin_deserialize_value(struct thingset_context *ts,
                 int index = 0;
                 do {
                     /* using uint8_t pointer for byte-wise pointer arithmetics */
-                    union thingset_data_pointer data = { .u8 = array->elements.u8 + index * type_size };
+                    union thingset_data_pointer data = { .u8 = array->elements.u8
+                                                               + index * type_size };
 
-                    err = bin_deserialize_simple_value(ts, data, array->element_type, array->decimals,
-                                                    check_only);
+                    err = bin_deserialize_simple_value(ts, data, array->element_type,
+                                                       array->decimals, check_only);
                     if (err != 0) {
                         break;
                     }
@@ -744,15 +745,16 @@ static int bin_deserialize_value(struct thingset_context *ts,
 
                     while (zcbor_uint32_decode(ts->decoder, &id) && id < UINT16_MAX) {
                         struct thingset_data_object *element = thingset_get_object_by_id(ts, id);
-                        if (element == NULL) {
+                        /* only items belonging to this record may be used */
+                        if (element == NULL || element->parent_id != object->id) {
                             zcbor_any_skip(ts->decoder, NULL);
                             continue;
                         }
                         union thingset_data_pointer data = { .u8 = ((uint8_t *)records->records)
-                                                                + (i * records->record_size)
-                                                                + element->data.offset };
+                                                                   + (i * records->record_size)
+                                                                   + element->data.offset };
                         err = bin_deserialize_simple_value(ts, data, element->type, element->detail,
-                                                        check_only);
+                                                           check_only);
                     }
 
                     success = zcbor_map_end_decode(ts->decoder);

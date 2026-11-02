@@ -1083,6 +1083,103 @@ ZTEST(thingset_bin, test_import_record)
     records[1].f32_arr[2] = 7.89F;
 }
 
+/* An UPDATE of a whole records object must not treat the dummy check buffer as a record struct. */
+ZTEST(thingset_bin, test_update_records_empty)
+{
+    /* = {0x600: [{},{}]} */
+#if CONFIG_THINGSET_BINARY_MAX_DEPTH >= 5
+    THINGSET_ASSERT_REQUEST_HEX("07 00 A1 19 0600 82 A0 A0", "84 F6 F6");
+#else
+    /* the record map cannot be entered with the default nesting depth */
+    THINGSET_ASSERT_REQUEST_HEX("07 00 A1 19 0600 82 A0 A0", "AF F6 F6");
+#endif
+
+    zassert_equal(records[0].timestamp, 1);
+    zassert_equal(records[1].timestamp, 2);
+}
+
+/*
+ * The following tests deserialize the content of a record map, which requires a nesting depth of
+ * 3 (outer map, list of records, record map) and thus CONFIG_THINGSET_BINARY_MAX_DEPTH >= 5.
+ */
+#if CONFIG_THINGSET_BINARY_MAX_DEPTH >= 5
+
+/* An UPDATE of a whole records object must write through the actual records descriptor. */
+ZTEST(thingset_bin, test_update_records_values)
+{
+    /* = {0x600: [{0x601: 5},{0x601: 6}]} */
+    THINGSET_ASSERT_REQUEST_HEX("07 00 A1 19 0600 82 A1 19 0601 05 A1 19 0601 06", "84 F6 F6");
+
+    zassert_equal(records[0].timestamp, 5);
+    zassert_equal(records[1].timestamp, 6);
+
+    records[0].timestamp = 1;
+    records[1].timestamp = 2;
+}
+
+/* Items of a nested record must be addressed by IDs belonging to that record. */
+ZTEST(thingset_bin, test_import_record_foreign_id)
+{
+    struct thingset_endpoint endpoint;
+    uint8_t data[THINGSET_TEST_BUF_SIZE];
+    int err;
+
+    /* 0x502 is Access/wItem, a float item that does not belong to record 0x610 */
+    const char data_hex[] =
+        "A1 "
+        "19 06 10 "                /* Records/Nested */
+        "82 "                      /* two records */
+        "A1 19 05 02 FA 3F800000 " /* {Access/wItem: 1.0} -> must be ignored */
+        "A0";                      /* {} */
+    int data_len = hex2bin_spaced(data_hex, data, sizeof(data));
+
+    err = thingset_endpoint_by_path(&ts, &endpoint, "Records/1", strlen("Records/1"));
+    zassert_equal(err, 0);
+
+    uint32_t child_u32_bak = records[1].nested[0].child_u32;
+    float child_f32_bak = records[1].nested[0].child_f32;
+
+    err = thingset_import_record(&ts, data, data_len, &endpoint, THINGSET_BIN_IDS_VALUES);
+    zassert_equal(err, 0, "act: 0x%X", -err);
+
+    /* the foreign item must have been skipped without touching the record */
+    zassert_equal(records[1].nested[0].child_u32, child_u32_bak);
+    zassert_equal(records[1].nested[0].child_f32, child_f32_bak);
+}
+
+/* Items that do belong to the nested record must still be written. */
+ZTEST(thingset_bin, test_import_record_nested)
+{
+    struct thingset_endpoint endpoint;
+    uint8_t data[THINGSET_TEST_BUF_SIZE];
+    int err;
+
+    const char data_hex[] =
+        "A1 "
+        "19 06 10 "       /* Records/Nested */
+        "82 "             /* two records */
+        "A1 19 06 11 0A " /* {Nested/wU32: 10} */
+        "A1 19 06 11 14"; /* {Nested/wU32: 20} */
+    int data_len = hex2bin_spaced(data_hex, data, sizeof(data));
+
+    err = thingset_endpoint_by_path(&ts, &endpoint, "Records/1", strlen("Records/1"));
+    zassert_equal(err, 0);
+
+    uint32_t bak0 = records[1].nested[0].child_u32;
+    uint32_t bak1 = records[1].nested[1].child_u32;
+
+    err = thingset_import_record(&ts, data, data_len, &endpoint, THINGSET_BIN_IDS_VALUES);
+    zassert_equal(err, 0, "act: 0x%X", -err);
+
+    zassert_equal(records[1].nested[0].child_u32, 10);
+    zassert_equal(records[1].nested[1].child_u32, 20);
+
+    records[1].nested[0].child_u32 = bak0;
+    records[1].nested[1].child_u32 = bak1;
+}
+
+#endif /* CONFIG_THINGSET_BINARY_MAX_DEPTH >= 5 */
+
 static void *thingset_setup(void)
 {
     thingset_init_global(&ts);
