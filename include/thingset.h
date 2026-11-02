@@ -1240,10 +1240,10 @@ extern "C" {
  * @param struct_type Type of the struct used for the records (e.g. `struct my_record`)
  * @param struct_member Struct member of type `int32_t` array used for this item
  */
-#define THINGSET_DEFINE_RECORD_DECFRAC_ARRAY(var_name, decfrac, struct_type, struct_member) \
+#define THINGSET_DEFINE_RECORD_DECFRAC_ARRAY(var_name, decimals, struct_type, struct_member) \
     struct thingset_array var_name = { \
         { .offset = offsetof(struct_type, struct_member) }, \
-        THINGSET_TYPE_F32, \
+        THINGSET_TYPE_DECFRAC, \
         decimals, \
         _ARRAY_SIZE(((struct_type *)0)->struct_member), \
         _ARRAY_SIZE(((struct_type *)0)->struct_member), \
@@ -1344,7 +1344,7 @@ extern "C" {
 #define THINGSET_ENDPOINT_INDEX_NONE (-1) /**< No index provided for endpoint */
 #define THINGSET_ENDPOINT_INDEX_NEW  (-2) /**< Non-existent element behind the last element */
 
-#define THINGSET_CONTEXT_LOCK_TIMEOUT_MS (1000)
+#define THINGSET_CONTEXT_LOCK_TIMEOUT_MS (1000) /**< Timeout to acquire the context lock */
 
 /** ThingSet data object ID (16-bit) */
 typedef uint16_t thingset_object_id_t;
@@ -1776,8 +1776,8 @@ int thingset_export_subsets_progressively(struct thingset_context *ts, uint8_t *
                                           size_t *len);
 
 /**
- * Aborts the export of data to the buffer passed to @ref
- * thingset_export_subsets_progressively. Call this method if
+ * Aborts the export of data to the buffer passed to
+ * thingset_export_subsets_progressively(). Call this method if
  * the export has failed outside ThingSet code.
  *
  * @param ts Pointer to ThingSet context.
@@ -1873,7 +1873,7 @@ int thingset_import_report(struct thingset_context *ts, const uint8_t *data, siz
  * @param auth_flags Authentication flags to be used in this function (to override auth_flags)
  * @param last_id ID of last object successfully processed. This *must* be 0 for the first call.
  * @param consumed When the method returns, contains the number of bytes consumed. This may be
- * less than @ref size.
+ * less than @p len.
  *
  * @returns 0 for success, 1 if more data is required or negative ThingSet response code
  * in case of error
@@ -1883,8 +1883,8 @@ int thingset_import_data_progressively(struct thingset_context *ts, const uint8_
                                        uint32_t *last_id, size_t *consumed);
 
 /**
- * Completes the import of data from the buffer passed to @ref
- * thingset_begin_import_data_progressively into data objects.
+ * Completes the import of data from the buffer passed to
+ * thingset_import_data_progressively() into data objects.
  * Call this method if an import completes without errors.
  *
  * @param ts Pointer to ThingSet context.
