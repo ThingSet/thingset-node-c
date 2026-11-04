@@ -194,6 +194,7 @@ int thingset_export_subsets(struct thingset_context *ts, uint8_t *buf, size_t bu
             thingset_bin_setup(ts, 0);
             break;
         default:
+            k_sem_give(&ts->lock);
             return -THINGSET_ERR_NOT_IMPLEMENTED;
     }
 
@@ -623,7 +624,7 @@ struct thingset_data_object *thingset_get_object_by_path(struct thingset_context
 
     /* maximum depth of 10 assumed */
     for (int i = 0; i < 10; i++) {
-        end = strchr(start, '/');
+        end = memchr(start, '/', path + path_len - start);
         if (end == NULL || end >= path + path_len) {
             /* reached at the end of the path */
             if (object != NULL && object->type == THINGSET_TYPE_RECORDS && *start >= '0'
@@ -791,13 +792,14 @@ static int get_function_arg_types(struct thingset_context *ts, uint16_t parent_i
                 len += snprintf(buf, size, ",");
             }
             char *elementType = type_to_type_name(ts->data_objects[i].type);
-            len += snprintf(buf + len, size - len, "%s", elementType);
+            int elem_len = snprintf(buf + len, size - len, "%s", elementType);
+            len += elem_len;
+            if (len >= size) {
+                return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+            }
             buf += len;
             size -= len;
             total_len += len;
-            if (total_len > size) {
-                return -THINGSET_ERR_RESPONSE_TOO_LARGE;
-            }
         }
     }
     return total_len;
@@ -809,7 +811,7 @@ int thingset_get_type_name(struct thingset_context *ts, const struct thingset_da
     switch (obj->type) {
         case THINGSET_TYPE_ARRAY: {
             char *elementType = type_to_type_name(obj->data.array->element_type);
-            if (sizeof(elementType) > size) {
+            if (strlen(elementType) + 3 > size) {
                 return -THINGSET_ERR_RESPONSE_TOO_LARGE;
             }
             return snprintf(buf, size, "%s[]", elementType);

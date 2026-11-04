@@ -610,6 +610,7 @@ static int txt_deserialize_simple_value(struct thingset_context *ts,
                         data.str[data_pos++] = buf[pos];
                     }
                 }
+                data.str[data_pos] = '\0';
 #else
                 strncpy(data.str, buf, len);
                 data.str[len] = '\0';
