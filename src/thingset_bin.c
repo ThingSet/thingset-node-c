@@ -602,18 +602,20 @@ static int bin_deserialize_simple_value(struct thingset_context *ts,
             int32_t *mantissa = data.decfrac;
             if (zcbor_tag_expect(ts->decoder, ZCBOR_TAG_DECFRAC_ARR)) {
                 success = zcbor_list_start_decode(ts->decoder);
-                int32_t mantissa_tmp;
-                int32_t exponent_received;
+                int32_t mantissa_tmp = 0;
+                int32_t exponent_received = 0;
                 success = success && zcbor_int32_decode(ts->decoder, &exponent_received);
                 success = success && zcbor_int32_decode(ts->decoder, &mantissa_tmp);
 
-                for (int i = exponent_received; i < exponent; i++) {
-                    mantissa_tmp /= 10;
+                if (success) {
+                    for (int i = exponent_received; i < exponent; i++) {
+                        mantissa_tmp /= 10;
+                    }
+                    for (int i = exponent_received; i > exponent; i--) {
+                        mantissa_tmp *= 10;
+                    }
+                    *mantissa = mantissa_tmp;
                 }
-                for (int i = exponent_received; i > exponent; i--) {
-                    mantissa_tmp *= 10;
-                }
-                *mantissa = mantissa_tmp;
             }
             else {
                 /* try integer and float types */
