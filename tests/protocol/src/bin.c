@@ -401,12 +401,13 @@ ZTEST(thingset_bin, test_fetch_metadata)
 
     const char rsp_exp_hex[] =
         "85 F6 "
-        "84 "                                                          /* array with 4 elements */
-        "a2 64 6e 61 6d 65 64 77 49 33 32 64 74 79 70 65 63 69 33 32 " /* name: wI32, type: i32
-                                                                        */
-        "a2 64 6e 61 6d 65 63 74 5f 73 64 74 79 70 65 63 75 33 32 "    /* name: t_s, type: u32 */
-        "a2 64 6e 61 6d 65 63 74 5f 73 64 74 79 70 65 63 75 33 32 "    /* name: t_s, type: u32 */
-        "a2 64 6e 61 6d 65 64 4f 62 6a 31 64 74 79 70 65 65 67 72 6f 75 70"; /* name: Obj1,
+        "84 "                                                    /* array with 4 elements */
+        "a3 18 1a 64 77 49 33 32 18 1b 63 69 33 32 18 1c 18 77 " /* name: wI32, type: i32, access:
+                                                                  * any
+                                                                  */
+        "a3 18 1a 63 74 5f 73 18 1b 63 75 33 32 18 1c 0f "       /* name: t_s, type: u32 */
+        "a3 18 1a 63 74 5f 73 18 1b 63 75 33 32 18 1c 18 77 "    /* name: t_s, type: u32 */
+        "a3 18 1a 64 4f 62 6a 31 18 1b 65 67 72 6f 75 70 18 1c 0f "; /* name: Obj1,
                                                                                type: group */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
@@ -424,7 +425,7 @@ ZTEST(thingset_bin, test_fetch_metadata_array)
         "85 F6 "
         "81 " /* array with 1 element */
         /* name: wU16, type: u16[] */
-        "a2 64 6e 61 6d 65 64 77 55 31 36 64 74 79 70 65 65 75 31 36 5b 5d";
+        "a3 18 1a 64 77 55 31 36 18 1b 65 75 31 36 5b 5d 18 1c 18 77 ";
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
@@ -441,7 +442,7 @@ ZTEST(thingset_bin, test_fetch_metadata_void_func)
         "85 F6 "
         "81 " /* array with 1 element */
         /* name: xVoid, type: ()->() */
-        "a2 64 6e 61 6d 65 65 78 56 6f 69 64 64 74 79 70 65 66 28 29 2d 3e 28 29 ";
+        "a3 18 1a 65 78 56 6f 69 64 18 1b 66 28 29 2d 3e 28 29 18 1c 18 77 ";
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }
@@ -458,8 +459,9 @@ ZTEST(thingset_bin, test_fetch_metadata_parameterised_func)
         "85 F6 "
         "81 " /* array with 1 element */
         /* name: xVoid, type: ()->() */
-        "a2 64 6e 61 6d 65 6a 78 49 33 32 50 61 72 61 6d 73 64 74 79 70 65 73 28 73 74 72 69 6e 67 "
-        "2c 69 33 32 29 2d 3e 28 69 33 32 29"; /* name: xI32Params, type: (string,i32)->(i32) */
+        "a3 18 1a 6a 78 49 33 32 50 61 72 61 6d 73 18 1b 73 28 73 74 72 69 6e 67 "
+        "2c 69 33 32 29 2d 3e 28 69 33 32 29 18 1c 18 77 "; /* name: xI32Params, type:
+                                                               (string,i32)->(i32) */
 
     THINGSET_ASSERT_REQUEST_HEX(req_hex, rsp_exp_hex);
 }

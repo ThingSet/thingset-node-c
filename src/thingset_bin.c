@@ -17,6 +17,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#define THINGSET_METADATA_KEY_NAME   0x1A /**< `name` key in metadata overlay */
+#define THINGSET_METADATA_KEY_TYPE   0x1B /**< `type` key in metadata overlay */
+#define THINGSET_METADATA_KEY_ACCESS 0x1C /**< `access` key in metadata overlay */
+
 static void bin_decoder_init(struct thingset_context *ts, const uint8_t *payload,
                              size_t payload_len)
 {
@@ -181,8 +185,7 @@ static int bin_serialize_metadata(struct thingset_context *ts,
         return err;
     }
 
-    const char name[] = "name";
-    if (!zcbor_tstr_put_lit(ts->encoder, name)) {
+    if (!zcbor_uint32_put(ts->encoder, THINGSET_METADATA_KEY_NAME)) {
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
 
@@ -190,8 +193,7 @@ static int bin_serialize_metadata(struct thingset_context *ts,
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
 
-    const char type[] = "type";
-    if (!zcbor_tstr_put_lit(ts->encoder, type)) {
+    if (!zcbor_uint32_put(ts->encoder, THINGSET_METADATA_KEY_TYPE)) {
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
 
@@ -201,6 +203,13 @@ static int bin_serialize_metadata(struct thingset_context *ts,
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
     if (!zcbor_tstr_encode_ptr(ts->encoder, buf, len)) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    if (!zcbor_uint32_put(ts->encoder, THINGSET_METADATA_KEY_ACCESS)) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+    if (!zcbor_uint32_put(ts->encoder, object->access)) {
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
 
@@ -710,10 +719,11 @@ static int bin_deserialize_value(struct thingset_context *ts,
                 int index = 0;
                 do {
                     /* using uint8_t pointer for byte-wise pointer arithmetics */
-                    union thingset_data_pointer data = { .u8 = array->elements.u8 + index * type_size };
+                    union thingset_data_pointer data = { .u8 = array->elements.u8
+                                                               + index * type_size };
 
-                    err = bin_deserialize_simple_value(ts, data, array->element_type, array->decimals,
-                                                    check_only);
+                    err = bin_deserialize_simple_value(ts, data, array->element_type,
+                                                       array->decimals, check_only);
                     if (err != 0) {
                         break;
                     }
@@ -749,10 +759,10 @@ static int bin_deserialize_value(struct thingset_context *ts,
                             continue;
                         }
                         union thingset_data_pointer data = { .u8 = ((uint8_t *)records->records)
-                                                                + (i * records->record_size)
-                                                                + element->data.offset };
+                                                                   + (i * records->record_size)
+                                                                   + element->data.offset };
                         err = bin_deserialize_simple_value(ts, data, element->type, element->detail,
-                                                        check_only);
+                                                           check_only);
                     }
 
                     success = zcbor_map_end_decode(ts->decoder);

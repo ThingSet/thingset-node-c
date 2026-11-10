@@ -400,6 +400,17 @@ static int txt_serialize_metadata(struct thingset_context *ts,
         return -THINGSET_ERR_RESPONSE_TOO_LARGE;
     }
 
+    if ((err = txt_serialize_string(ts, "access", true))) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    len = snprintf(ts->rsp + ts->rsp_pos, ts->rsp_size - ts->rsp_pos, "%d", object->access);
+    if (len < 0) {
+        return -THINGSET_ERR_RESPONSE_TOO_LARGE;
+    }
+
+    ts->rsp_pos += len;
+
     if ((err = txt_serialize_map_end(ts))) {
         return err;
     }
