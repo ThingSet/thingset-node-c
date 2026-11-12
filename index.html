@@ -1,0 +1,447 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThingSet Node Library Documentation &mdash; ThingSet Node library in C  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Features" href="src/features.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #52595d" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            ThingSet Node library in C
+              <img src="_static/thingset_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src/features.html">Features</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src/dev/unit_tests.html">Unit Tests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src/api/library.html">Library API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_BIN_GET"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_GET</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_BIN_EXEC"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_EXEC</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_BIN_DELETE"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_DELETE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_BIN_FETCH"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_FETCH</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_BIN_CREATE"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_CREATE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_BIN_UPDATE"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_UPDATE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_BIN_DESIRE"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_DESIRE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_BIN_REPORT"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_REPORT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_TXT_GET_FETCH"><code class="docutils literal notranslate"><span class="pre">THINGSET_TXT_GET_FETCH</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_TXT_EXEC"><code class="docutils literal notranslate"><span class="pre">THINGSET_TXT_EXEC</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_TXT_DELETE"><code class="docutils literal notranslate"><span class="pre">THINGSET_TXT_DELETE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_TXT_CREATE"><code class="docutils literal notranslate"><span class="pre">THINGSET_TXT_CREATE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_TXT_UPDATE"><code class="docutils literal notranslate"><span class="pre">THINGSET_TXT_UPDATE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_TXT_DESIRE"><code class="docutils literal notranslate"><span class="pre">THINGSET_TXT_DESIRE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_TXT_REPORT"><code class="docutils literal notranslate"><span class="pre">THINGSET_TXT_REPORT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_STATUS_CREATED"><code class="docutils literal notranslate"><span class="pre">THINGSET_STATUS_CREATED</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_STATUS_DELETED"><code class="docutils literal notranslate"><span class="pre">THINGSET_STATUS_DELETED</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_STATUS_CHANGED"><code class="docutils literal notranslate"><span class="pre">THINGSET_STATUS_CHANGED</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_STATUS_CONTENT"><code class="docutils literal notranslate"><span class="pre">THINGSET_STATUS_CONTENT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_BAD_REQUEST"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_BAD_REQUEST</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_UNAUTHORIZED"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_UNAUTHORIZED</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_FORBIDDEN"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_FORBIDDEN</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_NOT_FOUND"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_NOT_FOUND</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_METHOD_NOT_ALLOWED"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_METHOD_NOT_ALLOWED</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_REQUEST_INCOMPLETE"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_REQUEST_INCOMPLETE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_CONFLICT"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_CONFLICT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_REQUEST_TOO_LARGE"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_REQUEST_TOO_LARGE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_UNSUPPORTED_FORMAT"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_UNSUPPORTED_FORMAT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_INTERNAL_SERVER_ERR"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_INTERNAL_SERVER_ERR</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_NOT_IMPLEMENTED"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_NOT_IMPLEMENTED</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_GATEWAY_TIMEOUT"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_GATEWAY_TIMEOUT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_NOT_A_GATEWAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_NOT_A_GATEWAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_RESPONSE_TOO_LARGE"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_RESPONSE_TOO_LARGE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERR_DESERIALIZATION_FINISHED"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERR_DESERIALIZATION_FINISHED</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ERROR"><code class="docutils literal notranslate"><span class="pre">THINGSET_ERROR</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_SUCCESS"><code class="docutils literal notranslate"><span class="pre">THINGSET_SUCCESS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ID_ROOT"><code class="docutils literal notranslate"><span class="pre">THINGSET_ID_ROOT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ID_TIME"><code class="docutils literal notranslate"><span class="pre">THINGSET_ID_TIME</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ID_IDS"><code class="docutils literal notranslate"><span class="pre">THINGSET_ID_IDS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ID_PATHS"><code class="docutils literal notranslate"><span class="pre">THINGSET_ID_PATHS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ID_METADATAURL"><code class="docutils literal notranslate"><span class="pre">THINGSET_ID_METADATAURL</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ID_METADATA"><code class="docutils literal notranslate"><span class="pre">THINGSET_ID_METADATA</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ID_NODEID"><code class="docutils literal notranslate"><span class="pre">THINGSET_ID_NODEID</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_BOOL"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_BOOL</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_UINT8"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_UINT8</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_INT8"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_INT8</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_UINT16"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_UINT16</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_INT16"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_INT16</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_UINT32"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_UINT32</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_INT32"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_INT32</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_UINT64"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_UINT64</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_INT64"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_INT64</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_FLOAT"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_FLOAT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_DECFRAC"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_DECFRAC</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_STRING"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_STRING</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_BYTES"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_BYTES</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_FN_VOID"><code class="docutils literal notranslate"><span class="pre">THINGSET_FN_VOID</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_FN_INT32"><code class="docutils literal notranslate"><span class="pre">THINGSET_FN_INT32</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ITEM_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_ITEM_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORDS"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORDS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DYN_RECORDS"><code class="docutils literal notranslate"><span class="pre">THINGSET_DYN_RECORDS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_SUBSET"><code class="docutils literal notranslate"><span class="pre">THINGSET_SUBSET</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_GROUP"><code class="docutils literal notranslate"><span class="pre">THINGSET_GROUP</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_BOOL"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_BOOL</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_UINT64"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_UINT64</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_INT64"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_INT64</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_UINT32"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_UINT32</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_INT32"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_INT32</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_UINT16"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_UINT16</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_INT16"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_INT16</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_UINT8"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_UINT8</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_INT8"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_INT8</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_FLOAT"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_FLOAT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_DECFRAC"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_DECFRAC</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_STRING"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_STRING</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_RECORD_ITEM_RECORD"><code class="docutils literal notranslate"><span class="pre">THINGSET_RECORD_ITEM_RECORD</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_BOOL"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_BOOL</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_UINT64"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_UINT64</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_INT64"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_INT64</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_UINT32"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_UINT32</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_INT32"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_INT32</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_UINT16"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_UINT16</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_INT16"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_INT16</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_UINT8"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_UINT8</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_INT8"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_INT8</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_FLOAT"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_FLOAT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_DECFRAC"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_DECFRAC</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_STRING"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_STRING</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_BYTES"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_BYTES</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_ITEM_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_ITEM_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_FN_VOID"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_FN_VOID</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_FN_INT32"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_FN_INT32</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_SUBSET"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_SUBSET</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_GROUP"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_GROUP</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORDS"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORDS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_DYN_RECORDS"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_DYN_RECORDS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_BOOL"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_BOOL</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_UINT64"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_UINT64</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_INT64"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_INT64</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_UINT32"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_UINT32</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_INT32"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_INT32</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_UINT16"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_UINT16</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_INT16"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_INT16</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_UINT8"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_UINT8</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_INT8"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_INT8</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_FLOAT"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_FLOAT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_DECFRAC"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_DECFRAC</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_STRING"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_STRING</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ADD_RECORD_ITEM_RECORD"><code class="docutils literal notranslate"><span class="pre">THINGSET_ADD_RECORD_ITEM_RECORD</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_BYTES"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_BYTES</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_BOOL_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_BOOL_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_UINT8_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_UINT8_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_INT8_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_INT8_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_UINT16_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_UINT16_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_INT16_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_INT16_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_UINT32_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_UINT32_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_INT32_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_INT32_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_UINT64_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_UINT64_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_INT64_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_INT64_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_FLOAT_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_FLOAT_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_DECFRAC_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_DECFRAC_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_BOOL_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_BOOL_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_UINT8_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_UINT8_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_INT8_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_INT8_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_UINT16_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_UINT16_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_INT16_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_INT16_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_UINT32_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_UINT32_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_INT32_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_INT32_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_UINT64_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_UINT64_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_INT64_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_INT64_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_FLOAT_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_FLOAT_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_DECFRAC_ARRAY"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_DECFRAC_ARRAY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORD_RECORDS"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORD_RECORDS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_RECORDS"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_RECORDS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_DEFINE_DYN_RECORDS"><code class="docutils literal notranslate"><span class="pre">THINGSET_DEFINE_DYN_RECORDS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_NO_CALLBACK"><code class="docutils literal notranslate"><span class="pre">THINGSET_NO_CALLBACK</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_USR_R"><code class="docutils literal notranslate"><span class="pre">THINGSET_USR_R</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_EXP_R"><code class="docutils literal notranslate"><span class="pre">THINGSET_EXP_R</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_MFR_R"><code class="docutils literal notranslate"><span class="pre">THINGSET_MFR_R</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ANY_R"><code class="docutils literal notranslate"><span class="pre">THINGSET_ANY_R</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_USR_W"><code class="docutils literal notranslate"><span class="pre">THINGSET_USR_W</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_EXP_W"><code class="docutils literal notranslate"><span class="pre">THINGSET_EXP_W</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_MFR_W"><code class="docutils literal notranslate"><span class="pre">THINGSET_MFR_W</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ANY_W"><code class="docutils literal notranslate"><span class="pre">THINGSET_ANY_W</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_USR_RW"><code class="docutils literal notranslate"><span class="pre">THINGSET_USR_RW</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_EXP_RW"><code class="docutils literal notranslate"><span class="pre">THINGSET_EXP_RW</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_MFR_RW"><code class="docutils literal notranslate"><span class="pre">THINGSET_MFR_RW</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ANY_RW"><code class="docutils literal notranslate"><span class="pre">THINGSET_ANY_RW</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ENDPOINT_INDEX_NONE"><code class="docutils literal notranslate"><span class="pre">THINGSET_ENDPOINT_INDEX_NONE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_ENDPOINT_INDEX_NEW"><code class="docutils literal notranslate"><span class="pre">THINGSET_ENDPOINT_INDEX_NEW</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.THINGSET_CONTEXT_LOCK_TIMEOUT_MS"><code class="docutils literal notranslate"><span class="pre">THINGSET_CONTEXT_LOCK_TIMEOUT_MS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_object_id_t"><code class="docutils literal notranslate"><span class="pre">thingset_object_id_t</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_group_callback_t"><code class="docutils literal notranslate"><span class="pre">thingset_group_callback_t</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_records_callback_t"><code class="docutils literal notranslate"><span class="pre">thingset_records_callback_t</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_callback_reason"><code class="docutils literal notranslate"><span class="pre">thingset_callback_reason</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_callback_reason.THINGSET_CALLBACK_PRE_READ"><code class="docutils literal notranslate"><span class="pre">THINGSET_CALLBACK_PRE_READ</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_callback_reason.THINGSET_CALLBACK_POST_READ"><code class="docutils literal notranslate"><span class="pre">THINGSET_CALLBACK_POST_READ</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_callback_reason.THINGSET_CALLBACK_PRE_WRITE"><code class="docutils literal notranslate"><span class="pre">THINGSET_CALLBACK_PRE_WRITE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_callback_reason.THINGSET_CALLBACK_POST_WRITE"><code class="docutils literal notranslate"><span class="pre">THINGSET_CALLBACK_POST_WRITE</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_data_format"><code class="docutils literal notranslate"><span class="pre">thingset_data_format</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_format.THINGSET_TXT_NAMES_VALUES"><code class="docutils literal notranslate"><span class="pre">THINGSET_TXT_NAMES_VALUES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_format.THINGSET_TXT_NAMES_ONLY"><code class="docutils literal notranslate"><span class="pre">THINGSET_TXT_NAMES_ONLY</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_format.THINGSET_TXT_VALUES_ONLY"><code class="docutils literal notranslate"><span class="pre">THINGSET_TXT_VALUES_ONLY</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_format.THINGSET_BIN_IDS_VALUES"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_IDS_VALUES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_format.THINGSET_BIN_NAMES_VALUES"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_NAMES_VALUES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_format.THINGSET_BIN_IDS_ONLY"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_IDS_ONLY</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_format.THINGSET_BIN_VALUES_ONLY"><code class="docutils literal notranslate"><span class="pre">THINGSET_BIN_VALUES_ONLY</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_init"><code class="docutils literal notranslate"><span class="pre">thingset_init()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_init_global"><code class="docutils literal notranslate"><span class="pre">thingset_init_global()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_process_message"><code class="docutils literal notranslate"><span class="pre">thingset_process_message()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_export_subsets"><code class="docutils literal notranslate"><span class="pre">thingset_export_subsets()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_export_subsets_progressively"><code class="docutils literal notranslate"><span class="pre">thingset_export_subsets_progressively()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_export_subsets_progressively_abort"><code class="docutils literal notranslate"><span class="pre">thingset_export_subsets_progressively_abort()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_export_item"><code class="docutils literal notranslate"><span class="pre">thingset_export_item()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_iterate_subsets"><code class="docutils literal notranslate"><span class="pre">thingset_iterate_subsets()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_import_data"><code class="docutils literal notranslate"><span class="pre">thingset_import_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_import_report"><code class="docutils literal notranslate"><span class="pre">thingset_import_report()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_import_data_progressively"><code class="docutils literal notranslate"><span class="pre">thingset_import_data_progressively()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_import_data_progressively_end"><code class="docutils literal notranslate"><span class="pre">thingset_import_data_progressively_end()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_import_record"><code class="docutils literal notranslate"><span class="pre">thingset_import_record()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_report_path"><code class="docutils literal notranslate"><span class="pre">thingset_report_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_set_authentication"><code class="docutils literal notranslate"><span class="pre">thingset_set_authentication()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_set_update_callback"><code class="docutils literal notranslate"><span class="pre">thingset_set_update_callback()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_endpoint_by_path"><code class="docutils literal notranslate"><span class="pre">thingset_endpoint_by_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_endpoint_by_id"><code class="docutils literal notranslate"><span class="pre">thingset_endpoint_by_id()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_bytes"><code class="docutils literal notranslate"><span class="pre">thingset_bytes</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_bytes.bytes"><code class="docutils literal notranslate"><span class="pre">bytes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_bytes.max_bytes"><code class="docutils literal notranslate"><span class="pre">max_bytes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_bytes.num_bytes"><code class="docutils literal notranslate"><span class="pre">num_bytes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_array"><code class="docutils literal notranslate"><span class="pre">thingset_array</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_array.elements"><code class="docutils literal notranslate"><span class="pre">elements</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_array.element_type"><code class="docutils literal notranslate"><span class="pre">element_type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_array.decimals"><code class="docutils literal notranslate"><span class="pre">decimals</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_array.max_elements"><code class="docutils literal notranslate"><span class="pre">max_elements</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_array.num_elements"><code class="docutils literal notranslate"><span class="pre">num_elements</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_records"><code class="docutils literal notranslate"><span class="pre">thingset_records</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_records.records"><code class="docutils literal notranslate"><span class="pre">records</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_records.record_size"><code class="docutils literal notranslate"><span class="pre">record_size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_records.max_records"><code class="docutils literal notranslate"><span class="pre">max_records</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_records.num_records"><code class="docutils literal notranslate"><span class="pre">num_records</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_records.callback"><code class="docutils literal notranslate"><span class="pre">callback</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_data_object"><code class="docutils literal notranslate"><span class="pre">thingset_data_object</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_object.parent_id"><code class="docutils literal notranslate"><span class="pre">parent_id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_object.id"><code class="docutils literal notranslate"><span class="pre">id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_object.name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_object.data"><code class="docutils literal notranslate"><span class="pre">data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_object.type"><code class="docutils literal notranslate"><span class="pre">type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_object.detail"><code class="docutils literal notranslate"><span class="pre">detail</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_object.access"><code class="docutils literal notranslate"><span class="pre">access</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_data_object.subsets"><code class="docutils literal notranslate"><span class="pre">subsets</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_endpoint"><code class="docutils literal notranslate"><span class="pre">thingset_endpoint</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_endpoint.object"><code class="docutils literal notranslate"><span class="pre">object</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_endpoint.index"><code class="docutils literal notranslate"><span class="pre">index</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_endpoint.use_ids"><code class="docutils literal notranslate"><span class="pre">use_ids</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/library.html#c.thingset_context"><code class="docutils literal notranslate"><span class="pre">thingset_context</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.data_objects"><code class="docutils literal notranslate"><span class="pre">data_objects</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.num_objects"><code class="docutils literal notranslate"><span class="pre">num_objects</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.lock"><code class="docutils literal notranslate"><span class="pre">lock</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.msg"><code class="docutils literal notranslate"><span class="pre">msg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.msg_len"><code class="docutils literal notranslate"><span class="pre">msg_len</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.msg_pos"><code class="docutils literal notranslate"><span class="pre">msg_pos</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.msg_payload"><code class="docutils literal notranslate"><span class="pre">msg_payload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.rsp"><code class="docutils literal notranslate"><span class="pre">rsp</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.rsp_size"><code class="docutils literal notranslate"><span class="pre">rsp_size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.rsp_pos"><code class="docutils literal notranslate"><span class="pre">rsp_pos</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.api"><code class="docutils literal notranslate"><span class="pre">api</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.tokens"><code class="docutils literal notranslate"><span class="pre">tokens</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.tok_count"><code class="docutils literal notranslate"><span class="pre">tok_count</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.tok_pos"><code class="docutils literal notranslate"><span class="pre">tok_pos</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.encoder"><code class="docutils literal notranslate"><span class="pre">encoder</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.decoder"><code class="docutils literal notranslate"><span class="pre">decoder</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.auth_flags"><code class="docutils literal notranslate"><span class="pre">auth_flags</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.update_subsets"><code class="docutils literal notranslate"><span class="pre">update_subsets</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.update_cb"><code class="docutils literal notranslate"><span class="pre">update_cb</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/library.html#c.thingset_context.endpoint"><code class="docutils literal notranslate"><span class="pre">endpoint</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="src/api/internal.html">Internal</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_common_record_element_action"><code class="docutils literal notranslate"><span class="pre">thingset_common_record_element_action</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_bin_serialize_response"><code class="docutils literal notranslate"><span class="pre">thingset_bin_serialize_response()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_txt_serialize_response"><code class="docutils literal notranslate"><span class="pre">thingset_txt_serialize_response()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_get_child_by_name"><code class="docutils literal notranslate"><span class="pre">thingset_get_child_by_name()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_get_object_by_id"><code class="docutils literal notranslate"><span class="pre">thingset_get_object_by_id()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_get_object_by_path"><code class="docutils literal notranslate"><span class="pre">thingset_get_object_by_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_get_path"><code class="docutils literal notranslate"><span class="pre">thingset_get_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_get_type_name"><code class="docutils literal notranslate"><span class="pre">thingset_get_type_name()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_txt_desire"><code class="docutils literal notranslate"><span class="pre">thingset_txt_desire()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_txt_process"><code class="docutils literal notranslate"><span class="pre">thingset_txt_process()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_txt_setup"><code class="docutils literal notranslate"><span class="pre">thingset_txt_setup()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_bin_desire"><code class="docutils literal notranslate"><span class="pre">thingset_bin_desire()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_bin_process"><code class="docutils literal notranslate"><span class="pre">thingset_bin_process()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_bin_setup"><code class="docutils literal notranslate"><span class="pre">thingset_bin_setup()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_bin_import_data"><code class="docutils literal notranslate"><span class="pre">thingset_bin_import_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_bin_import_report"><code class="docutils literal notranslate"><span class="pre">thingset_bin_import_report()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_bin_import_data_progressively"><code class="docutils literal notranslate"><span class="pre">thingset_bin_import_data_progressively()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_bin_export_subsets_progressively"><code class="docutils literal notranslate"><span class="pre">thingset_bin_export_subsets_progressively()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_common_serialize_group"><code class="docutils literal notranslate"><span class="pre">thingset_common_serialize_group()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_common_serialize_record"><code class="docutils literal notranslate"><span class="pre">thingset_common_serialize_record()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_common_prepare_record_element"><code class="docutils literal notranslate"><span class="pre">thingset_common_prepare_record_element()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_common_get"><code class="docutils literal notranslate"><span class="pre">thingset_common_get()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_common_fetch"><code class="docutils literal notranslate"><span class="pre">thingset_common_fetch()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_common_update"><code class="docutils literal notranslate"><span class="pre">thingset_common_update()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_common_exec"><code class="docutils literal notranslate"><span class="pre">thingset_common_exec()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_common_create"><code class="docutils literal notranslate"><span class="pre">thingset_common_create()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_common_delete"><code class="docutils literal notranslate"><span class="pre">thingset_common_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/api/internal.html#c.thingset_api"><code class="docutils literal notranslate"><span class="pre">thingset_api</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_response"><code class="docutils literal notranslate"><span class="pre">serialize_response</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_key"><code class="docutils literal notranslate"><span class="pre">serialize_key</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_value"><code class="docutils literal notranslate"><span class="pre">serialize_value</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_path"><code class="docutils literal notranslate"><span class="pre">serialize_path</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_key_value"><code class="docutils literal notranslate"><span class="pre">serialize_key_value</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_map_start"><code class="docutils literal notranslate"><span class="pre">serialize_map_start</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_map_end"><code class="docutils literal notranslate"><span class="pre">serialize_map_end</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_list_start"><code class="docutils literal notranslate"><span class="pre">serialize_list_start</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_list_end"><code class="docutils literal notranslate"><span class="pre">serialize_list_end</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_subsets"><code class="docutils literal notranslate"><span class="pre">serialize_subsets</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_report_header"><code class="docutils literal notranslate"><span class="pre">serialize_report_header</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.serialize_finish"><code class="docutils literal notranslate"><span class="pre">serialize_finish</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.deserialize_payload_reset"><code class="docutils literal notranslate"><span class="pre">deserialize_payload_reset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.deserialize_string"><code class="docutils literal notranslate"><span class="pre">deserialize_string</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.deserialize_null"><code class="docutils literal notranslate"><span class="pre">deserialize_null</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.deserialize_list_start"><code class="docutils literal notranslate"><span class="pre">deserialize_list_start</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.deserialize_map_start"><code class="docutils literal notranslate"><span class="pre">deserialize_map_start</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.deserialize_child"><code class="docutils literal notranslate"><span class="pre">deserialize_child</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.deserialize_value"><code class="docutils literal notranslate"><span class="pre">deserialize_value</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.deserialize_skip"><code class="docutils literal notranslate"><span class="pre">deserialize_skip</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/api/internal.html#c.thingset_api.deserialize_finish"><code class="docutils literal notranslate"><span class="pre">deserialize_finish</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #52595d" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">ThingSet Node library in C</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ThingSet Node Library Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/ThingSet/thingset-node-c/blob/main/docs/index.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="thingset-node-library-documentation">
+<h1>ThingSet Node Library Documentation<a class="headerlink" href="#thingset-node-library-documentation" title="Link to this heading"></a></h1>
+<p><a class="reference external" href="https://thingset.io">ThingSet</a> is a transport-agnostic and self-explanatory remote API for
+embedded devices and humans.</p>
+<p>This library implements the node side in C for v0.6 of the specification. It was re-implemented
+almost from scratch to overcome shortcomings of the previous
+<a class="reference external" href="https://github.com/ThingSet/thingset-device-library">ThingSet device library</a>.</p>
+<p>The main goal is to provide a full-featured ThingSet module for <a class="reference external" href="https://zephyrproject.org">Zephyr RTOS</a>. The Zephyr
+environment is currently required, but the library can also be used in other embedded C
+environments with minor changes.</p>
+<p>This library uses the very lightweight <a class="reference external" href="https://github.com/zserge/jsmn">JSMN parser</a> for JSON
+data and the <a class="reference external" href="https://github.com/zephyrproject-rtos/zcbor">zcbor</a> library that comes with Zephyr
+for CBOR data.</p>
+<p>This documentation is licensed under the Creative Commons Attribution-ShareAlike 4.0 International
+(CC BY-SA 4.0) License.</p>
+<img alt="_images/cc-by-sa-centered.png" src="_images/cc-by-sa-centered.png" />
+<p>The full license text is available at <a class="reference external" href="https://creativecommons.org/licenses/by-sa/4.0/">https://creativecommons.org/licenses/by-sa/4.0/</a>.</p>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="src/features.html" class="btn btn-neutral float-right" title="Features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 The ThingSet Project Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
